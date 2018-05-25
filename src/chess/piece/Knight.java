@@ -2,8 +2,8 @@ package chess.piece;
 
 public class Knight extends Piece
 {
-    public Knight(int position)
+    public Knight(int color)
     {
-        super(position, PieceValues.KNIGHT_VALUE);
+        super(PieceValues.KNIGHT_VALUE, color);
     }
 }

@@ -2,8 +2,8 @@ package chess.piece;
 
 public class Bishop extends Piece
 {
-    public Bishop(int position)
+    public Bishop(int color)
     {
-        super(position, PieceValues.BISHOP_VALUE);
+        super(PieceValues.BISHOP_VALUE, color);
     }
 }

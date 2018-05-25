@@ -3,22 +3,12 @@ package chess.piece;
 public abstract class Piece
 {
     private final double value;
-    private int position;
-    private final char[] files = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+    private final int color;
 
-    /**
-     *
-     * @param position Must be >= 0 and < 64
-     * @param value
-     */
-    public Piece(int position, double value)
+    public Piece(double value, int color)
     {
-        if (position < 0 || position > 63)
-        {
-            throw new IndexOutOfBoundsException();
-        }
-        this.position = position;
         this.value = value;
+        this.color = color;
     }
 
     public double getValue()
@@ -29,6 +19,6 @@ public abstract class Piece
     @Override
     public String toString()
     {
-        return files[position % 8] + "" + ((position / 8) + 1);
+        return getClass().getName() + "(value = " + value + ", color = " + color + ")";
     }
 }
