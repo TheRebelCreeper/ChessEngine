@@ -16,18 +16,6 @@ public class Board
         setupPieces();
     }
 
-    public String getColorAtPosition(int i)
-    {
-        if (squares[i] instanceof LightSquare)
-        {
-            return "light";
-        }
-        else
-        {
-            return "dark";
-        }
-    }
-
     public Piece getPieceAt(int i)
     {
         return squares[i].getPiece();
@@ -35,36 +23,8 @@ public class Board
 
     public Piece getPieceAt(char file, int rank)
     {
-        int column;
-        switch(file){
-            case 'a':
-                column = 0;
-                break;
-            case 'b':
-                column = 1;
-                break;
-            case 'c':
-                column = 2;
-                break;
-            case 'd':
-                column = 3;
-                break;
-            case 'e':
-                column = 4;
-                break;
-            case 'f':
-                column = 5;
-                break;
-            case 'g':
-                column = 6;
-                break;
-            case 'h':
-                column = 7;
-                break;
-                default:
-                    column = 0;
-        }
-        return squares[(8 * (rank - 1)) + column].getPiece();
+        int position = notationToPosition(file, rank);
+        return squares[position].getPiece();
     }
 
     public Square getSquareAt(int i)
@@ -130,5 +90,49 @@ public class Board
                 }
             }
         }
+    }
+
+    /**
+     *
+     * @param file lowercase character from a-h
+     * @param rank integer from 1-8
+     * @return
+     */
+    private int notationToPosition(char file, int rank)
+    {
+        if (rank < 1 || rank > 8)
+        {
+            throw new IndexOutOfBoundsException("Invalid rank for chess notation");
+        }
+        int column = 0;
+        switch(file){
+            case 'a':
+                column = 0;
+                break;
+            case 'b':
+                column = 1;
+                break;
+            case 'c':
+                column = 2;
+                break;
+            case 'd':
+                column = 3;
+                break;
+            case 'e':
+                column = 4;
+                break;
+            case 'f':
+                column = 5;
+                break;
+            case 'g':
+                column = 6;
+                break;
+            case 'h':
+                column = 7;
+                break;
+            default:
+                throw new IndexOutOfBoundsException("Invalid file for chess notation");
+        }
+        return (8 * (rank - 1) + column);
     }
 }

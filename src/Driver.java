@@ -1,8 +1,4 @@
 import chess.board.Board;
-import chess.piece.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Driver
 {
@@ -11,6 +7,6 @@ public class Driver
         Board board = new Board();
         System.out.println(board.getSquareAt(0));
         System.out.println(board.getPieceAt(4));
-        System.out.println(board.getPieceAt('e', 8));
+        System.out.println(board.getPieceAt('h', 8));
     }
 }
