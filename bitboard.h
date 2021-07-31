@@ -19,14 +19,23 @@ enum
 #define clear_square(board, square) ((board) &= ~(1ULL << (square)))
 #define get_square(board, square) ((board) & (1ULL << (square)))
 
-extern const U64 AFile;
-extern const U64 BFile;
-extern const U64 CFile;
-extern const U64 DFile;
-extern const U64 EFile;
-extern const U64 FFile;
-extern const U64 GFile;
-extern const U64 HFile;
+extern const U64 FileA;
+extern const U64 FileB;
+extern const U64 FileC;
+extern const U64 FileD;
+extern const U64 FileE;
+extern const U64 FileF;
+extern const U64 FileG;
+extern const U64 FileH;
+
+extern const U64 Rank1;
+extern const U64 Rank2;
+extern const U64 Rank3;
+extern const U64 Rank4;
+extern const U64 Rank5;
+extern const U64 Rank6;
+extern const U64 Rank7;
+extern const U64 Rank8;
 
 void print_bitboard(U64 board);
 
