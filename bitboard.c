@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <omp.h>
 #include "bitboard.h"
 
 const U64 FileA = 0x0101010101010101ULL;
@@ -22,6 +23,7 @@ const U64 Rank8 = Rank1 << (8 * 7);
 void calculateKnightAttacks()
 {
 	int square;
+	#pragma omp parallel for
 	for (square = 0; square < 64; square++)
 	{
 		U64 pieceLocation = 0ULL;
