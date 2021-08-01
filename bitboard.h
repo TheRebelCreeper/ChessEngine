@@ -37,6 +37,11 @@ extern const U64 Rank6;
 extern const U64 Rank7;
 extern const U64 Rank8;
 
-void print_bitboard(U64 board);
+U64 KnightMoves[64];
+
+U64 calculateKnightAttacks(int square);
+void generateAllKnightMoves();
+
+void printBitboard(U64 board);
 
 #endif
