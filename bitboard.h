@@ -39,9 +39,7 @@ extern const U64 Rank8;
 
 U64 KnightMoves[64];
 
-U64 calculateKnightAttacks(int square);
-void generateAllKnightMoves();
-
+void calculateKnightAttacks();
 void printBitboard(U64 board);
 
 #endif

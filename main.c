@@ -7,7 +7,7 @@ int main()
 	//U64 board = (Rank4 | Rank5) & (FileD | FileE);
 	//set_square(board, e4);
 	//clear_square(board, e4);
-	generateAllKnightMoves();
+	calculateKnightAttacks();
 	printBitboard(KnightMoves[f3]);
 	return 0;
 }

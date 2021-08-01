@@ -19,31 +19,25 @@ const U64 Rank6 = Rank1 << (8 * 5);
 const U64 Rank7 = Rank1 << (8 * 6);
 const U64 Rank8 = Rank1 << (8 * 7);
 
-U64 calculateKnightAttacks(int square)
-{
-	U64 pieceLocation = 0ULL;
-	U64 attacks = 0ULL;
-	set_square(pieceLocation, square);
-	
-	attacks |= (pieceLocation << 17 & ~FileA);
-	attacks |= (pieceLocation << 15 & ~FileH);
-	attacks |= (pieceLocation << 10 & ~(FileA | FileB));
-	attacks |= (pieceLocation << 6 & ~(FileH | FileG));
-	
-	attacks |= (pieceLocation >> 17 & ~FileH);
-	attacks |= (pieceLocation >> 15 & ~FileA);
-	attacks |= (pieceLocation >> 10 & ~(FileH | FileG));
-	attacks |= (pieceLocation >> 6 & ~(FileA | FileB));
-	
-	return attacks;
-}
-
-void generateAllKnightMoves()
+void calculateKnightAttacks()
 {
 	int square;
 	for (square = 0; square < 64; square++)
 	{
-		KnightMoves[square] = calculateKnightAttacks(square);
+		U64 pieceLocation = 0ULL;
+		U64 attacks = 0ULL;
+		set_square(pieceLocation, square);
+		
+		attacks |= (pieceLocation << 17 & ~FileA);
+		attacks |= (pieceLocation << 15 & ~FileH);
+		attacks |= (pieceLocation << 10 & ~(FileA | FileB));
+		attacks |= (pieceLocation << 6 & ~(FileH | FileG));
+		
+		attacks |= (pieceLocation >> 17 & ~FileH);
+		attacks |= (pieceLocation >> 15 & ~FileA);
+		attacks |= (pieceLocation >> 10 & ~(FileH | FileG));
+		attacks |= (pieceLocation >> 6 & ~(FileA | FileB));
+		KnightMoves[square] = attacks;
 	}
 }
 
