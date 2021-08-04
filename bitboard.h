@@ -37,9 +37,11 @@ extern const U64 Rank6;
 extern const U64 Rank7;
 extern const U64 Rank8;
 
-U64 KnightMoves[64];
+U64 KingAttacks[64];
+U64 KnightAttacks[64];
+U64 PawnAttacks[2][64];
 
-void calculateKnightAttacks();
+void initLeapers();
 void printBitboard(U64 board);
 
 #endif

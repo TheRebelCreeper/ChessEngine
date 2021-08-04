@@ -7,7 +7,11 @@ int main()
 	//U64 board = (Rank4 | Rank5) & (FileD | FileE);
 	//set_square(board, e4);
 	//clear_square(board, e4);
-	calculateKnightAttacks();
-	printBitboard(KnightMoves[f3]);
+	initLeapers();
+	for (int i = 0; i < 64; i++)
+	{
+		printf("%d\n", i);
+		printBitboard(PawnAttacks[1][i]);
+	}
 	return 0;
 }

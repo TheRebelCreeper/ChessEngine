@@ -20,26 +20,73 @@ const U64 Rank6 = Rank1 << (8 * 5);
 const U64 Rank7 = Rank1 << (8 * 6);
 const U64 Rank8 = Rank1 << (8 * 7);
 
-void calculateKnightAttacks()
+U64 calculateKnightAttacks(int square)
+{
+	U64 pieceLocation = 0ULL;
+	U64 attacks = 0ULL;
+	set_square(pieceLocation, square);
+	
+	attacks |= (pieceLocation << 17 & ~FileA);
+	attacks |= (pieceLocation << 15 & ~FileH);
+	attacks |= (pieceLocation << 10 & ~(FileA | FileB));
+	attacks |= (pieceLocation << 6 & ~(FileH | FileG));
+	
+	attacks |= (pieceLocation >> 17 & ~FileH);
+	attacks |= (pieceLocation >> 15 & ~FileA);
+	attacks |= (pieceLocation >> 10 & ~(FileH | FileG));
+	attacks |= (pieceLocation >> 6 & ~(FileA | FileB));
+	return attacks;
+}
+
+U64 calculateKingAttacks(int square)
+{
+	U64 pieceLocation = 0ULL;
+	U64 attacks = 0ULL;
+	set_square(pieceLocation, square);
+		
+	attacks |= (pieceLocation << 1 & ~FileA);
+	attacks |= (pieceLocation << 7 & ~FileH);
+	attacks |= (pieceLocation << 8);
+	attacks |= (pieceLocation << 9 & ~FileA);
+	
+	attacks |= (pieceLocation >> 1 & ~FileH);
+	attacks |= (pieceLocation >> 7 & ~FileA);
+	attacks |= (pieceLocation >> 8);
+	attacks |= (pieceLocation >> 9 & ~FileH);
+
+	return attacks;
+}
+
+U64 calculatePawnAttacks(int side, int square)
+{
+	U64 pieceLocation = 0ULL;
+	U64 attacks = 0ULL;
+	set_square(pieceLocation, square);
+	
+	if (side == 0)
+	{
+		attacks |= (pieceLocation << 9 & ~FileA);
+		attacks |= (pieceLocation << 7 & ~FileH);
+	}
+	else
+	{
+		attacks |= (pieceLocation >> 9 & ~FileH);
+		attacks |= (pieceLocation >> 7 & ~FileA);
+	}
+	return attacks;
+}
+
+void initLeapers()
 {
 	int square;
+	
 	#pragma omp parallel for
 	for (square = 0; square < 64; square++)
 	{
-		U64 pieceLocation = 0ULL;
-		U64 attacks = 0ULL;
-		set_square(pieceLocation, square);
-		
-		attacks |= (pieceLocation << 17 & ~FileA);
-		attacks |= (pieceLocation << 15 & ~FileH);
-		attacks |= (pieceLocation << 10 & ~(FileA | FileB));
-		attacks |= (pieceLocation << 6 & ~(FileH | FileG));
-		
-		attacks |= (pieceLocation >> 17 & ~FileH);
-		attacks |= (pieceLocation >> 15 & ~FileA);
-		attacks |= (pieceLocation >> 10 & ~(FileH | FileG));
-		attacks |= (pieceLocation >> 6 & ~(FileA | FileB));
-		KnightMoves[square] = attacks;
+		KnightAttacks[square] = calculateKnightAttacks(square);
+		KingAttacks[square] = calculateKingAttacks(square);
+		PawnAttacks[0][square] = calculatePawnAttacks(0, square);
+		PawnAttacks[1][square] = calculatePawnAttacks(1, square);
 	}
 }
 
