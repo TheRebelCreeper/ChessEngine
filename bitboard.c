@@ -28,15 +28,15 @@ U64 calculateKnightAttacks(int square)
 	U64 attacks = 0ULL;
 	set_square(pieceLocation, square);
 	
-	attacks |= (pieceLocation << 17 & ~FileA);
-	attacks |= (pieceLocation << 15 & ~FileH);
-	attacks |= (pieceLocation << 10 & ~(FileA | FileB));
-	attacks |= (pieceLocation << 6 & ~(FileH | FileG));
+	attacks |= (pieceLocation << 17 & ~FileA);              // Up 2 right 1
+	attacks |= (pieceLocation << 15 & ~FileH);              // Up 2 left 1
+	attacks |= (pieceLocation << 10 & ~(FileA | FileB));    // Up 1 right 2
+	attacks |= (pieceLocation << 6 & ~(FileH | FileG));     // Up 1 left 2
 	
-	attacks |= (pieceLocation >> 17 & ~FileH);
-	attacks |= (pieceLocation >> 15 & ~FileA);
-	attacks |= (pieceLocation >> 10 & ~(FileH | FileG));
-	attacks |= (pieceLocation >> 6 & ~(FileA | FileB));
+	attacks |= (pieceLocation >> 17 & ~FileH);              // Down 2 left 1
+	attacks |= (pieceLocation >> 15 & ~FileA);              // Down 2 right 1
+	attacks |= (pieceLocation >> 10 & ~(FileH | FileG));    // Down 1 left 2
+	attacks |= (pieceLocation >> 6 & ~(FileA | FileB));     // Down 1 right 2
 	return attacks;
 }
 
@@ -46,15 +46,15 @@ U64 calculateKingAttacks(int square)
 	U64 attacks = 0ULL;
 	set_square(pieceLocation, square);
 		
-	attacks |= (pieceLocation << 1 & ~FileA);
-	attacks |= (pieceLocation << 7 & ~FileH);
-	attacks |= (pieceLocation << 8);
-	attacks |= (pieceLocation << 9 & ~FileA);
+	attacks |= (pieceLocation << 1 & ~FileA);    // Left
+	attacks |= (pieceLocation << 7 & ~FileH);    // Top right
+	attacks |= (pieceLocation << 8);             // Top 
+	attacks |= (pieceLocation << 9 & ~FileA);    // Top left
 	
-	attacks |= (pieceLocation >> 1 & ~FileH);
-	attacks |= (pieceLocation >> 7 & ~FileA);
-	attacks |= (pieceLocation >> 8);
-	attacks |= (pieceLocation >> 9 & ~FileH);
+	attacks |= (pieceLocation >> 1 & ~FileH);    // Right
+	attacks |= (pieceLocation >> 7 & ~FileA);    // Bottom left
+	attacks |= (pieceLocation >> 8);             // Bottom
+	attacks |= (pieceLocation >> 9 & ~FileH);    // Bottom right
 
 	return attacks;
 }
@@ -65,15 +65,17 @@ U64 calculatePawnAttacks(int side, int square)
 	U64 attacks = 0ULL;
 	set_square(pieceLocation, square);
 	
+	// White attacks
 	if (side == 0)
 	{
-		attacks |= (pieceLocation << 9 & ~FileA);
-		attacks |= (pieceLocation << 7 & ~FileH);
+		attacks |= (pieceLocation << 9 & ~FileA);    // Top left
+		attacks |= (pieceLocation << 7 & ~FileH);    // Top right
 	}
+	// Black attacks
 	else
 	{
-		attacks |= (pieceLocation >> 9 & ~FileH);
-		attacks |= (pieceLocation >> 7 & ~FileA);
+		attacks |= (pieceLocation >> 9 & ~FileH);    // Bottom right
+		attacks |= (pieceLocation >> 7 & ~FileA);    // Bottom left
 	}
 	return attacks;
 }
