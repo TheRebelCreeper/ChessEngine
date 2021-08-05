@@ -2,7 +2,7 @@
 #include <omp.h>
 #include "bitboard.h"
 
-//#define DEBUG
+#define DEBUG
 
 const U64 FileA = 0x0101010101010101ULL;
 const U64 FileB = FileA << 1;

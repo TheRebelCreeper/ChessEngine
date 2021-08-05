@@ -1,6 +1,8 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#define DEBUG
+
 typedef unsigned long long U64;
 
 enum
