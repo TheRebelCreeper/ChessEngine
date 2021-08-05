@@ -76,6 +76,118 @@ U64 calculatePawnAttacks(int side, int square)
 	return attacks;
 }
 
+U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
+{
+	U64 occupancy = 0ULL;
+	int r, f, s;
+	
+	// Calculate bottom left
+	r = pieceRank - 1;
+	f = pieceFile - 1;
+	while(r > 0 && f > 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r--;
+		f--;
+	}
+	
+	// Calculate top left
+	r = pieceRank + 1;
+	f = pieceFile - 1;
+	while(r < 7 && f > 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r++;
+		f--;
+	}
+	
+	// Calculate top right
+	r = pieceRank + 1;
+	f = pieceFile + 1;
+	while(r < 7 && f < 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r++;
+		f++;
+	}
+	
+	// Calculate top right
+	r = pieceRank - 1;
+	f = pieceFile + 1;
+	while(r > 0 && f < 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r--;
+		f++;
+	}
+	return occupancy;
+}
+
+U64 calculateRookOccupancy(int pieceRank, int pieceFile)
+{
+	U64 occupancy = 0ULL;
+	int r, f, s;
+	
+	// Calculate left
+	r = pieceRank;
+	f = pieceFile - 1;
+	while(f > 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		f--;
+	}
+	
+	// Calculate right
+	r = pieceRank;
+	f = pieceFile + 1;
+	while(f < 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		f++;
+	}
+	
+	// Calculate top
+	r = pieceRank + 1;
+	f = pieceFile;
+	while(r < 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r++;
+	}
+	
+	// Calculate bottom
+	r = pieceRank - 1;
+	f = pieceFile;
+	while(r > 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		r--;
+	}
+	return occupancy;
+}
+
+void initSliders()
+{
+	int square, rank, file;
+	for (rank = 0; rank < 8; rank++)
+	{
+		for (file = 0; file < 8; file++)
+		{
+			square = rank * 8 + file;
+			BishopOccupancy[square] = calculateBishopOccupancy(rank, file);
+			RookOccupancy[square] = calculateRookOccupancy(rank, file);
+		}
+	}
+}
+
 void initLeapers()
 {
 	int square;

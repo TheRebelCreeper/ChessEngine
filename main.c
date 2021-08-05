@@ -8,10 +8,8 @@ int main()
 	//set_square(board, e4);
 	//clear_square(board, e4);
 	initLeapers();
-	for (int i = 0; i < 64; i++)
-	{
-		printf("%d\n", i);
-		printBitboard(PawnAttacks[1][i]);
-	}
+	initSliders();
+	//for (int i = 0; i < 64; i++)
+		printBitboard(RookOccupancy[d4]);
 	return 0;
 }

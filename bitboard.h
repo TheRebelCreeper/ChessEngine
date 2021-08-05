@@ -41,7 +41,11 @@ U64 KingAttacks[64];
 U64 KnightAttacks[64];
 U64 PawnAttacks[2][64];
 
+U64 BishopOccupancy[64];
+U64 RookOccupancy[64];
+
 void initLeapers();
+void initSliders();
 void printBitboard(U64 board);
 
 #endif
