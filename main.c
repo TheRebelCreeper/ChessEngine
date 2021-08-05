@@ -10,6 +10,6 @@ int main()
 	initLeapers();
 	initSliders();
 	//for (int i = 0; i < 64; i++)
-		printBitboard(RookOccupancy[d4]);
+		//printBitboard(PawnAttacks[1][d4]);
 	return 0;
 }

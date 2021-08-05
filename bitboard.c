@@ -2,6 +2,8 @@
 #include <omp.h>
 #include "bitboard.h"
 
+//#define DEBUG
+
 const U64 FileA = 0x0101010101010101ULL;
 const U64 FileB = FileA << 1;
 const U64 FileC = FileA << 2;
@@ -177,6 +179,13 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 void initSliders()
 {
 	int square, rank, file;
+	
+	#ifdef DEBUG
+	double start, finish;
+	start = omp_get_wtime();
+	#endif
+	
+	#pragma omp parallel for private(rank, file, square) shared(BishopOccupancy, RookOccupancy)
 	for (rank = 0; rank < 8; rank++)
 	{
 		for (file = 0; file < 8; file++)
@@ -186,13 +195,23 @@ void initSliders()
 			RookOccupancy[square] = calculateRookOccupancy(rank, file);
 		}
 	}
+	
+	#ifdef DEBUG
+	finish = omp_get_wtime();
+	printf("Generated sliders in %f\n", finish - start);
+	#endif
 }
 
 void initLeapers()
 {
 	int square;
 	
-	#pragma omp parallel for
+	#ifdef DEBUG
+	double start, finish;
+	start = omp_get_wtime();
+	#endif
+	
+	#pragma omp parallel for private(square) shared(KnightAttacks, KingAttacks, PawnAttacks)
 	for (square = 0; square < 64; square++)
 	{
 		KnightAttacks[square] = calculateKnightAttacks(square);
@@ -200,6 +219,11 @@ void initLeapers()
 		PawnAttacks[0][square] = calculatePawnAttacks(0, square);
 		PawnAttacks[1][square] = calculatePawnAttacks(1, square);
 	}
+	
+	#ifdef DEBUG
+	finish = omp_get_wtime();
+	printf("Generated sliders in %f\n", finish - start);
+	#endif
 }
 
 void printBitboard(U64 board)

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -fopenmp
+CFLAGS = -Wall -fopenmp
 
 LIBS += -lrt
 
@@ -17,8 +17,7 @@ $(LAB):$(OBJECTS)
 $(OBJECTS):$(SOURCES) $(INCLUDES)
 	$(CC) $(CFLAGS) -c $(SOURCES)
 
-run: all
-	./$(LAB)
+
 
 .PHONY: clean
 clean:
