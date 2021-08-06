@@ -2,8 +2,6 @@
 #include <omp.h>
 #include "bitboard.h"
 
-#define DEBUG
-
 const U64 FileA = 0x0101010101010101ULL;
 const U64 FileB = FileA << 1;
 const U64 FileC = FileA << 2;
@@ -173,6 +171,136 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 	{
 		s = r * 8 + f;
 		set_square(occupancy, s);
+		r--;
+	}
+	return occupancy;
+}
+
+U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
+{
+	U64 occupancy = 0ULL;
+	int r, f, s;
+	
+	// Calculate bottom left
+	r = pieceRank - 1;
+	f = pieceFile - 1;
+	while(r >= 0 && f >= 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		r--;
+		f--;
+	}
+	
+	// Calculate top left
+	r = pieceRank + 1;
+	f = pieceFile - 1;
+	while(r <= 7 && f >= 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		r++;
+		f--;
+	}
+	
+	// Calculate top right
+	r = pieceRank + 1;
+	f = pieceFile + 1;
+	while(r <= 7 && f <= 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		r++;
+		f++;
+	}
+	
+	// Calculate top right
+	r = pieceRank - 1;
+	f = pieceFile + 1;
+	while(r >= 0 && f <= 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		r--;
+		f++;
+	}
+	return occupancy;
+}
+
+U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
+{
+	U64 occupancy = 0ULL;
+	int r, f, s;
+	
+	// Calculate left
+	r = pieceRank;
+	f = pieceFile - 1;
+	while(f >= 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		f--;
+	}
+	
+	// Calculate right
+	r = pieceRank;
+	f = pieceFile + 1;
+	while(f <= 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		f++;
+	}
+	
+	// Calculate top
+	r = pieceRank + 1;
+	f = pieceFile;
+	while(r <= 7)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
+		r++;
+	}
+	
+	// Calculate bottom
+	r = pieceRank - 1;
+	f = pieceFile;
+	while(r >= 0)
+	{
+		s = r * 8 + f;
+		set_square(occupancy, s);
+		if (get_square(blockers, s))
+		{
+			break;
+		}
 		r--;
 	}
 	return occupancy;

@@ -46,6 +46,9 @@ U64 PawnAttacks[2][64];
 U64 BishopOccupancy[64];
 U64 RookOccupancy[64];
 
+U64 generateBishopAttacks(int rank, int file, U64 blockers);
+U64 generateRookAttacks(int rank, int file, U64 blockers);
+
 void initLeapers();
 void initSliders();
 void printBitboard(U64 board);
