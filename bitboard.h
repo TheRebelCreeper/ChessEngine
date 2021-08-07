@@ -48,6 +48,9 @@ U64 RookOccupancy[64];
 
 U64 generateBishopAttacks(int rank, int file, U64 blockers);
 U64 generateRookAttacks(int rank, int file, U64 blockers);
+U64 occupancyFromIndex(int index, U64 board);
+
+int countBits(U64 board);
 
 void initLeapers();
 void initSliders();

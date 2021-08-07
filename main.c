@@ -12,8 +12,13 @@ int main()
 	//clear_square(board, e4);
 	initLeapers();
 	initSliders();
-	//for (int i = 0; i < 64; i++)
+	for (int i = 0; i < 4096; i++)
+   {
+      printBitboard(occupancyFromIndex(i, BishopOccupancy[d4]));
+      //getchar();
+   }
 		//printBitboard(PawnAttacks[1][d4]);
-	printBitboard(generateRookAttacks(3, 5, blocker));
+      
+	
 	return 0;
 }

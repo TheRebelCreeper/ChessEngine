@@ -20,6 +20,53 @@ const U64 Rank6 = Rank1 << (8 * 5);
 const U64 Rank7 = Rank1 << (8 * 6);
 const U64 Rank8 = Rank1 << (8 * 7);
 
+// Algorithm from Brian Kernighan
+int countBits(U64 board)
+{
+   int count = 0;
+   while (board)
+   {
+      count++;
+      board &= board - 1;
+   }
+   return count;
+}
+
+int getFirstBitSquare(U64 board)
+{
+   if (board)
+   {
+      return countBits((board & -board) - 1);
+   }
+   else
+   {
+      // No bits set, doesn't make sense to return a square
+      return -1;
+   }
+}
+
+U64 occupancyFromIndex(int index, U64 board)
+{
+   int i, square;
+   U64 occupancy = 0ULL;
+   int bits = countBits(board);
+   
+   for (i = 0; i < bits; i++)
+   {
+      square = getFirstBitSquare(board); // TODO get 1st bit set on board
+      clear_square(board, square);
+      
+      // Check if the ith is marked in the index
+      if (index & (1 << i))
+      {
+         // Add the square to occupancy
+         set_square(occupancy, square);
+      }
+   }
+   
+   return occupancy;
+}
+
 U64 calculateKnightAttacks(int square)
 {
 	U64 pieceLocation = 0ULL;
