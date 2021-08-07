@@ -399,7 +399,7 @@ void initLeapers()
 	
 	#ifdef DEBUG
 	finish = omp_get_wtime();
-	printf("Generated sliders in %f\n", finish - start);
+	printf("Generated leapers in %f\n", finish - start);
 	#endif
 }
 
