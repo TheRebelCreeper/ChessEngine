@@ -51,9 +51,10 @@ U64 occupancyFromIndex(int index, U64 board)
    U64 occupancy = 0ULL;
    int bits = countBits(board);
    
+   // Cannot be easily parallelized since order matters regarding 1st least significant bit
    for (i = 0; i < bits; i++)
    {
-      square = getFirstBitSquare(board); // TODO get 1st bit set on board
+      square = getFirstBitSquare(board);
       clear_square(board, square);
       
       // Check if the ith is marked in the index
