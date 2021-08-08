@@ -418,72 +418,52 @@ U64 getRookAttack(int square, U64 blockers)
 // find appropriate magic number
 U64 find_magic_number(int square, int relevant_bits, int bishop)
 {
-    // init occupancies
+    int index, fail;
     U64 occupancies[4096];
-    
-    // init attack tables
     U64 attacks[4096];
-    
-    // init used attacks
     U64 used_attacks[4096];
     
     // init attack mask for a current piece
     U64 attack_mask = bishop ? calculateBishopOccupancy(square) : calculateRookOccupancy(square);
     
-    // init occupancy indicies
-    int occupancy_indicies = 1 << relevant_bits;
-    
     // loop over occupancy indicies
-    for (int index = 0; index < occupancy_indicies; index++)
+    for (int index = 0; index < (1 << relevant_bits); index++)
     {
-        // init occupancies
         occupancies[index] = occupancyFromIndex(index, attack_mask);
-        
-        // init attacks
-        attacks[index] = bishop ? generateBishopAttacks(square, occupancies[index]) :
-                                    generateRookAttacks(square, occupancies[index]);
+        attacks[index] = bishop ? generateBishopAttacks(square, occupancies[index]) : generateRookAttacks(square, occupancies[index]);
     }
     
-    // test magic numbers loop
+    // test magic numbers
     for (int random_count = 0; random_count < 100000000; random_count++)
     {
         // generate magic number candidate
-        U64 magic_number = generate_magic_number();
+        U64 magic_number = random_u64_fewbits();
         
-        // skip inappropriate magic numbers
+        // skip invalid magic numbers
         if (countBits((attack_mask * magic_number) & 0xFF00000000000000) < 6) continue;
         
-        // init used attacks
+        // Clear used attacks
         memset(used_attacks, 0ULL, sizeof(used_attacks));
         
-        // init index & fail flag
-        int index, fail;
-        
-        // test magic index loop
-        for (index = 0, fail = 0; !fail && index < occupancy_indicies; index++)
+        // test magic index by checking for collisions
+        for (index = 0, fail = 0; !fail && index < (1 << relevant_bits); index++)
         {
-            // init magic index
             int magic_index = (int)((occupancies[index] * magic_number) >> (64 - relevant_bits));
             
-            // if magic index works
             if (used_attacks[magic_index] == 0ULL)
-                // init used attacks
+			{
                 used_attacks[magic_index] = attacks[index];
-            
-            // otherwise
+			}
             else if (used_attacks[magic_index] != attacks[index])
-                // magic index doesn't work
+			{
+				// There was a collision
                 fail = 1;
+			}
         }
         
-        // if magic number works
-        if (!fail)
-            // return it
+        if (fail == 0)
             return magic_number;
     }
-    
-    // if magic number doesn't work
-    printf("  Magic number fails!\n");
     return 0ULL;
 }
 

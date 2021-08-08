@@ -4,53 +4,25 @@
 #include "magic.h"
 #include "bitboard.h"
 
-/**********************************\
- ==================================
- 
-           Random numbers
- 
- ==================================
-\**********************************/
-
-// pseudo random number state
-unsigned int random_state = 1804289383;
-
-// generate 32-bit pseudo legal numbers
-unsigned int get_random_U32_number()
-{
-    // get current state
-    unsigned int number = random_state;
-    
-    // XOR shift algorithm
-    number ^= number << 13;
-    number ^= number >> 17;
-    number ^= number << 5;
-    
-    // update random number state
-    random_state = number;
-    
-    // return random number
-    return number;
-}
-
-// generate 64-bit pseudo legal numbers
-U64 get_random_U64_number()
+// Credit to Tord Romstad for generating magic numbers
+// https://www.chessprogramming.org/Looking_for_Magics
+U64 random_u64()
 {
     // define 4 random numbers
-    U64 n1, n2, n3, n4;
+    U64 u1, u2, u3, u4;
     
     // init random numbers slicing 16 bits from MS1B side
-    n1 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n2 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n3 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n4 = (U64)(get_random_U32_number()) & 0xFFFF;
+    u1 = (U64)(random()) & 0xFFFF;
+    u2 = (U64)(random()) & 0xFFFF;
+    u3 = (U64)(random()) & 0xFFFF;
+    u4 = (U64)(random()) & 0xFFFF;
     
     // return random number
-    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
+    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
 }
 
 // generate magic number candidate
-U64 generate_magic_number()
+U64 random_u64_fewbits()
 {
-    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
+    return random_u64() & random_u64() & random_u64();
 }

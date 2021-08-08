@@ -11,6 +11,11 @@ void exampleMagicBitboard()
 	set_square(blocker, e2);
 	printBitboard(getBishopAttack(e4, blocker));
 	printBitboard(getRookAttack(e6, blocker));
+	
+	for (int i = 0; i < 64; i++)
+	{
+		printf("0x%llxULL\n", BishopMagic[i]);
+	}
 }
 
 int main()
