@@ -14,7 +14,7 @@ void exampleMagicBitboard()
 	
 	for (int i = 0; i < 64; i++)
 	{
-		printf("0x%llxULL\n", BishopMagic[i]);
+		//printf("0x%llxULL\n", BishopMagic[i]);
 	}
 }
 
