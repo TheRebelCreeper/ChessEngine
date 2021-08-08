@@ -46,6 +46,9 @@ U64 PawnAttacks[2][64];
 U64 BishopOccupancy[64];
 U64 RookOccupancy[64];
 
+U64 BishopAttacks[64][512];
+U64 RookAttacks[64][4096];
+
 U64 generateBishopAttacks(int rank, int file, U64 blockers);
 U64 generateRookAttacks(int rank, int file, U64 blockers);
 U64 occupancyFromIndex(int index, U64 board);
