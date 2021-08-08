@@ -3,6 +3,7 @@
 #include <string.h>
 #include <omp.h>
 #include "bitboard.h"
+#include "magic.h"
 
 const U64 FileA = 0x0101010101010101ULL;
 const U64 FileB = FileA << 1;
@@ -43,57 +44,6 @@ int BBits[64] = {
   5, 5, 5, 5, 5, 5, 5, 5,
   6, 5, 5, 5, 5, 5, 5, 6
 };
-
-/**********************************\
- ==================================
- 
-           Random numbers
- 
- ==================================
-\**********************************/
-
-// pseudo random number state
-unsigned int random_state = 1804289383;
-
-// generate 32-bit pseudo legal numbers
-unsigned int get_random_U32_number()
-{
-    // get current state
-    unsigned int number = random_state;
-    
-    // XOR shift algorithm
-    number ^= number << 13;
-    number ^= number >> 17;
-    number ^= number << 5;
-    
-    // update random number state
-    random_state = number;
-    
-    // return random number
-    return number;
-}
-
-// generate 64-bit pseudo legal numbers
-U64 get_random_U64_number()
-{
-    // define 4 random numbers
-    U64 n1, n2, n3, n4;
-    
-    // init random numbers slicing 16 bits from MS1B side
-    n1 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n2 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n3 = (U64)(get_random_U32_number()) & 0xFFFF;
-    n4 = (U64)(get_random_U32_number()) & 0xFFFF;
-    
-    // return random number
-    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
-}
-
-// generate magic number candidate
-U64 generate_magic_number()
-{
-    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
-}
 
 // Algorithm from Brian Kernighan
 int countBits(U64 board)
@@ -455,13 +405,15 @@ U64 getBishopAttack(int square, U64 blockers)
 	return BishopAttacks[square][mIndex];
 }
 
-/**********************************\
- ==================================
- 
-               Magics
- 
- ==================================
-\**********************************/
+U64 getRookAttack(int square, U64 blockers)
+{
+	int mIndex;
+	blockers &= RookOccupancy[square];
+	blockers *= RookMagic[square];
+	mIndex = blockers >> (64 - RBits[square]);
+	
+	return RookAttacks[square][mIndex];
+}
 
 // find appropriate magic number
 U64 find_magic_number(int square, int relevant_bits, int bishop)
@@ -535,20 +487,6 @@ U64 find_magic_number(int square, int relevant_bits, int bishop)
     return 0ULL;
 }
 
-// init magic numbers
-void init_magic_numbers()
-{
-    // loop over 64 board squares
-    for (int square = 0; square < 64; square++)
-        // init rook magic numbers
-        RookMagic[square] = find_magic_number(square, RBits[square], 0);
-
-    // loop over 64 board squares
-    for (int square = 0; square < 64; square++)
-        // init bishop magic numbers
-        BishopMagic[square] = find_magic_number(square, BBits[square], 1);
-}
-
 void initSliders()
 {
 	int square;
@@ -562,21 +500,25 @@ void initSliders()
 	{
 		BishopOccupancy[square] = calculateBishopOccupancy(square);
 		RookOccupancy[square] = calculateRookOccupancy(square);
-		//BishopMagic[square] = find_magic(square, BBits[square], 1);
-		//RookMagic[square] = find_magic(square, RBits[square], 0);
 		
-		
+		BishopMagic[square] = find_magic_number(square, BBits[square], 1);
+		RookMagic[square] = find_magic_number(square, RBits[square], 0);
 	}
-	
-	init_magic_numbers();
 	
 	for (square = 0; square < 64; square++)
 	{
 		for(int index = 0; index < (1 << BBits[square]); index++)
 		{
 			U64 occupancy = occupancyFromIndex(index, BishopOccupancy[square]);
-			int mIndex = (occupancy * BishopMagic[square]) >> (64 - countBits(BishopOccupancy[square]));
+			int mIndex = (occupancy * BishopMagic[square]) >> (64 - BBits[square]);
 			BishopAttacks[square][mIndex] = generateBishopAttacks(square, occupancy);
+		}
+		
+		for(int index = 0; index < (1 << RBits[square]); index++)
+		{
+			U64 occupancy = occupancyFromIndex(index, RookOccupancy[square]);
+			int mIndex = (occupancy * RookMagic[square]) >> (64 - RBits[square]);
+			RookAttacks[square][mIndex] = generateRookAttacks(square, occupancy);
 		}
 	}
 	
