@@ -1,4 +1,4 @@
 *.o
-a.exe
+*.exe
 *.gch
 engine
