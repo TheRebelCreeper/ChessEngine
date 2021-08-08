@@ -55,6 +55,8 @@ U64 RookAttacks[64][4096];
 U64 generateBishopAttacks(int square, U64 blockers);
 U64 generateRookAttacks(int square, U64 blockers);
 U64 occupancyFromIndex(int index, U64 board);
+U64 calculateBishopOccupancy(int square);
+U64 calculateRookOccupancy(int square);
 U64 getBishopAttack(int square, U64 blockers);
 U64 getRookAttack(int square, U64 blockers);
 

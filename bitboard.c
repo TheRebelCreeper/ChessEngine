@@ -415,58 +415,6 @@ U64 getRookAttack(int square, U64 blockers)
 	return RookAttacks[square][mIndex];
 }
 
-// find appropriate magic number
-U64 find_magic_number(int square, int relevant_bits, int bishop)
-{
-    int index, fail;
-    U64 occupancies[4096];
-    U64 attacks[4096];
-    U64 used_attacks[4096];
-    
-    // init attack mask for a current piece
-    U64 attack_mask = bishop ? calculateBishopOccupancy(square) : calculateRookOccupancy(square);
-    
-    // loop over occupancy indicies
-    for (int index = 0; index < (1 << relevant_bits); index++)
-    {
-        occupancies[index] = occupancyFromIndex(index, attack_mask);
-        attacks[index] = bishop ? generateBishopAttacks(square, occupancies[index]) : generateRookAttacks(square, occupancies[index]);
-    }
-    
-    // test magic numbers
-    for (int random_count = 0; random_count < 100000000; random_count++)
-    {
-        // generate magic number candidate
-        U64 magic_number = random_u64_fewbits();
-        
-        // skip invalid magic numbers
-        if (countBits((attack_mask * magic_number) & 0xFF00000000000000) < 6) continue;
-        
-        // Clear used attacks
-        memset(used_attacks, 0ULL, sizeof(used_attacks));
-        
-        // test magic index by checking for collisions
-        for (index = 0, fail = 0; !fail && index < (1 << relevant_bits); index++)
-        {
-            int magic_index = (int)((occupancies[index] * magic_number) >> (64 - relevant_bits));
-            
-            if (used_attacks[magic_index] == 0ULL)
-			{
-                used_attacks[magic_index] = attacks[index];
-			}
-            else if (used_attacks[magic_index] != attacks[index])
-			{
-				// There was a collision
-                fail = 1;
-			}
-        }
-        
-        if (fail == 0)
-            return magic_number;
-    }
-    return 0ULL;
-}
-
 void initSliders()
 {
 	int square;

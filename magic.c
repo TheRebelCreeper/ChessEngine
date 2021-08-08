@@ -26,3 +26,46 @@ U64 random_u64_fewbits()
 {
     return random_u64() & random_u64() & random_u64();
 }
+
+// Originally from Tord Romstad, provided some optimization with memset
+U64 find_magic_number(int sq, int m, int bishop)
+{
+	U64 mask, occupancy[4096], a[4096], used[4096], magic;
+	int i, j, k, n, fail;
+
+	mask = bishop? calculateBishopOccupancy(sq) : calculateRookOccupancy(sq);
+	n = countBits(mask);
+	
+	for(i = 0; i < (1 << n); i++)
+	{
+		occupancy[i] = occupancyFromIndex(i, mask);
+		a[i] = bishop? generateBishopAttacks(sq, occupancy[i]) : generateRookAttacks(sq, occupancy[i]);
+	}
+	for(k = 0; k < 100000000; k++)
+	{
+		magic = random_u64_fewbits();
+		if (countBits((mask * magic) & 0xFF00000000000000ULL) < 6)
+		{
+			continue;
+		}
+		memset(used, 0ULL, sizeof(used));
+		for(i = 0, fail = 0; !fail && i < (1 << n); i++)
+		{
+			j = (int)((occupancy[i] * magic) >> (64 - m));
+			if(used[j] == 0ULL)
+			{
+				used[j] = a[i];
+			}
+			else if(used[j] != a[i])
+			{
+				fail = 1;
+			}
+		}
+		if(fail == 0)
+		{
+			return magic;
+		}
+	}
+	printf("***Failed***\n");
+	return 0ULL;
+}
