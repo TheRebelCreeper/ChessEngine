@@ -4,8 +4,12 @@
 #include "magic.h"
 #include "bitboard.h"
 
-// Credit to Tord Romstad for generating magic numbers
-// https://www.chessprogramming.org/Looking_for_Magics
+/* 
+Credit to Tord Romstad for original code regarding generating magic numbers
+https://www.chessprogramming.org/Looking_for_Magics
+I provided some optimization using memset instead of a for loop resetting used.
+*/
+
 U64 random_u64()
 {
     // define 4 random numbers
@@ -21,13 +25,11 @@ U64 random_u64()
     return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
 }
 
-// generate magic number candidate
 U64 random_u64_fewbits()
 {
     return random_u64() & random_u64() & random_u64();
 }
 
-// Originally from Tord Romstad, provided some optimization with memset
 U64 find_magic_number(int sq, int m, int bishop)
 {
 	U64 mask, occupancy[4096], a[4096], used[4096], magic;
