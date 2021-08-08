@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <omp.h>
 #include "bitboard.h"
 
@@ -19,6 +21,79 @@ const U64 Rank5 = Rank1 << (8 * 4);
 const U64 Rank6 = Rank1 << (8 * 5);
 const U64 Rank7 = Rank1 << (8 * 6);
 const U64 Rank8 = Rank1 << (8 * 7);
+
+int RBits[64] = {
+  12, 11, 11, 11, 11, 11, 11, 12,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  11, 10, 10, 10, 10, 10, 10, 11,
+  12, 11, 11, 11, 11, 11, 11, 12
+};
+
+int BBits[64] = {
+  6, 5, 5, 5, 5, 5, 5, 6,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 9, 9, 7, 5, 5,
+  5, 5, 7, 7, 7, 7, 5, 5,
+  5, 5, 5, 5, 5, 5, 5, 5,
+  6, 5, 5, 5, 5, 5, 5, 6
+};
+
+/**********************************\
+ ==================================
+ 
+           Random numbers
+ 
+ ==================================
+\**********************************/
+
+// pseudo random number state
+unsigned int random_state = 1804289383;
+
+// generate 32-bit pseudo legal numbers
+unsigned int get_random_U32_number()
+{
+    // get current state
+    unsigned int number = random_state;
+    
+    // XOR shift algorithm
+    number ^= number << 13;
+    number ^= number >> 17;
+    number ^= number << 5;
+    
+    // update random number state
+    random_state = number;
+    
+    // return random number
+    return number;
+}
+
+// generate 64-bit pseudo legal numbers
+U64 get_random_U64_number()
+{
+    // define 4 random numbers
+    U64 n1, n2, n3, n4;
+    
+    // init random numbers slicing 16 bits from MS1B side
+    n1 = (U64)(get_random_U32_number()) & 0xFFFF;
+    n2 = (U64)(get_random_U32_number()) & 0xFFFF;
+    n3 = (U64)(get_random_U32_number()) & 0xFFFF;
+    n4 = (U64)(get_random_U32_number()) & 0xFFFF;
+    
+    // return random number
+    return n1 | (n2 << 16) | (n3 << 32) | (n4 << 48);
+}
+
+// generate magic number candidate
+U64 generate_magic_number()
+{
+    return get_random_U64_number() & get_random_U64_number() & get_random_U64_number();
+}
 
 // Algorithm from Brian Kernighan
 int countBits(U64 board)
@@ -126,14 +201,18 @@ U64 calculatePawnAttacks(int side, int square)
 	return attacks;
 }
 
-U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
+U64 calculateBishopOccupancy(int square)
 {
 	U64 occupancy = 0ULL;
+	int rank, file;
 	int r, f, s;
 	
+	rank = square / 8;
+	file = square % 8;
+	
 	// Calculate bottom left
-	r = pieceRank - 1;
-	f = pieceFile - 1;
+	r = rank - 1;
+	f = file - 1;
 	while(r > 0 && f > 0)
 	{
 		s = r * 8 + f;
@@ -143,8 +222,8 @@ U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate top left
-	r = pieceRank + 1;
-	f = pieceFile - 1;
+	r = rank + 1;
+	f = file - 1;
 	while(r < 7 && f > 0)
 	{
 		s = r * 8 + f;
@@ -154,8 +233,8 @@ U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate top right
-	r = pieceRank + 1;
-	f = pieceFile + 1;
+	r = rank + 1;
+	f = file + 1;
 	while(r < 7 && f < 7)
 	{
 		s = r * 8 + f;
@@ -165,8 +244,8 @@ U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate top right
-	r = pieceRank - 1;
-	f = pieceFile + 1;
+	r = rank - 1;
+	f = file + 1;
 	while(r > 0 && f < 7)
 	{
 		s = r * 8 + f;
@@ -177,14 +256,18 @@ U64 calculateBishopOccupancy(int pieceRank, int pieceFile)
 	return occupancy;
 }
 
-U64 calculateRookOccupancy(int pieceRank, int pieceFile)
+U64 calculateRookOccupancy(int square)
 {
 	U64 occupancy = 0ULL;
+	int rank, file;
 	int r, f, s;
 	
+	rank = square / 8;
+	file = square % 8;
+	
 	// Calculate left
-	r = pieceRank;
-	f = pieceFile - 1;
+	r = rank;
+	f = file - 1;
 	while(f > 0)
 	{
 		s = r * 8 + f;
@@ -193,8 +276,8 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate right
-	r = pieceRank;
-	f = pieceFile + 1;
+	r = rank;
+	f = file + 1;
 	while(f < 7)
 	{
 		s = r * 8 + f;
@@ -203,8 +286,8 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate top
-	r = pieceRank + 1;
-	f = pieceFile;
+	r = rank + 1;
+	f = file;
 	while(r < 7)
 	{
 		s = r * 8 + f;
@@ -213,8 +296,8 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 	}
 	
 	// Calculate bottom
-	r = pieceRank - 1;
-	f = pieceFile;
+	r = rank - 1;
+	f = file;
 	while(r > 0)
 	{
 		s = r * 8 + f;
@@ -224,14 +307,18 @@ U64 calculateRookOccupancy(int pieceRank, int pieceFile)
 	return occupancy;
 }
 
-U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
+U64 generateBishopAttacks(int square, U64 blockers)
 {
 	U64 occupancy = 0ULL;
+	int rank, file;
 	int r, f, s;
 	
+	rank = square / 8;
+	file = square % 8;
+	
 	// Calculate bottom left
-	r = pieceRank - 1;
-	f = pieceFile - 1;
+	r = rank - 1;
+	f = file - 1;
 	while(r >= 0 && f >= 0)
 	{
 		s = r * 8 + f;
@@ -245,8 +332,8 @@ U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate top left
-	r = pieceRank + 1;
-	f = pieceFile - 1;
+	r = rank + 1;
+	f = file - 1;
 	while(r <= 7 && f >= 0)
 	{
 		s = r * 8 + f;
@@ -260,8 +347,8 @@ U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate top right
-	r = pieceRank + 1;
-	f = pieceFile + 1;
+	r = rank + 1;
+	f = file + 1;
 	while(r <= 7 && f <= 7)
 	{
 		s = r * 8 + f;
@@ -275,8 +362,8 @@ U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate top right
-	r = pieceRank - 1;
-	f = pieceFile + 1;
+	r = rank - 1;
+	f = file + 1;
 	while(r >= 0 && f <= 7)
 	{
 		s = r * 8 + f;
@@ -291,14 +378,18 @@ U64 generateBishopAttacks(int pieceRank, int pieceFile, U64 blockers)
 	return occupancy;
 }
 
-U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
+U64 generateRookAttacks(int square, U64 blockers)
 {
 	U64 occupancy = 0ULL;
+	int rank, file;
 	int r, f, s;
 	
+	rank = square / 8;
+	file = square % 8;
+	
 	// Calculate left
-	r = pieceRank;
-	f = pieceFile - 1;
+	r = rank;
+	f = file - 1;
 	while(f >= 0)
 	{
 		s = r * 8 + f;
@@ -311,8 +402,8 @@ U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate right
-	r = pieceRank;
-	f = pieceFile + 1;
+	r = rank;
+	f = file + 1;
 	while(f <= 7)
 	{
 		s = r * 8 + f;
@@ -325,8 +416,8 @@ U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate top
-	r = pieceRank + 1;
-	f = pieceFile;
+	r = rank + 1;
+	f = file;
 	while(r <= 7)
 	{
 		s = r * 8 + f;
@@ -339,8 +430,8 @@ U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
 	}
 	
 	// Calculate bottom
-	r = pieceRank - 1;
-	f = pieceFile;
+	r = rank - 1;
+	f = file;
 	while(r >= 0)
 	{
 		s = r * 8 + f;
@@ -354,23 +445,138 @@ U64 generateRookAttacks(int pieceRank, int pieceFile, U64 blockers)
 	return occupancy;
 }
 
+U64 getBishopAttack(int square, U64 blockers)
+{
+	int mIndex;
+	blockers &= BishopOccupancy[square];
+	blockers *= BishopMagic[square];
+	mIndex = blockers >> (64 - BBits[square]);
+	
+	return BishopAttacks[square][mIndex];
+}
+
+/**********************************\
+ ==================================
+ 
+               Magics
+ 
+ ==================================
+\**********************************/
+
+// find appropriate magic number
+U64 find_magic_number(int square, int relevant_bits, int bishop)
+{
+    // init occupancies
+    U64 occupancies[4096];
+    
+    // init attack tables
+    U64 attacks[4096];
+    
+    // init used attacks
+    U64 used_attacks[4096];
+    
+    // init attack mask for a current piece
+    U64 attack_mask = bishop ? calculateBishopOccupancy(square) : calculateRookOccupancy(square);
+    
+    // init occupancy indicies
+    int occupancy_indicies = 1 << relevant_bits;
+    
+    // loop over occupancy indicies
+    for (int index = 0; index < occupancy_indicies; index++)
+    {
+        // init occupancies
+        occupancies[index] = occupancyFromIndex(index, attack_mask);
+        
+        // init attacks
+        attacks[index] = bishop ? generateBishopAttacks(square, occupancies[index]) :
+                                    generateRookAttacks(square, occupancies[index]);
+    }
+    
+    // test magic numbers loop
+    for (int random_count = 0; random_count < 100000000; random_count++)
+    {
+        // generate magic number candidate
+        U64 magic_number = generate_magic_number();
+        
+        // skip inappropriate magic numbers
+        if (countBits((attack_mask * magic_number) & 0xFF00000000000000) < 6) continue;
+        
+        // init used attacks
+        memset(used_attacks, 0ULL, sizeof(used_attacks));
+        
+        // init index & fail flag
+        int index, fail;
+        
+        // test magic index loop
+        for (index = 0, fail = 0; !fail && index < occupancy_indicies; index++)
+        {
+            // init magic index
+            int magic_index = (int)((occupancies[index] * magic_number) >> (64 - relevant_bits));
+            
+            // if magic index works
+            if (used_attacks[magic_index] == 0ULL)
+                // init used attacks
+                used_attacks[magic_index] = attacks[index];
+            
+            // otherwise
+            else if (used_attacks[magic_index] != attacks[index])
+                // magic index doesn't work
+                fail = 1;
+        }
+        
+        // if magic number works
+        if (!fail)
+            // return it
+            return magic_number;
+    }
+    
+    // if magic number doesn't work
+    printf("  Magic number fails!\n");
+    return 0ULL;
+}
+
+// init magic numbers
+void init_magic_numbers()
+{
+    // loop over 64 board squares
+    for (int square = 0; square < 64; square++)
+        // init rook magic numbers
+        RookMagic[square] = find_magic_number(square, RBits[square], 0);
+
+    // loop over 64 board squares
+    for (int square = 0; square < 64; square++)
+        // init bishop magic numbers
+        BishopMagic[square] = find_magic_number(square, BBits[square], 1);
+}
+
 void initSliders()
 {
-	int square, rank, file;
+	int square;
 	
 	#ifdef DEBUG
 	double start, finish;
 	start = omp_get_wtime();
 	#endif
 	
-	#pragma omp parallel for private(rank, file, square) shared(BishopOccupancy, RookOccupancy)
-	for (rank = 0; rank < 8; rank++)
+	for (square = 0; square < 64; square++)
 	{
-		for (file = 0; file < 8; file++)
+		BishopOccupancy[square] = calculateBishopOccupancy(square);
+		RookOccupancy[square] = calculateRookOccupancy(square);
+		//BishopMagic[square] = find_magic(square, BBits[square], 1);
+		//RookMagic[square] = find_magic(square, RBits[square], 0);
+		
+		
+	}
+	
+	init_magic_numbers();
+	
+	for (square = 0; square < 64; square++)
+	{
+		for(int index = 0; index < (1 << BBits[square]); index++)
 		{
-			square = rank * 8 + file;
-			BishopOccupancy[square] = calculateBishopOccupancy(rank, file);
-			RookOccupancy[square] = calculateRookOccupancy(rank, file);
+			U64 occupancy = occupancyFromIndex(index, BishopOccupancy[square]);
+			int mIndex = (occupancy * BishopMagic[square]) >> (64 - countBits(BishopOccupancy[square]));
+			BishopAttacks[square][mIndex] = generateBishopAttacks(square, occupancy);
 		}
 	}
 	
