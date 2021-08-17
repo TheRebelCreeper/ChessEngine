@@ -11,10 +11,7 @@ void exampleMagicBitboard()
 	set_square(blocker, e2);
 	printBitboard(getBishopAttack(e4, blocker));
 	printBitboard(getRookAttack(e6, blocker));
-	
-	blocker = 0ULL;
-	set_square(blocker, b7);
-	printBitboard(getBishopAttack(h1, blocker));
+	printBitboard(getQueenAttack(e4, blocker));
 }
 
 int main()

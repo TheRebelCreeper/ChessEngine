@@ -415,6 +415,11 @@ U64 getRookAttack(int square, U64 blockers)
 	return RookAttacks[square][mIndex];
 }
 
+U64 getQueenAttack(int square, U64 blockers)
+{
+	return getBishopAttack(square, blockers) | getRookAttack(square, blockers);
+}
+
 void initSliders()
 {
 	int square;

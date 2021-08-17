@@ -59,6 +59,7 @@ U64 calculateBishopOccupancy(int square);
 U64 calculateRookOccupancy(int square);
 U64 getBishopAttack(int square, U64 blockers);
 U64 getRookAttack(int square, U64 blockers);
+U64 getQueenAttack(int square, U64 blockers);
 
 int countBits(U64 board);
 
