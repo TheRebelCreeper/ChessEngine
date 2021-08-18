@@ -8,12 +8,7 @@ U64 PIECE_BITBOARDS[12];
 
 int flip = 0;
 
-// TODO make a struct for gamestate
-int enpessantSquare;
-int turn = 1;
-// Stores castling rights in first 4 least significant bits
-// KQkq - 8 4 2 1
-char castlingRights = 0xFF;
+struct GameState state;
 
 char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
 
@@ -87,10 +82,27 @@ char getCastlingRights(char *str)
 
 void loadFEN(char *fen)
 {
-	int rank, file, square, piece, index;
+	
+	int rank, file, square, piece, index, length;
+	char *str = NULL;
 	char *token = NULL;
 	
+	length = strlen(fen);
+	str = malloc(length + 1);
+	if (str == NULL)
+	{
+		perror("Malloc error in loadFEN");
+		exit(EXIT_FAILURE);
+	}
+	strncpy(str, fen, length);
+	
 	memset(PIECE_BITBOARDS, 0ULL, sizeof(PIECE_BITBOARDS));
+	state.turn = 1;
+	state.castlingRights = 0;
+	state.enpessantSquare = -1;
+	state.halfMoveClock = 0;
+	state.fullMove = 1;
+	
 	token = strtok(fen, DELIMS);
 	// For loops read in pieces
 	for (rank = 7; rank >= 0; rank--)
@@ -121,11 +133,11 @@ void loadFEN(char *fen)
 	// First gamestate is side to move
 	if (strlen(token) == 1 && (token[0] == 'w' || token[0] == 'W' ))
 	{
-		turn = 1;
+		state.turn = 1;
 	}
 	else if (strlen(token) == 1 && (token[0] == 'b' || token[0] == 'B'))
 	{
-		turn = 0;
+		state.turn = 0;
 	}
 	else
 	{
@@ -135,11 +147,11 @@ void loadFEN(char *fen)
 	
 	// Get castling gamestate
 	token = strtok(NULL, DELIMS);
-	castlingRights = getCastlingRights(token);
+	state.castlingRights = getCastlingRights(token);
 	
 	// Get enpessantSquare
 	token = strtok(NULL, DELIMS);
-	enpessantSquare = (token[0] == '-') ? -1 : getSquareFromNotation(token);
+	state.enpessantSquare = (token[0] == '-') ? -1 : getSquareFromNotation(token);
 	
 	// TODO get move counters
 }
@@ -147,7 +159,7 @@ void loadFEN(char *fen)
 void initStartingPosition()
 {
 	char startingPosition[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	loadFEN(startingPosition);
+	loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
 
 U64 getBlackPieces()
@@ -219,18 +231,18 @@ void printBoard()
 		printf("    h   g   f   e   d   c   b   a\n");
 	}
 	
-	printf("\n%s to move\n", (turn) ? "White" : "Black");
+	printf("\n%s to move\n", (state.turn) ? "White" : "Black");
 	printf("Castling Rights: ");
-	if (castlingRights & WHITE_OO)
+	if (state.castlingRights & WHITE_OO)
 		printf("K");
-	if (castlingRights & WHITE_OOO)
+	if (state.castlingRights & WHITE_OOO)
 		printf("Q");
-	if (castlingRights & BLACK_OO)
+	if (state.castlingRights & BLACK_OO)
 		printf("k");
-	if (castlingRights & BLACK_OOO)
+	if (state.castlingRights & BLACK_OOO)
 		printf("q");
-	if (!castlingRights)
+	if (!state.castlingRights)
 		printf("-");
 	printf("\n");
-	printf("En Pessant Square: %d\n", enpessantSquare);
+	printf("En Pessant Square: %d\n", state.enpessantSquare);
 }

@@ -10,9 +10,16 @@
 #define BLACK_OO 2
 #define BLACK_OOO 1
 
-extern int enpessantSquare;
-extern int turn;
-extern char castlingRights;
+struct GameState
+{
+	int turn;
+	int castlingRights;
+	int enpessantSquare;
+	int halfMoveClock;
+	int fullMove;
+};
+
+extern struct GameState state;
 extern U64 PIECE_BITBOARDS[12];
 
 enum
