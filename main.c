@@ -20,9 +20,11 @@ int main()
 	initAttacks();
 	
 	initStartingPosition();
-	
-	printBitboard(getAllPieces());
+	char testPosition[] = "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 w - - 5 34";
+	//loadFEN(startingPosition);
+	//printBitboard(getAllPieces());
 	printBoard();
+	
 	
 	//exampleMagicBitboard();
 	
