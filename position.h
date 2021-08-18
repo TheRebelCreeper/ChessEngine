@@ -19,6 +19,11 @@ extern U64 BLACK_QUEENS;
 extern U64 BLACK_KINGS;
 extern U64 BLACK_PIECES;
 
+enum
+{
+	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
+};
+
 void initStartingPosition();
 U64 getBlackPieces();
 U64 getWhitePieces();

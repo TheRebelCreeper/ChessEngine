@@ -486,18 +486,26 @@ void initLeapers()
 	#endif
 }
 
+void initAttacks()
+{
+	initSliders();
+	initLeapers();
+}
+
 void printBitboard(U64 board)
 {
 	int i, j;
+	printf("  +---+---+---+---+---+---+---+---+\n");
 	for (i = 7; i >= 0; i--)
 	{
-		printf("%d\t", i + 1);
+		printf("%d ", i + 1);
 		for (j = 0; j < 8; j++)
 		{
-			printf(" %d", get_square(board, i * 8 + j) ? 1 : 0);
+			printf("| %d ", get_square(board, i * 8 + j) ? 1 : 0);
 		}
-		printf("\n");
+		printf("|\n");
+		printf("  +---+---+---+---+---+---+---+---+\n");
 	}
-	printf("\n \t a b c d e f g h\n");
+	printf("    a   b   c   d   e   f   g   h\n");
 	printf("Bitboard: 0x%llx\n", board);
 }

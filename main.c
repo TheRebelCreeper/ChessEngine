@@ -17,11 +17,11 @@ void exampleMagicBitboard()
 
 int main()
 {
-	initLeapers();
-	//initSliders();
+	initAttacks();
 	
 	initStartingPosition();
 	
+	printBitboard(getAllPieces());
 	printBoard();
 	
 	//exampleMagicBitboard();

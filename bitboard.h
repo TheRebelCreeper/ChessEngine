@@ -65,6 +65,7 @@ int countBits(U64 board);
 
 void initLeapers();
 void initSliders();
+void initAttacks();
 void printBitboard(U64 board);
 
 #endif

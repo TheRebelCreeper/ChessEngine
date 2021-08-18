@@ -15,6 +15,8 @@ U64 BLACK_ROOKS = 0ULL;
 U64 BLACK_QUEENS = 0ULL;
 U64 BLACK_KINGS = 0ULL;
 
+char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
+
 void initStartingPosition()
 {
 	WHITE_PAWNS = Rank2;
@@ -53,33 +55,39 @@ U64 getAllPieces()
 	return getBlackPieces() | getWhitePieces();
 }
 
-char* getCharAtSquare(int square)
+int getPieceAtSquare(int square)
 {
 	if (get_square(WHITE_PAWNS, square))
-		return "P";
+		return P;
 	if (get_square(WHITE_KNIGHTS, square))
-		return "N";
+		return N;
 	if (get_square(WHITE_BISHOPS, square))
-		return "B";
+		return B;
 	if (get_square(WHITE_ROOKS, square))
-		return "R";
+		return R;
 	if (get_square(WHITE_QUEENS, square))
-		return "Q";
+		return Q;
 	if (get_square(WHITE_KINGS, square))
-		return "♔";
+		return K;
 	if (get_square(BLACK_PAWNS, square))
-		return "p";
+		return p;
 	if (get_square(BLACK_KNIGHTS, square))
-		return "n";
+		return n;
 	if (get_square(BLACK_BISHOPS, square))
-		return "b";
+		return b;
 	if (get_square(BLACK_ROOKS, square))
-		return "r";
+		return r;
 	if (get_square(BLACK_QUEENS, square))
-		return "q";
+		return q;
 	if (get_square(BLACK_KINGS, square))
-		return "k";
-	return " ";
+		return k;
+	else
+		return NO_PIECE;
+}
+
+char* getCharAtSquare(int square)
+{
+	return pieceChars[getPieceAtSquare(square)];
 }
 
 void printBoard()
