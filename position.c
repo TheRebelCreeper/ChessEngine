@@ -15,6 +15,8 @@ U64 BLACK_ROOKS = 0ULL;
 U64 BLACK_QUEENS = 0ULL;
 U64 BLACK_KINGS = 0ULL;
 
+int flip = 0;
+
 char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
 
 void initStartingPosition()
@@ -38,6 +40,11 @@ void initStartingPosition()
 	set_square(BLACK_ROOKS, h8);
 	set_square(BLACK_QUEENS, d8);
 	set_square(BLACK_KINGS, e8);
+	
+	set_square(WHITE_PAWNS, e4);
+	set_square(BLACK_PAWNS, c5);
+	clear_square(WHITE_PAWNS, e2);
+	clear_square(BLACK_PAWNS, c7);
 }
 
 U64 getBlackPieces()
@@ -95,17 +102,36 @@ void printBoard()
 	char* piece;
 	int rank, file, square;
 	printf("  +---+---+---+---+---+---+---+---+\n");
-	for (rank = 7; rank >= 0; rank--)
+	if (!flip)
 	{
-		printf("%d ", rank + 1);
-		for (file = 0; file < 8; file++)
+		for (rank = 7; rank >= 0; rank--)
 		{
-			square = rank * 8 + file;
-			piece = getCharAtSquare(square);
-			printf("| %s ", piece);
+			printf("%d ", rank + 1);
+			for (file = 0; file < 8; file++)
+			{
+				square = rank * 8 + file;
+				piece = getCharAtSquare(square);
+				printf("| %s ", piece);
+			}
+			printf("|\n");
+			printf("  +---+---+---+---+---+---+---+---+\n");
 		}
-		printf("|\n");
-		printf("  +---+---+---+---+---+---+---+---+\n");
+		printf("    a   b   c   d   e   f   g   h\n");
 	}
-	printf("    a   b   c   d   e   f   g   h\n");
+	else
+	{
+		for (rank = 0; rank < 8; rank++)
+		{
+			printf("%d ", rank + 1);
+			for (file = 7; file >= 0; file--)
+			{
+				square = rank * 8 + file;
+				piece = getCharAtSquare(square);
+				printf("| %s ", piece);
+			}
+			printf("|\n");
+			printf("  +---+---+---+---+---+---+---+---+\n");
+		}
+		printf("    h   g   f   e   d   c   b   a\n");
+	}
 }

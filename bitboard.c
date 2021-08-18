@@ -507,5 +507,5 @@ void printBitboard(U64 board)
 		printf("  +---+---+---+---+---+---+---+---+\n");
 	}
 	printf("    a   b   c   d   e   f   g   h\n");
-	printf("Bitboard: 0x%llx\n", board);
+	printf("Bitboard: 0x%llx\n\n", board);
 }
