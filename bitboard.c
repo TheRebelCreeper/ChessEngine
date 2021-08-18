@@ -438,6 +438,7 @@ void initSliders()
 		RookMagic[square] = find_magic_number(square, RBits[square], 0);
 	}
 	
+	//#pragma omp parallel for private(square) shared(BishopAttacks, RookAttacks)
 	for (square = 0; square < 64; square++)
 	{
 		for(int index = 0; index < (1 << BBits[square]); index++)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bitboard.h"
+#include "position.h"
 
 void exampleMagicBitboard()
 {
@@ -17,9 +18,13 @@ void exampleMagicBitboard()
 int main()
 {
 	initLeapers();
-	initSliders();
+	//initSliders();
 	
-	exampleMagicBitboard();
+	initStartingPosition();
+	
+	printBoard();
+	
+	//exampleMagicBitboard();
 	
 	return 0;
 }
