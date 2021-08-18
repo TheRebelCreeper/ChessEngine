@@ -103,7 +103,7 @@ void loadFEN(char *fen)
 	state.halfMoveClock = 0;
 	state.fullMove = 1;
 	
-	token = strtok(fen, DELIMS);
+	token = strtok(str, DELIMS);
 	// For loops read in pieces
 	for (rank = 7; rank >= 0; rank--)
 	{
@@ -158,8 +158,7 @@ void loadFEN(char *fen)
 
 void initStartingPosition()
 {
-	char startingPosition[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	loadFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	loadFEN(STARTING_FEN);
 }
 
 U64 getBlackPieces()

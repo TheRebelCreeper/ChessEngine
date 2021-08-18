@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -fopenmp
+CFLAGS = -Wall -fopenmp -g
 
 LIBS += -lrt
 

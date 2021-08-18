@@ -10,6 +10,8 @@
 #define BLACK_OO 2
 #define BLACK_OOO 1
 
+#define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 struct GameState
 {
 	int turn;
