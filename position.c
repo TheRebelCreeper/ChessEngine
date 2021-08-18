@@ -154,6 +154,10 @@ void loadFEN(char *fen)
 	state.enpessantSquare = (token[0] == '-') ? -1 : getSquareFromNotation(token);
 	
 	// TODO get move counters
+	token = strtok(NULL, DELIMS);
+	state.halfMoveClock = atoi(token);
+	token = strtok(NULL, DELIMS);
+	state.fullMove = atoi(token);
 }
 
 void initStartingPosition()
@@ -197,7 +201,7 @@ void printBoard()
 	char* piece;
 	int rank, file, square;
 	printf("  +---+---+---+---+---+---+---+---+\n");
-	if (!flip)
+	if (state.turn)
 	{
 		for (rank = 7; rank >= 0; rank--)
 		{
@@ -244,4 +248,6 @@ void printBoard()
 		printf("-");
 	printf("\n");
 	printf("En Pessant Square: %d\n", state.enpessantSquare);
+	printf("Halfmove Clock: %d\n", state.halfMoveClock);
+	printf("Move: %d\n", state.fullMove);
 }
