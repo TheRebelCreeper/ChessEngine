@@ -8,6 +8,7 @@ U64 PIECE_BITBOARDS[12];
 
 int flip = 0;
 
+// TODO make a struct for gamestate
 int enpessantSquare;
 int turn = 1;
 // Stores castling rights in first 4 least significant bits
