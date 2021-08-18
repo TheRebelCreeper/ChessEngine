@@ -118,11 +118,11 @@ void loadFEN(char *fen)
 	}
 	
 	// First gamestate is side to move
-	if (strlen(token) == 1 && token[0] == 'w' || token[0] == 'W' )
+	if (strlen(token) == 1 && (token[0] == 'w' || token[0] == 'W' ))
 	{
 		turn = 1;
 	}
-	else if (strlen(token) == 1 && token[0] == 'b' || token[0] == 'B')
+	else if (strlen(token) == 1 && (token[0] == 'b' || token[0] == 'B'))
 	{
 		turn = 0;
 	}
