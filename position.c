@@ -90,6 +90,7 @@ void loadFEN(char *fen)
 	int rank, file, square, piece, index;
 	char *token = NULL;
 	
+	memset(PIECE_BITBOARDS, 0ULL, sizeof(PIECE_BITBOARDS));
 	token = strtok(fen, DELIMS);
 	// For loops read in pieces
 	for (rank = 7; rank >= 0; rank--)
