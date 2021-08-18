@@ -6,22 +6,22 @@
 #include "magic.h"
 
 const U64 FileA = 0x0101010101010101ULL;
-const U64 FileB = FileA << 1;
-const U64 FileC = FileA << 2;
-const U64 FileD = FileA << 3;
-const U64 FileE = FileA << 4;
-const U64 FileF = FileA << 5;
-const U64 FileG = FileA << 6;
-const U64 FileH = FileA << 7;
+const U64 FileB = 0x0101010101010101ULL << 1;
+const U64 FileC = 0x0101010101010101ULL << 2;
+const U64 FileD = 0x0101010101010101ULL << 3;
+const U64 FileE = 0x0101010101010101ULL << 4;
+const U64 FileF = 0x0101010101010101ULL << 5;
+const U64 FileG = 0x0101010101010101ULL << 6;
+const U64 FileH = 0x0101010101010101ULL << 7;
 
 const U64 Rank1 = 0xFFULL;
-const U64 Rank2 = Rank1 << (8 * 1);
-const U64 Rank3 = Rank1 << (8 * 2);
-const U64 Rank4 = Rank1 << (8 * 3);
-const U64 Rank5 = Rank1 << (8 * 4);
-const U64 Rank6 = Rank1 << (8 * 5);
-const U64 Rank7 = Rank1 << (8 * 6);
-const U64 Rank8 = Rank1 << (8 * 7);
+const U64 Rank2 = 0xFFULL << (8 * 1);
+const U64 Rank3 = 0xFFULL << (8 * 2);
+const U64 Rank4 = 0xFFULL << (8 * 3);
+const U64 Rank5 = 0xFFULL << (8 * 4);
+const U64 Rank6 = 0xFFULL << (8 * 5);
+const U64 Rank7 = 0xFFULL << (8 * 6);
+const U64 Rank8 = 0xFFULL << (8 * 7);
 
 int RBits[64] = {
   12, 11, 11, 11, 11, 11, 11, 12,
