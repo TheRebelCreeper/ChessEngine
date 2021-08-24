@@ -4,6 +4,7 @@
 #include "bitboard.h"
 
 #define DELIMS "/ "
+//#define UNICODE_PIECES
 
 #define WHITE_OO 8
 #define WHITE_OOO 4
