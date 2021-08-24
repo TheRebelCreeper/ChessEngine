@@ -51,10 +51,9 @@ int main()
 	
 	initStartingPosition();
 	printBoard();
-	//loadFEN(TEST_POSITION_2);
-	//printBoard();
-	//printBitboard(getAllPieces());
-	testIsAttacked();
+	loadFEN(TEST_POSITION_2);
+	printBoard();
+//	testIsAttacked();
 	//exampleMagicBitboard();
 	
 	return 0;
