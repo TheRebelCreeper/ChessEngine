@@ -14,6 +14,7 @@
 
 struct GameState
 {
+	U64 pieceBitboards[12];
 	int turn;
 	int castlingRights;
 	int enpessantSquare;
@@ -22,7 +23,6 @@ struct GameState
 };
 
 extern struct GameState state;
-extern U64 PIECE_BITBOARDS[12];
 
 enum
 {

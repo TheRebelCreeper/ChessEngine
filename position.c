@@ -4,8 +4,6 @@
 #include <ctype.h>
 #include "position.h"
 
-U64 PIECE_BITBOARDS[12];
-
 int flip = 0;
 
 struct GameState state;
@@ -96,7 +94,7 @@ void loadFEN(char *fen)
 	}
 	strncpy(str, fen, length);
 	
-	memset(PIECE_BITBOARDS, 0ULL, sizeof(PIECE_BITBOARDS));
+	memset(state.pieceBitboards, 0ULL, sizeof(state.pieceBitboards));
 	state.turn = 1;
 	state.castlingRights = 0;
 	state.enpessantSquare = -1;
@@ -123,7 +121,7 @@ void loadFEN(char *fen)
 					exit(EXIT_FAILURE);
 				}
 				square = rank * 8 + file;
-				set_square(PIECE_BITBOARDS[piece], square);
+				set_square(state.pieceBitboards[piece], square);
 			}
 			index++;
 		}
@@ -169,12 +167,12 @@ void initStartingPosition()
 
 U64 getBlackPieces()
 {
-	return PIECE_BITBOARDS[p] | PIECE_BITBOARDS[n] | PIECE_BITBOARDS[b] | PIECE_BITBOARDS[r] | PIECE_BITBOARDS[q] | PIECE_BITBOARDS[k];
+	return state.pieceBitboards[p] | state.pieceBitboards[n] | state.pieceBitboards[b] | state.pieceBitboards[r] | state.pieceBitboards[q] | state.pieceBitboards[k];
 }
 
 U64 getWhitePieces()
 {
-	return PIECE_BITBOARDS[P] | PIECE_BITBOARDS[N] | PIECE_BITBOARDS[B] | PIECE_BITBOARDS[R] | PIECE_BITBOARDS[Q] | PIECE_BITBOARDS[K];
+	return state.pieceBitboards[P] | state.pieceBitboards[N] | state.pieceBitboards[B] | state.pieceBitboards[R] | state.pieceBitboards[Q] | state.pieceBitboards[K];
 }
 
 U64 getAllPieces()
@@ -187,15 +185,10 @@ int getPieceAtSquare(int square)
 	int i;
 	for (i = 0; i < 12; i++)
 	{
-		if (get_square(PIECE_BITBOARDS[i], square))
+		if (get_square(state.pieceBitboards[i], square))
 			return i;
 	}
 	return NO_PIECE;
-}
-
-char* getCharAtSquare(int square)
-{
-	return pieceChars[getPieceAtSquare(square)];
 }
 
 void printBoard()
@@ -203,38 +196,26 @@ void printBoard()
 	char* piece;
 	int rank, file, square;
 	printf("  +---+---+---+---+---+---+---+---+\n");
+	for (rank = 0; rank < 8; rank++)
+	{
+		if (!state.turn)
+			printf("%d ", rank + 1);
+		else
+			printf("%d ", 8 - rank);
+			
+		for (file = 0; file < 8; file++)
+		{
+			square = (state.turn) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
+			piece = pieceChars[getPieceAtSquare(square)];
+			printf("| %s ", piece);
+		}
+		printf("|\n");
+		printf("  +---+---+---+---+---+---+---+---+\n");
+	}
 	if (state.turn)
-	{
-		for (rank = 7; rank >= 0; rank--)
-		{
-			printf("%d ", rank + 1);
-			for (file = 0; file < 8; file++)
-			{
-				square = rank * 8 + file;
-				piece = getCharAtSquare(square);
-				printf("| %s ", piece);
-			}
-			printf("|\n");
-			printf("  +---+---+---+---+---+---+---+---+\n");
-		}
 		printf("    a   b   c   d   e   f   g   h\n");
-	}
 	else
-	{
-		for (rank = 0; rank < 8; rank++)
-		{
-			printf("%d ", rank + 1);
-			for (file = 7; file >= 0; file--)
-			{
-				square = rank * 8 + file;
-				piece = getCharAtSquare(square);
-				printf("| %s ", piece);
-			}
-			printf("|\n");
-			printf("  +---+---+---+---+---+---+---+---+\n");
-		}
 		printf("    h   g   f   e   d   c   b   a\n");
-	}
 	
 	printf("\n%s to move\n", (state.turn) ? "White" : "Black");
 	printf("Castling Rights: ");

@@ -471,7 +471,7 @@ void initLeapers()
 	start = omp_get_wtime();
 	#endif
 	
-	#pragma omp parallel for private(square) shared(KnightAttacks, KingAttacks, PawnAttacks)
+	//#pragma omp parallel for private(square) shared(KnightAttacks, KingAttacks, PawnAttacks)
 	for (square = 0; square < 64; square++)
 	{
 		KnightAttacks[square] = calculateKnightAttacks(square);
