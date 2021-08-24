@@ -26,7 +26,7 @@ int main()
 	loadFEN(TEST_POSITION_1);
 	printBoard();
 	
-	//exampleMagicBitboard();
+	exampleMagicBitboard();
 	
 	return 0;
 }

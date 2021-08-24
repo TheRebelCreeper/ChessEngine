@@ -78,6 +78,43 @@ char getCastlingRights(char *str)
 	return rights;
 }
 
+U64 getBlackPieces()
+{
+	return state.pieceBitboards[p] | state.pieceBitboards[n] | state.pieceBitboards[b] | state.pieceBitboards[r] | state.pieceBitboards[q] | state.pieceBitboards[k];
+}
+
+U64 getWhitePieces()
+{
+	return state.pieceBitboards[P] | state.pieceBitboards[N] | state.pieceBitboards[B] | state.pieceBitboards[R] | state.pieceBitboards[Q] | state.pieceBitboards[K];
+}
+
+U64 getAllPieces()
+{
+	return getBlackPieces() | getWhitePieces();
+}
+
+int getPieceAtSquare(int square)
+{
+	int i;
+	for (i = 0; i < 12; i++)
+	{
+		if (get_square(state.pieceBitboards[i], square))
+			return i;
+	}
+	return NO_PIECE;
+}
+
+int isSquareAttacked(int square, int byColor)
+{
+	int colorOffset;
+	colorOffset = (byColor == WHITE) ? 0 : 6;
+	// Check is square is attacked by knight
+	if (knightAttacks[square] & state.pieceBitboards[n + colorOffset])
+		return 1;
+	else
+		return 0;
+}
+
 void loadFEN(char *fen)
 {
 	
@@ -165,31 +202,6 @@ void initStartingPosition()
 	loadFEN(STARTING_FEN);
 }
 
-U64 getBlackPieces()
-{
-	return state.pieceBitboards[p] | state.pieceBitboards[n] | state.pieceBitboards[b] | state.pieceBitboards[r] | state.pieceBitboards[q] | state.pieceBitboards[k];
-}
-
-U64 getWhitePieces()
-{
-	return state.pieceBitboards[P] | state.pieceBitboards[N] | state.pieceBitboards[B] | state.pieceBitboards[R] | state.pieceBitboards[Q] | state.pieceBitboards[K];
-}
-
-U64 getAllPieces()
-{
-	return getBlackPieces() | getWhitePieces();
-}
-
-int getPieceAtSquare(int square)
-{
-	int i;
-	for (i = 0; i < 12; i++)
-	{
-		if (get_square(state.pieceBitboards[i], square))
-			return i;
-	}
-	return NO_PIECE;
-}
 
 void printBoard()
 {

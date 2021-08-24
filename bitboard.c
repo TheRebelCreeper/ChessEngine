@@ -398,21 +398,21 @@ U64 generateRookAttacks(int square, U64 blockers)
 U64 getBishopAttack(int square, U64 blockers)
 {
 	int mIndex;
-	blockers &= BishopOccupancy[square];
-	blockers *= BishopMagic[square];
+	blockers &= bishopOccupancy[square];
+	blockers *= bishopMagic[square];
 	mIndex = blockers >> (64 - BBits[square]);
 	
-	return BishopAttacks[square][mIndex];
+	return bishopAttacks[square][mIndex];
 }
 
 U64 getRookAttack(int square, U64 blockers)
 {
 	int mIndex;
-	blockers &= RookOccupancy[square];
-	blockers *= RookMagic[square];
+	blockers &= rookOccupancy[square];
+	blockers *= rookMagic[square];
 	mIndex = blockers >> (64 - RBits[square]);
 	
-	return RookAttacks[square][mIndex];
+	return rookAttacks[square][mIndex];
 }
 
 U64 getQueenAttack(int square, U64 blockers)
@@ -431,11 +431,11 @@ void initSliders()
 	
 	for (square = 0; square < 64; square++)
 	{
-		BishopOccupancy[square] = calculateBishopOccupancy(square);
-		RookOccupancy[square] = calculateRookOccupancy(square);
+		bishopOccupancy[square] = calculateBishopOccupancy(square);
+		rookOccupancy[square] = calculateRookOccupancy(square);
 		
-		BishopMagic[square] = find_magic_number(square, BBits[square], 1);
-		RookMagic[square] = find_magic_number(square, RBits[square], 0);
+		bishopMagic[square] = find_magic_number(square, BBits[square], 1);
+		rookMagic[square] = find_magic_number(square, RBits[square], 0);
 	}
 	
 	//#pragma omp parallel for private(square) shared(BishopAttacks, RookAttacks)
@@ -443,16 +443,16 @@ void initSliders()
 	{
 		for(int index = 0; index < (1 << BBits[square]); index++)
 		{
-			U64 occupancy = occupancyFromIndex(index, BishopOccupancy[square]);
-			int mIndex = (occupancy * BishopMagic[square]) >> (64 - BBits[square]);
-			BishopAttacks[square][mIndex] = generateBishopAttacks(square, occupancy);
+			U64 occupancy = occupancyFromIndex(index, bishopOccupancy[square]);
+			int mIndex = (occupancy * bishopMagic[square]) >> (64 - BBits[square]);
+			bishopAttacks[square][mIndex] = generateBishopAttacks(square, occupancy);
 		}
 		
 		for(int index = 0; index < (1 << RBits[square]); index++)
 		{
-			U64 occupancy = occupancyFromIndex(index, RookOccupancy[square]);
-			int mIndex = (occupancy * RookMagic[square]) >> (64 - RBits[square]);
-			RookAttacks[square][mIndex] = generateRookAttacks(square, occupancy);
+			U64 occupancy = occupancyFromIndex(index, rookOccupancy[square]);
+			int mIndex = (occupancy * rookMagic[square]) >> (64 - RBits[square]);
+			rookAttacks[square][mIndex] = generateRookAttacks(square, occupancy);
 		}
 	}
 	
@@ -474,10 +474,10 @@ void initLeapers()
 	//#pragma omp parallel for private(square) shared(KnightAttacks, KingAttacks, PawnAttacks)
 	for (square = 0; square < 64; square++)
 	{
-		KnightAttacks[square] = calculateKnightAttacks(square);
-		KingAttacks[square] = calculateKingAttacks(square);
-		PawnAttacks[0][square] = calculatePawnAttacks(0, square);
-		PawnAttacks[1][square] = calculatePawnAttacks(1, square);
+		knightAttacks[square] = calculateKnightAttacks(square);
+		kingAttacks[square] = calculateKingAttacks(square);
+		pawnAttacks[0][square] = calculatePawnAttacks(0, square);
+		pawnAttacks[1][square] = calculatePawnAttacks(1, square);
 	}
 	
 	#ifdef DEBUG

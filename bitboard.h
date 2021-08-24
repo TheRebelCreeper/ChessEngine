@@ -39,18 +39,18 @@ extern const U64 Rank6;
 extern const U64 Rank7;
 extern const U64 Rank8;
 
-U64 KingAttacks[64];
-U64 KnightAttacks[64];
-U64 PawnAttacks[2][64];
+U64 kingAttacks[64];
+U64 knightAttacks[64];
+U64 pawnAttacks[2][64];
 
-U64 BishopOccupancy[64];
-U64 RookOccupancy[64];
+U64 bishopOccupancy[64];
+U64 rookOccupancy[64];
 
-U64 BishopMagic[64];
-U64 RookMagic[64];
+U64 bishopMagic[64];
+U64 rookMagic[64];
 
-U64 BishopAttacks[64][512];
-U64 RookAttacks[64][4096];
+U64 bishopAttacks[64][512];
+U64 rookAttacks[64][4096];
 
 U64 generateBishopAttacks(int square, U64 blockers);
 U64 generateRookAttacks(int square, U64 blockers);
