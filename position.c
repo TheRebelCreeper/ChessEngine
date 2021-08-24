@@ -216,14 +216,14 @@ void printBoard()
 	printf("  +---+---+---+---+---+---+---+---+\n");
 	for (rank = 0; rank < 8; rank++)
 	{
-		if (state.turn == BLACK)
-			printf("%d ", rank + 1);
-		else
+		if (state.turn == WHITE)
 			printf("%d ", 8 - rank);
+		else
+			printf("%d ", rank + 1);
 			
 		for (file = 0; file < 8; file++)
 		{
-			square = (state.turn == BLACK) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
+			square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
 			piece = pieceChars[getPieceAtSquare(square)];
 			printf("| %s ", piece);
 		}

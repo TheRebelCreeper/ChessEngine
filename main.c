@@ -3,7 +3,7 @@
 #include "bitboard.h"
 #include "position.h"
 
-#define TEST_POSITION_1 "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 b - - 5 34"
+#define TEST_POSITION_1 "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 w - - 5 34"
 #define TEST_POSITION_2 "k7/3n1P2/2q5/4n3/2Q3N1/3K4/5B2/8 w - - 0 1"
 
 void exampleMagicBitboard()
