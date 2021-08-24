@@ -4,7 +4,8 @@
 #include "bitboard.h"
 
 #define DELIMS "/ "
-//#define UNICODE_PIECES
+
+#define UNICODE_PIECES
 
 #define WHITE_OO 8
 #define WHITE_OOO 4
@@ -18,7 +19,7 @@ struct GameState
 	U64 pieceBitboards[12];
 	int turn;
 	int castlingRights;
-	int enpessantSquare;
+	int enpassantSquare;
 	int halfMoveClock;
 	int fullMove;
 };

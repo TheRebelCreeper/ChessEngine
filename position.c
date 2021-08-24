@@ -161,7 +161,7 @@ void loadFEN(char *fen)
 	memset(state.pieceBitboards, 0ULL, sizeof(state.pieceBitboards));
 	state.turn = 0;
 	state.castlingRights = 0;
-	state.enpessantSquare = -1;
+	state.enpassantSquare = -1;
 	state.halfMoveClock = 0;
 	state.fullMove = 1;
 	
@@ -211,9 +211,9 @@ void loadFEN(char *fen)
 	token = strtok(NULL, DELIMS);
 	state.castlingRights = getCastlingRights(token);
 	
-	// Get enpessantSquare
+	// Get enpassantSquare
 	token = strtok(NULL, DELIMS);
-	state.enpessantSquare = (token[0] == '-') ? -1 : getSquareFromNotation(token);
+	state.enpassantSquare = (token[0] == '-') ? -1 : getSquareFromNotation(token);
 	
 	// TODO get move counters
 	token = strtok(NULL, DELIMS);
@@ -272,7 +272,7 @@ void printBoard()
 	if (!state.castlingRights)
 		printf("-");
 	printf("\n");
-	printf("En Pessant Square: %d\n", state.enpessantSquare);
+	printf("En Passant Square: %d\n", state.enpassantSquare);
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
 	printf("Move: %d\n", state.fullMove);
 }
