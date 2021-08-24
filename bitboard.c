@@ -137,7 +137,7 @@ U64 calculatePawnAttacks(int side, int square)
 	set_square(pieceLocation, square);
 	
 	// White attacks
-	if (side == 0)
+	if (side == WHITE)
 	{
 		attacks |= (pieceLocation << 9 & ~FileA);    // Top left
 		attacks |= (pieceLocation << 7 & ~FileH);    // Top right

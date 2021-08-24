@@ -3,6 +3,9 @@
 
 #define DEBUG
 
+#define WHITE 0
+#define BLACK 1
+
 typedef unsigned long long U64;
 
 enum

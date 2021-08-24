@@ -5,9 +5,6 @@
 
 #define DELIMS "/ "
 
-#define WHITE 0
-#define BLACK 1
-
 #define WHITE_OO 8
 #define WHITE_OOO 4
 #define BLACK_OO 2
@@ -37,6 +34,7 @@ void initStartingPosition();
 U64 getBlackPieces();
 U64 getWhitePieces();
 U64 getAllPieces();
+int isSquareAttacked(int square, int byColor);
 
 void printBoard();
 

@@ -108,11 +108,17 @@ int isSquareAttacked(int square, int byColor)
 {
 	int colorOffset;
 	colorOffset = (byColor == WHITE) ? 0 : 6;
-	// Check is square is attacked by knight
-	if (knightAttacks[square] & state.pieceBitboards[n + colorOffset])
+	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
+	
+	if (kingAttacks[square] & state.pieceBitboards[K + colorOffset])
+		return 1;
+	else if (knightAttacks[square] & state.pieceBitboards[N + colorOffset])
+		return 1;
+	else if (pawnAttacks[pawnAttackColor][square] & state.pieceBitboards[P + colorOffset])
 		return 1;
 	else
 		return 0;
+		
 }
 
 void loadFEN(char *fen)
@@ -132,7 +138,7 @@ void loadFEN(char *fen)
 	strncpy(str, fen, length);
 	
 	memset(state.pieceBitboards, 0ULL, sizeof(state.pieceBitboards));
-	state.turn = 1;
+	state.turn = 0;
 	state.castlingRights = 0;
 	state.enpessantSquare = -1;
 	state.halfMoveClock = 0;
@@ -168,11 +174,11 @@ void loadFEN(char *fen)
 	// First gamestate is side to move
 	if (strlen(token) == 1 && (token[0] == 'w' || token[0] == 'W' ))
 	{
-		state.turn = 1;
+		state.turn = WHITE;
 	}
 	else if (strlen(token) == 1 && (token[0] == 'b' || token[0] == 'B'))
 	{
-		state.turn = 0;
+		state.turn = BLACK;
 	}
 	else
 	{
@@ -210,26 +216,26 @@ void printBoard()
 	printf("  +---+---+---+---+---+---+---+---+\n");
 	for (rank = 0; rank < 8; rank++)
 	{
-		if (!state.turn)
+		if (state.turn == BLACK)
 			printf("%d ", rank + 1);
 		else
 			printf("%d ", 8 - rank);
 			
 		for (file = 0; file < 8; file++)
 		{
-			square = (state.turn) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
+			square = (state.turn == BLACK) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
 			piece = pieceChars[getPieceAtSquare(square)];
 			printf("| %s ", piece);
 		}
 		printf("|\n");
 		printf("  +---+---+---+---+---+---+---+---+\n");
 	}
-	if (state.turn)
+	if (state.turn == WHITE)
 		printf("    a   b   c   d   e   f   g   h\n");
 	else
 		printf("    h   g   f   e   d   c   b   a\n");
 	
-	printf("\n%s to move\n", (state.turn) ? "White" : "Black");
+	printf("\n%s to move\n", (state.turn == WHITE) ? "White" : "Black");
 	printf("Castling Rights: ");
 	if (state.castlingRights & WHITE_OO)
 		printf("K");
