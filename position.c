@@ -8,7 +8,11 @@ int flip = 0;
 
 struct GameState state;
 
+#ifdef UNICODE_PIECES
+char *pieceChars[13] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚", " "};
+#else
 char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
+#endif
 
 int getSquareFromNotation(char *str)
 {
@@ -104,20 +108,36 @@ int getPieceAtSquare(int square)
 	return NO_PIECE;
 }
 
-int isSquareAttacked(int square, int byColor)
+char isSquareAttacked(int square, int byColor)
 {
-	int colorOffset;
-	colorOffset = (byColor == WHITE) ? 0 : 6;
+	/*	Will use individual bits to indicate which pieces are attacking the square
+		Bit 0 - Pawn
+		Bit 1 - Knight
+		Bit 2 - Bishop
+		Bit 3 - Rook
+		Bit 4 - Queen
+		Bit 5 - King
+	*/
+	char attackers = 0; // Will use bitmasks to indicate which pieces are attacking a square as a test
+	
+	
+	int colorOffset = (byColor == WHITE) ? 0 : 6;
 	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
+	U64 occupancy = getAllPieces();
 	
 	if (kingAttacks[square] & state.pieceBitboards[K + colorOffset])
-		return 1;
-	else if (knightAttacks[square] & state.pieceBitboards[N + colorOffset])
-		return 1;
-	else if (pawnAttacks[pawnAttackColor][square] & state.pieceBitboards[P + colorOffset])
-		return 1;
-	else
-		return 0;
+		attackers |= (1 << 5);
+	if (knightAttacks[square] & state.pieceBitboards[N + colorOffset])
+		attackers |= (1 << 1);
+	if (pawnAttacks[pawnAttackColor][square] & state.pieceBitboards[P + colorOffset])
+		attackers |= 1;
+	if (getBishopAttack(square, occupancy) & state.pieceBitboards[B + colorOffset])
+		attackers |= (1 << 2);
+	if (getRookAttack(square, occupancy) & state.pieceBitboards[R + colorOffset])
+		attackers |= (1 << 3);
+	if (getQueenAttack(square, occupancy) & state.pieceBitboards[Q + colorOffset])
+		attackers |= (1 << 4);
+	return attackers;
 		
 }
 

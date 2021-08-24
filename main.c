@@ -4,7 +4,7 @@
 #include "position.h"
 
 #define TEST_POSITION_1 "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 w - - 5 34"
-#define TEST_POSITION_2 "k7/3n1P2/2q5/4n3/2Q3N1/3K4/5B2/8 w - - 0 1"
+#define TEST_POSITION_2 "r2qkb1r/pp2pp1p/2p3p1/5b2/Q2nnB1N/3B4/PP3PPP/RN3RK1 w kq - 0 11"
 
 void exampleMagicBitboard()
 {
@@ -20,13 +20,17 @@ void exampleMagicBitboard()
 
 void testIsAttacked()
 {
-	printf("Is d3 attacked by BLACK: %d\n", isSquareAttacked(d3, BLACK));
-	printf("Is c4 attacked by BLACK: %d\n", isSquareAttacked(c4, BLACK));
-	printf("Is c5 attacked by BLACK: %d\n", isSquareAttacked(c5, BLACK));
-	printf("Is c6 attacked by BLACK: %d\n", isSquareAttacked(c6, BLACK));
-	printf("Is f2 attacked by BLACK: %d\n", isSquareAttacked(f2, BLACK));
-	printf("Is a1 attacked by BLACK: %d\n", isSquareAttacked(a1, BLACK));
-	printf("Is g8 attacked by WHITE: %d\n", isSquareAttacked(g8, WHITE));
+	#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+	#define BYTE_TO_BINARY(byte)  \
+	  (byte & 0x80 ? '1' : '0'), \
+	  (byte & 0x40 ? '1' : '0'), \
+	  (byte & 0x20 ? '1' : '0'), \
+	  (byte & 0x10 ? '1' : '0'), \
+	  (byte & 0x08 ? '1' : '0'), \
+	  (byte & 0x04 ? '1' : '0'), \
+	  (byte & 0x02 ? '1' : '0'), \
+	  (byte & 0x01 ? '1' : '0')
+	printf("Is c6 attacked by BLACK: "BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(isSquareAttacked(c6, WHITE)));
 }
 
 int main()
@@ -35,10 +39,10 @@ int main()
 	
 	initStartingPosition();
 	printBoard();
-	loadFEN(TEST_POSITION_1);
+	loadFEN(TEST_POSITION_2);
 	printBoard();
 	//printBitboard(getAllPieces());
-	//testIsAttacked();
+	testIsAttacked();
 	//exampleMagicBitboard();
 	
 	return 0;
