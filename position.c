@@ -111,6 +111,7 @@ int getPieceAtSquare(int square)
 char isSquareAttacked(int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
+		This is only really used for debugging purposes
 		Bit 0 - Pawn
 		Bit 1 - Knight
 		Bit 2 - Bishop
@@ -118,7 +119,7 @@ char isSquareAttacked(int square, int byColor)
 		Bit 4 - Queen
 		Bit 5 - King
 	*/
-	char attackers = 0; // Will use bitmasks to indicate which pieces are attacking a square as a test
+	char attackers = 0;
 	
 	
 	int colorOffset = (byColor == WHITE) ? 0 : 6;

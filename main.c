@@ -30,7 +30,19 @@ void testIsAttacked()
 	  (byte & 0x04 ? '1' : '0'), \
 	  (byte & 0x02 ? '1' : '0'), \
 	  (byte & 0x01 ? '1' : '0')
-	printf("Is c6 attacked by BLACK: "BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(isSquareAttacked(c6, WHITE)));
+	//printf("Is c6 attacked by BLACK: "BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(isSquareAttacked(c6, WHITE)));
+	U64 attacked = 0ULL;
+	for (int i = 0; i < 2; i++)
+	{
+		for (int square = 0; square < 64; square++)
+		{
+			if (isSquareAttacked(square, i))
+				set_square(attacked, square);
+		}
+		printf("Attacked by %s\n", (i == 0) ? "White" : "Black");
+		printBitboard(attacked);
+		attacked = 0ULL;
+	}
 }
 
 int main()
@@ -39,8 +51,8 @@ int main()
 	
 	initStartingPosition();
 	printBoard();
-	loadFEN(TEST_POSITION_2);
-	printBoard();
+	//loadFEN(TEST_POSITION_2);
+	//printBoard();
 	//printBitboard(getAllPieces());
 	testIsAttacked();
 	//exampleMagicBitboard();
