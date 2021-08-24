@@ -21,8 +21,8 @@ int main()
 {
 	initAttacks();
 	
-	initStartingPosition();
-	printBoard();
+	//initStartingPosition();
+	//printBoard();
 	loadFEN(TEST_POSITION_1);
 	printBoard();
 	

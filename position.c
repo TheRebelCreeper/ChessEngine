@@ -158,6 +158,8 @@ void loadFEN(char *fen)
 	state.halfMoveClock = atoi(token);
 	token = strtok(NULL, DELIMS);
 	state.fullMove = atoi(token);
+	
+	free(str);
 }
 
 void initStartingPosition()
