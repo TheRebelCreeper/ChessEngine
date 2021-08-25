@@ -24,6 +24,13 @@ struct GameState
 	int fullMove;
 };
 
+struct Move
+{
+	int src;
+	int dst;
+	int piece;
+};
+
 extern struct GameState state;
 
 enum
