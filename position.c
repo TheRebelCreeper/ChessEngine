@@ -246,10 +246,18 @@ void printBoard()
 		{
 			square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
 			piece = pieceChars[getPieceAtSquare(square)];
+			
+			#ifndef _WIN32
 			if ((!(square & 1) && !(rank & 1)) || ((square & 1) && rank & 1))
-				printf("|\033[38;2;0;0;0;48;2;245;245;220m %s \033[0m", piece);
+				printf("|\033[38;2;0;0;0;48;2;245;245;220m");
 			else
-				printf("|\033[38;2;0;0;0;48;2;152;118;84m %s \033[0m", piece);
+				printf("|\033[38;2;0;0;0;48;2;152;118;84m");
+			#endif
+			printf(" %s ", piece);
+			
+			#ifndef _WIN32
+			printf("\033[39;49m");
+			#endif
 		}
 		printf("|\n");
 		printf("  +---+---+---+---+---+---+---+---+\n");
