@@ -42,6 +42,8 @@ extern const U64 Rank6;
 extern const U64 Rank7;
 extern const U64 Rank8;
 
+extern char *squareNames[64];
+
 U64 kingAttacks[64];
 U64 knightAttacks[64];
 U64 pawnAttacks[2][64];
@@ -60,11 +62,12 @@ U64 generateRookAttacks(int square, U64 blockers);
 U64 occupancyFromIndex(int index, U64 board);
 U64 calculateBishopOccupancy(int square);
 U64 calculateRookOccupancy(int square);
-U64 getBishopAttack(int square, U64 blockers);
-U64 getRookAttack(int square, U64 blockers);
-U64 getQueenAttack(int square, U64 blockers);
+U64 getBishopAttacks(int square, U64 blockers);
+U64 getRookAttacks(int square, U64 blockers);
+U64 getQueenAttacks(int square, U64 blockers);
 
 int countBits(U64 board);
+int getFirstBitSquare(U64 board);
 
 void initLeapers();
 void initSliders();

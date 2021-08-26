@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "bitboard.h"
 #include "position.h"
+#include "movegen.h"
 
 #define TEST_POSITION_1 "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 w - - 5 34"
 #define TEST_POSITION_2 "r2qkb1r/pp2pp1p/2p3p1/5b2/Q2nnB1N/3B4/PP3PPP/RN3RK1 w kq - 0 11"
@@ -13,9 +14,9 @@ void exampleMagicBitboard()
 	set_square(blocker, f3);
 	set_square(blocker, g6);
 	set_square(blocker, e2);
-	printBitboard(getBishopAttack(e4, blocker));
-	printBitboard(getRookAttack(e6, blocker));
-	printBitboard(getQueenAttack(e4, blocker));
+	printBitboard(getBishopAttacks(e4, blocker));
+	printBitboard(getRookAttacks(e6, blocker));
+	printBitboard(getQueenAttacks(e4, blocker));
 }
 
 void testIsAttacked()
@@ -49,11 +50,13 @@ int main()
 {
 	initAttacks();
 	
-	initStartingPosition();
-	printBoard();
+	//initStartingPosition();
+	//printBoard();
+	
 	loadFEN(TEST_POSITION_2);
 	printBoard();
-//	testIsAttacked();
+	generateMoves(state);
+	//testIsAttacked();
 	//exampleMagicBitboard();
 	
 	return 0;

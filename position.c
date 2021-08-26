@@ -132,19 +132,17 @@ char isSquareAttacked(int square, int byColor)
 		attackers |= (1 << 1);
 	if (pawnAttacks[pawnAttackColor][square] & state.pieceBitboards[P + colorOffset])
 		attackers |= 1;
-	if (getBishopAttack(square, occupancy) & state.pieceBitboards[B + colorOffset])
+	if (getBishopAttacks(square, occupancy) & state.pieceBitboards[B + colorOffset])
 		attackers |= (1 << 2);
-	if (getRookAttack(square, occupancy) & state.pieceBitboards[R + colorOffset])
+	if (getRookAttacks(square, occupancy) & state.pieceBitboards[R + colorOffset])
 		attackers |= (1 << 3);
-	if (getQueenAttack(square, occupancy) & state.pieceBitboards[Q + colorOffset])
+	if (getQueenAttacks(square, occupancy) & state.pieceBitboards[Q + colorOffset])
 		attackers |= (1 << 4);
-	return attackers;
-		
+	return attackers;	
 }
 
 void loadFEN(char *fen)
 {
-	
 	int rank, file, square, piece, index, length;
 	char *str = NULL;
 	char *token = NULL;
@@ -228,7 +226,6 @@ void initStartingPosition()
 {
 	loadFEN(STARTING_FEN);
 }
-
 
 void printBoard()
 {

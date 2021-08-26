@@ -45,6 +45,17 @@ int BBits[64] = {
   6, 5, 5, 5, 5, 5, 5, 6
 };
 
+char *squareNames[64] = {
+  "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+  "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+  "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+  "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+  "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+  "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+  "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+  "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+};
+
 // Algorithm from Brian Kernighan
 int countBits(U64 board)
 {
@@ -82,7 +93,7 @@ U64 occupancyFromIndex(int index, U64 board)
       square = getFirstBitSquare(board);
       clear_square(board, square);
       
-      // Check if the ith is marked in the index
+      // Check if the ith bit is marked in the index
       if (index & (1 << i))
       {
          // Add the square to occupancy
@@ -395,7 +406,7 @@ U64 generateRookAttacks(int square, U64 blockers)
 	return occupancy;
 }
 
-U64 getBishopAttack(int square, U64 blockers)
+U64 getBishopAttacks(int square, U64 blockers)
 {
 	int mIndex;
 	blockers &= bishopOccupancy[square];
@@ -405,7 +416,7 @@ U64 getBishopAttack(int square, U64 blockers)
 	return bishopAttacks[square][mIndex];
 }
 
-U64 getRookAttack(int square, U64 blockers)
+U64 getRookAttacks(int square, U64 blockers)
 {
 	int mIndex;
 	blockers &= rookOccupancy[square];
@@ -415,9 +426,9 @@ U64 getRookAttack(int square, U64 blockers)
 	return rookAttacks[square][mIndex];
 }
 
-U64 getQueenAttack(int square, U64 blockers)
+U64 getQueenAttacks(int square, U64 blockers)
 {
-	return getBishopAttack(square, blockers) | getRookAttack(square, blockers);
+	return getBishopAttacks(square, blockers) | getRookAttacks(square, blockers);
 }
 
 void initSliders()
