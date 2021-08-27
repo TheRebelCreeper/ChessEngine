@@ -66,6 +66,10 @@ void generateMoves(struct GameState pos)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
+			if (dst >= a7 || dst <= h1)
+			{
+				// Promotion
+			}
 			printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
 			clear_square(pieceAttacks, dst);
 		}
