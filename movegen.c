@@ -6,15 +6,73 @@
 
 void generateMoves(struct GameState pos)
 {
-	int src, dst;
+	int src, dst, enpassantSquare;
 	int turn = pos.turn;
 	int offset = 6 * turn;
 	
-	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	U64 pieceBB, pieceAttacks, friendlyPieces, enemyPieces, occupancy;
+	U64 singlePushTarget, doublePushTarget;
 	
 	occupancy = getAllPieces();
 	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	enemyPieces = (turn == WHITE) ? getBlackPieces() : getWhitePieces();
 	
+	// Generate pawn moves
+	pieceBB = pos.pieceBitboards[P + offset];
+	
+	// Pawn pushes
+	if (turn == WHITE)
+	{
+		singlePushTarget = (pieceBB << 8) & ~occupancy;
+		doublePushTarget = (singlePushTarget << 8) & Rank4 & ~occupancy;
+	}
+	else
+	{
+		singlePushTarget = (pieceBB >> 8) & ~occupancy;
+		doublePushTarget = (singlePushTarget >> 8) & Rank5 & ~occupancy;
+	}
+	
+	while (singlePushTarget)
+	{
+		dst = getFirstBitSquare(singlePushTarget);
+		if (dst >= a7 || dst <= h1)
+		{
+			// Promotion
+		}
+		src = dst - 8 + (16 * turn);
+		printf("%d. %s\n", pos.fullMove, squareNames[dst]);
+		clear_square(singlePushTarget, dst);
+	}
+	
+	while (doublePushTarget)
+	{
+		dst = getFirstBitSquare(doublePushTarget);
+		src = dst - 16 + (32 * turn);
+		enpassantSquare = src + 8 - (16 * turn);
+		//printf("%s\n", squareNames[enpassantSquare]);
+		printf("%d. %s\n", pos.fullMove, squareNames[dst]);
+		clear_square(doublePushTarget, dst);
+	}
+	
+	// Pawn Captures
+	while (pieceBB)
+	{
+		// TODO take en passant
+		
+		src = getFirstBitSquare(pieceBB);
+		// Perhaps & (enemyPieces | enPassantSquare)
+		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
+		
+		while (pieceAttacks)
+		{
+			dst = getFirstBitSquare(pieceAttacks);
+			printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+			clear_square(pieceAttacks, dst);
+		}
+		clear_square(pieceBB, src);
+	}
+	
+	// TODO Generate castling
 	
 	// Generate King Moves
 	pieceBB = pos.pieceBitboards[K + offset];
@@ -31,7 +89,7 @@ void generateMoves(struct GameState pos)
 		clear_square(pieceBB, src);
 	}
 	
-	// Generate King Moves
+	// Generate Knight Moves
 	pieceBB = pos.pieceBitboards[N + offset];
 	while (pieceBB)
 	{
