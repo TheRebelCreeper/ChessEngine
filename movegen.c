@@ -71,6 +71,16 @@ void generateMoves(struct GameState pos)
 		src = getFirstBitSquare(pieceBB);
 		// Perhaps & (enemyPieces | enPassantSquare)
 		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
+
+		if (pos.enpassantSquare != -1)
+		{
+			U64 epAttacks = pawnAttacks[turn][src] & (1ULL << pos.enpassantSquare);
+			if (epAttacks)
+			{
+				dst = pos.enpassantSquare;
+				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+			}
+		}
 		
 		while (pieceAttacks)
 		{

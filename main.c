@@ -9,6 +9,7 @@
 #define TEST_POSITION_3 "r1bqkbnr/ppp2pp1/2n4p/3pp1B1/2PP4/5N2/PP2PPPP/RN1QKB1R w KQkq - 0 1"
 #define TEST_POSITION_4 "r1bqkbnr/ppp2pp1/2n4p/3pp1B1/2PP3P/5N2/PP2PPP1/RN1QKB1R b KQkq - 0 1"
 #define TEST_POSITION_PROMOTION "3r4/2P5/K7/8/8/8/5pk1/8 w - - 0 1"
+#define TEST_POSITION_EP "rnbqkbnr/ppp2ppp/4p3/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"
 
 void exampleMagicBitboard()
 {
@@ -46,7 +47,7 @@ int main()
 	initStartingPosition();
 	//printBoard();
 	
-	loadFEN(TEST_POSITION_PROMOTION);
+	loadFEN(TEST_POSITION_EP);
 	printBoard();
 	generateMoves(state);
 	//testIsAttacked();
