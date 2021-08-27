@@ -35,12 +35,21 @@ void generateMoves(struct GameState pos)
 	while (singlePushTarget)
 	{
 		dst = getFirstBitSquare(singlePushTarget);
-		if (dst >= a7 || dst <= h1)
+		src = dst - 8 + (16 * turn);
+		if ((dst < 64 && dst >= 0) && (dst >= a7 || dst <= h1))
 		{
 			// Promotion
+			printf("%d. %s=Q\n", pos.fullMove, squareNames[dst]);
+			printf("%d. %s=R\n", pos.fullMove, squareNames[dst]);
+			printf("%d. %s=B\n", pos.fullMove, squareNames[dst]);
+			printf("%d. %s=K\n", pos.fullMove, squareNames[dst]);
 		}
-		src = dst - 8 + (16 * turn);
-		printf("%d. %s\n", pos.fullMove, squareNames[dst]);
+		else
+		{
+			printf("%d. %s\n", pos.fullMove, squareNames[dst]);
+		}
+		
+		
 		clear_square(singlePushTarget, dst);
 	}
 	
@@ -66,11 +75,19 @@ void generateMoves(struct GameState pos)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			if (dst >= a7 || dst <= h1)
+			// Promotion
+			if ((dst < 64 && dst >= 0) && (dst >= a7 || dst <= h1))
 			{
-				// Promotion
+				
+				printf("%d. %sx%s=Q\n", pos.fullMove, squareNames[src], squareNames[dst]);
+				printf("%d. %sx%s=R\n", pos.fullMove, squareNames[src], squareNames[dst]);
+				printf("%d. %sx%s=B\n", pos.fullMove, squareNames[src], squareNames[dst]);
+				printf("%d. %sx%s=K\n", pos.fullMove, squareNames[src], squareNames[dst]);
 			}
-			printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+			else
+			{
+				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+			}
 			clear_square(pieceAttacks, dst);
 		}
 		clear_square(pieceBB, src);
