@@ -26,7 +26,7 @@ void generateMoves(struct GameState pos)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			clear_square(pieceAttacks, dst);
-			//printf("%d. K%s\n", pos.fullMove, squareNames[dst]);
+			printf("%d. K%s\n", pos.fullMove, squareNames[dst]);
 		}
 		clear_square(pieceBB, src);
 	}
@@ -41,7 +41,7 @@ void generateMoves(struct GameState pos)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			clear_square(pieceAttacks, dst);
-			//printf("%d. N%s\n", pos.fullMove, squareNames[dst]);
+			printf("%d. N%s\n", pos.fullMove, squareNames[dst]);
 		}
 		clear_square(pieceBB, src);
 	}
@@ -56,7 +56,7 @@ void generateMoves(struct GameState pos)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			clear_square(pieceAttacks, dst);
-			//printf("%d. B%s\n", pos.fullMove, squareNames[dst]);
+			printf("%d. B%s\n", pos.fullMove, squareNames[dst]);
 		}
 		clear_square(pieceBB, src);
 	}
@@ -71,12 +71,12 @@ void generateMoves(struct GameState pos)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			clear_square(pieceAttacks, dst);
-			//printf("%d. R%s\n", pos.fullMove, squareNames[dst]);
+			printf("%d. R%s\n", pos.fullMove, squareNames[dst]);
 		}
 		clear_square(pieceBB, src);
 	}
 	
-	// Generate Rook Moves
+	// Generate Queen Moves
 	pieceBB = pos.pieceBitboards[Q + offset];
 	while (pieceBB)
 	{
@@ -86,7 +86,7 @@ void generateMoves(struct GameState pos)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			clear_square(pieceAttacks, dst);
-			//printf("%d. Q%s\n", pos.fullMove, squareNames[dst]);
+			printf("%d. Q%s\n", pos.fullMove, squareNames[dst]);
 		}
 		clear_square(pieceBB, src);
 	}
