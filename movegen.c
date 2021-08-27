@@ -42,7 +42,7 @@ void generateMoves(struct GameState pos)
 			printf("%d. %s=Q\n", pos.fullMove, squareNames[dst]);
 			printf("%d. %s=R\n", pos.fullMove, squareNames[dst]);
 			printf("%d. %s=B\n", pos.fullMove, squareNames[dst]);
-			printf("%d. %s=K\n", pos.fullMove, squareNames[dst]);
+			printf("%d. %s=N\n", pos.fullMove, squareNames[dst]);
 		}
 		else
 		{
@@ -82,7 +82,7 @@ void generateMoves(struct GameState pos)
 				printf("%d. %sx%s=Q\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				printf("%d. %sx%s=R\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				printf("%d. %sx%s=B\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				printf("%d. %sx%s=K\n", pos.fullMove, squareNames[src], squareNames[dst]);
+				printf("%d. %sx%s=N\n", pos.fullMove, squareNames[src], squareNames[dst]);
 			}
 			else
 			{
