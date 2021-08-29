@@ -104,6 +104,42 @@ void generateMoves(struct GameState pos)
 	}
 	
 	// TODO Generate castling
+	pieceBB = pos.pieceBitboards[K + offset];
+	int castlingRights = pos.castlingRights;
+	if (turn == WHITE)
+	{
+		if (castlingRights & WHITE_OO && !get_square(occupancy, f1) && !get_square(occupancy, g1))
+		{
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK) || isSquareAttacked(pos, g1, BLACK)))
+			{
+				printf("%d. O-O\n", pos.fullMove);
+			}
+		}
+		if (castlingRights & WHITE_OOO && !get_square(occupancy, b1) && !get_square(occupancy, c1) && !get_square(occupancy, d1))
+		{
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, c1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
+			{
+				printf("%d. O-O-O\n", pos.fullMove);
+			}
+		}
+	}
+	else
+	{
+		if (castlingRights & BLACK_OO && !get_square(occupancy, f8) && !get_square(occupancy, g8))
+		{
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE) || isSquareAttacked(pos, g8, WHITE)))
+			{
+				printf("%d. O-O\n", pos.fullMove);
+			}
+		}
+		if (castlingRights & BLACK_OOO && !get_square(occupancy, b8) && !get_square(occupancy, c8) && !get_square(occupancy, d8))
+		{
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, c8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
+			{
+				printf("%d. O-O-O\n", pos.fullMove);
+			}
+		}
+	}
 	
 	// Generate King Moves
 	pieceBB = pos.pieceBitboards[K + offset];

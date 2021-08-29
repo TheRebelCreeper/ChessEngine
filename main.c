@@ -10,6 +10,7 @@
 #define TEST_POSITION_4 "r1bqkbnr/ppp2pp1/2n4p/3pp1B1/2PP3P/5N2/PP2PPP1/RN1QKB1R b KQkq - 0 1"
 #define TEST_POSITION_PROMOTION "3r4/2P5/K7/8/8/8/5pk1/8 w - - 0 1"
 #define TEST_POSITION_EP "rnbqkbnr/ppp2ppp/4p3/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"
+#define TEST_POSITION_CASTLES "r3k2r/pppp1ppp/2n2n2/1Bb1p3/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 0 1"
 
 void exampleMagicBitboard()
 {
@@ -31,7 +32,7 @@ void testIsAttacked()
 	{
 		for (int square = 0; square < 64; square++)
 		{
-			if (isSquareAttacked(square, i))
+			if (isSquareAttacked(state, square, i))
 				set_square(attacked, square);
 		}
 		printf("Attacked by %s\n", (i == 0) ? "White" : "Black");
@@ -47,7 +48,7 @@ int main()
 	initStartingPosition();
 	//printBoard();
 	
-	loadFEN(TEST_POSITION_2);
+	loadFEN(TEST_POSITION_CASTLES);
 	printBoard();
 	generateMoves(state);
 	//testIsAttacked();

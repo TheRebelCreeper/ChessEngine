@@ -108,7 +108,7 @@ int getPieceAtSquare(int square)
 	return NO_PIECE;
 }
 
-char isSquareAttacked(int square, int byColor)
+char isSquareAttacked(struct GameState state, int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
 		This is only really used for debugging purposes

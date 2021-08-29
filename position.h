@@ -34,7 +34,7 @@ void initStartingPosition();
 U64 getBlackPieces();
 U64 getWhitePieces();
 U64 getAllPieces();
-char isSquareAttacked(int square, int byColor);
+char isSquareAttacked(struct GameState state, int square, int byColor);
 
 void printBoard();
 
