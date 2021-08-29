@@ -47,7 +47,7 @@ int main()
 	initStartingPosition();
 	//printBoard();
 	
-	loadFEN(TEST_POSITION_EP);
+	loadFEN(TEST_POSITION_2);
 	printBoard();
 	generateMoves(state);
 	//testIsAttacked();

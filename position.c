@@ -278,7 +278,7 @@ void printBoard()
 	if (!state.castlingRights)
 		printf("-");
 	printf("\n");
-	printf("En Passant Square: %s\n", squareNames[state.enpassantSquare]);
+	printf("En Passant Square: %s\n", (state.enpassantSquare == -1) ? "-" : squareNames[state.enpassantSquare]);
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
 	printf("Move: %d\n", state.fullMove);
 }
