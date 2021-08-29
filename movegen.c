@@ -103,7 +103,7 @@ void generateMoves(struct GameState pos)
 		clear_square(pieceBB, src);
 	}
 	
-	// TODO Generate castling
+	// TODO Not check if king destination is attacked since should always check if king is in check after move
 	pieceBB = pos.pieceBitboards[K + offset];
 	int castlingRights = pos.castlingRights;
 	if (turn == WHITE)
