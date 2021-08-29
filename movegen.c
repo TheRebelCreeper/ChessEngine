@@ -4,19 +4,16 @@
 #include "position.h"
 #include "movegen.h"
 
-void generateMoves(struct GameState pos)
+void generatePawnMoves(struct GameState pos, int turn, int offset)
 {
 	int src, dst, enpassantSquare;
-	int turn = pos.turn;
-	int offset = 6 * turn;
 	
-	U64 pieceBB, pieceAttacks, friendlyPieces, enemyPieces, occupancy;
+	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
 	U64 singlePushTarget, doublePushTarget;
-	
+
 	occupancy = getAllPieces();
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
 	enemyPieces = (turn == WHITE) ? getBlackPieces() : getWhitePieces();
-	
+
 	// Generate pawn moves
 	pieceBB = pos.pieceBitboards[P + offset];
 	
@@ -69,7 +66,6 @@ void generateMoves(struct GameState pos)
 		// TODO take en passant
 		
 		src = getFirstBitSquare(pieceBB);
-		// Perhaps & (enemyPieces | enPassantSquare)
 		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
 
 		if (pos.enpassantSquare != -1)
@@ -102,7 +98,17 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateKingMoves(struct GameState pos, int turn, int offset)
+{
+	int src, dst;
 	
+	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	
+	occupancy = getAllPieces();
+	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+
 	// TODO Not check if king destination is attacked since should always check if king is in check after move
 	pieceBB = pos.pieceBitboards[K + offset];
 	int castlingRights = pos.castlingRights;
@@ -155,6 +161,22 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateMoves(struct GameState pos)
+{
+	int src, dst;
+	int turn = pos.turn;
+	int offset = 6 * turn;
+	
+	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	
+	occupancy = getAllPieces();
+	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	
+	generatePawnMoves(pos, turn, offset);
+	generateKingMoves(pos, turn, offset);
+	
 	
 	// Generate Knight Moves
 	pieceBB = pos.pieceBitboards[N + offset];
