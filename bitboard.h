@@ -28,7 +28,7 @@ enum
 	a5, b5, c5, d5, e5, f5, g5, h5,
 	a6, b6, c6, d6, e6, f6, g6, h6,
 	a7, b7, c7, d7, e7, f7, g7, h7,
-	a8, b8, c8, d8, e8, f8, g8, h8,
+	a8, b8, c8, d8, e8, f8, g8, h8, none
 };
 
 #define set_square(board, square) ((board) |= (1ULL << (square)))
@@ -53,7 +53,7 @@ extern const U64 Rank6;
 extern const U64 Rank7;
 extern const U64 Rank8;
 
-extern char *squareNames[64];
+extern char *squareNames[65];
 
 U64 kingAttacks[64];
 U64 knightAttacks[64];
