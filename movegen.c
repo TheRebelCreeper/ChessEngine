@@ -7,12 +7,10 @@
 void generatePawnMoves(struct GameState pos, int turn, int offset)
 {
 	int src, dst, enpassantSquare;
-	
 	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
 	U64 singlePushTarget, doublePushTarget;
-
-	occupancy = getAllPieces();
-	enemyPieces = (turn == WHITE) ? getBlackPieces() : getWhitePieces();
+	occupancy = pos.occupancies[BOTH];
+	enemyPieces = (turn == WHITE) ? pos.occupancies[BLACK] : pos.occupancies[WHITE];
 
 	// Generate pawn moves
 	pieceBB = pos.pieceBitboards[P + offset];
@@ -55,16 +53,13 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 		dst = getFirstBitSquare(doublePushTarget);
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
-		//printf("%s\n", squareNames[enpassantSquare]);
 		printf("%d. %s\n", pos.fullMove, squareNames[dst]);
 		clear_square(doublePushTarget, dst);
 	}
 	
 	// Pawn Captures
 	while (pieceBB)
-	{
-		// TODO take en passant
-		
+	{	
 		src = getFirstBitSquare(pieceBB);
 		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
 
@@ -103,11 +98,9 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 void generateKingMoves(struct GameState pos, int turn, int offset)
 {
 	int src, dst;
-	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	
-	occupancy = getAllPieces();
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	occupancy = pos.occupancies[BOTH];
+	friendlyPieces = pos.occupancies[turn];
 
 	// TODO Not check if king destination is attacked since should always check if king is in check after move
 	pieceBB = pos.pieceBitboards[K + offset];
@@ -168,8 +161,7 @@ void generateKnightMoves(struct GameState pos, int turn, int offset)
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces;
-	
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	friendlyPieces = pos.occupancies[turn];
 	
 	// Generate Knight Moves
 	pieceBB = pos.pieceBitboards[N + offset];
@@ -192,9 +184,8 @@ void generateBishopMoves(struct GameState pos, int turn, int offset)
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	
-	occupancy = getAllPieces();
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	occupancy = pos.occupancies[BOTH];
+	friendlyPieces = pos.occupancies[turn];
 	
 	// Generate Bishop Moves
 	pieceBB = pos.pieceBitboards[B + offset];
@@ -217,9 +208,8 @@ void generateRookMoves(struct GameState pos, int turn, int offset)
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	
-	occupancy = getAllPieces();
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	occupancy = pos.occupancies[BOTH];
+	friendlyPieces = pos.occupancies[turn];
 	
 	// Generate Rook Moves
 	pieceBB = pos.pieceBitboards[R + offset];
@@ -242,9 +232,8 @@ void generateQueenMoves(struct GameState pos, int turn, int offset)
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	
-	occupancy = getAllPieces();
-	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
+	occupancy = pos.occupancies[BOTH];
+	friendlyPieces = pos.occupancies[turn];
 	
 	// Generate Queen Moves
 	pieceBB = pos.pieceBitboards[Q + offset];

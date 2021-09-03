@@ -34,7 +34,7 @@ int main()
 	initAttacks();
 	initStartingPosition();
 	//loadFEN(TEST_POSITION_CASTLES);
-	printBoard();
+	printBoard(state);
 	generateMoves(state);
 	//testIsAttacked();
 	

@@ -4,6 +4,7 @@
 #include "bitboard.h"
 
 #define DELIMS "/ "
+#define BOTH 2
 
 #define WHITE_OO 8
 #define WHITE_OOO 4
@@ -15,6 +16,7 @@
 struct GameState
 {
 	U64 pieceBitboards[12];
+	U64 occupancies[3];
 	int turn;
 	int castlingRights;
 	int enpassantSquare;
@@ -29,13 +31,11 @@ enum
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
-void loadFEN(char *fen);
+void loadFEN(struct GameState *state, char *fen);
+void setOccupanies(struct GameState *state);
 void initStartingPosition();
-U64 getBlackPieces();
-U64 getWhitePieces();
-U64 getAllPieces();
 char isSquareAttacked(struct GameState state, int square, int byColor);
 
-void printBoard();
+void printBoard(struct GameState state);
 
 #endif

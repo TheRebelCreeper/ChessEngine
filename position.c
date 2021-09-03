@@ -82,22 +82,21 @@ char getCastlingRights(char *str)
 	return rights;
 }
 
-U64 getBlackPieces()
+void setOccupanies(struct GameState *state)
 {
-	return state.pieceBitboards[p] | state.pieceBitboards[n] | state.pieceBitboards[b] | state.pieceBitboards[r] | state.pieceBitboards[q] | state.pieceBitboards[k];
+	int i;
+	for (i = P; i <= K; i++)
+	{
+		state->occupancies[WHITE] |= state->pieceBitboards[i];
+	}
+	for (i = p; i <= k; i++)
+	{
+		state->occupancies[BLACK] |= state->pieceBitboards[i];
+	}
+	state->occupancies[BOTH] = state->occupancies[WHITE] | state->occupancies[BLACK];
 }
 
-U64 getWhitePieces()
-{
-	return state.pieceBitboards[P] | state.pieceBitboards[N] | state.pieceBitboards[B] | state.pieceBitboards[R] | state.pieceBitboards[Q] | state.pieceBitboards[K];
-}
-
-U64 getAllPieces()
-{
-	return getBlackPieces() | getWhitePieces();
-}
-
-int getPieceAtSquare(int square)
+int getPieceAtSquare(struct GameState state, int square)
 {
 	int i;
 	for (i = 0; i < 12; i++)
@@ -120,11 +119,9 @@ char isSquareAttacked(struct GameState state, int square, int byColor)
 		Bit 5 - King
 	*/
 	char attackers = 0;
-	
-	
 	int colorOffset = (byColor == WHITE) ? 0 : 6;
 	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
-	U64 occupancy = getAllPieces();
+	U64 occupancy = state.occupancies[BOTH];
 	
 	if (kingAttacks[square] & state.pieceBitboards[K + colorOffset])
 		attackers |= (1 << 5);
@@ -141,7 +138,7 @@ char isSquareAttacked(struct GameState state, int square, int byColor)
 	return attackers;	
 }
 
-void loadFEN(char *fen)
+void loadFEN(struct GameState *state, char *fen)
 {
 	int rank, file, square, piece, index, length;
 	char *str = NULL;
@@ -156,12 +153,13 @@ void loadFEN(char *fen)
 	}
 	strncpy(str, fen, length);
 	
-	memset(state.pieceBitboards, 0ULL, sizeof(state.pieceBitboards));
-	state.turn = 0;
-	state.castlingRights = 0;
-	state.enpassantSquare = none;
-	state.halfMoveClock = 0;
-	state.fullMove = 1;
+	memset(state->pieceBitboards, 0ULL, sizeof(state->pieceBitboards));
+	memset(state->occupancies, 0ULL, sizeof(state->occupancies));
+	state->turn = 0;
+	state->castlingRights = 0;
+	state->enpassantSquare = none;
+	state->halfMoveClock = 0;
+	state->fullMove = 1;
 	
 	token = strtok(str, DELIMS);
 	// For loops read in pieces
@@ -183,7 +181,7 @@ void loadFEN(char *fen)
 					exit(EXIT_FAILURE);
 				}
 				square = rank * 8 + file;
-				set_square(state.pieceBitboards[piece], square);
+				set_square(state->pieceBitboards[piece], square);
 			}
 			index++;
 		}
@@ -193,11 +191,11 @@ void loadFEN(char *fen)
 	// First gamestate is side to move
 	if (strlen(token) == 1 && (token[0] == 'w' || token[0] == 'W' ))
 	{
-		state.turn = WHITE;
+		state->turn = WHITE;
 	}
 	else if (strlen(token) == 1 && (token[0] == 'b' || token[0] == 'B'))
 	{
-		state.turn = BLACK;
+		state->turn = BLACK;
 	}
 	else
 	{
@@ -207,27 +205,29 @@ void loadFEN(char *fen)
 	
 	// Get castling gamestate
 	token = strtok(NULL, DELIMS);
-	state.castlingRights = getCastlingRights(token);
+	state->castlingRights = getCastlingRights(token);
 	
 	// Get enpassantSquare
 	token = strtok(NULL, DELIMS);
-	state.enpassantSquare = (token[0] == '-') ? none : getSquareFromNotation(token);
+	state->enpassantSquare = (token[0] == '-') ? none : getSquareFromNotation(token);
 	
 	// TODO get move counters
 	token = strtok(NULL, DELIMS);
-	state.halfMoveClock = atoi(token);
+	state->halfMoveClock = atoi(token);
 	token = strtok(NULL, DELIMS);
-	state.fullMove = atoi(token);
+	state->fullMove = atoi(token);
+	
+	setOccupanies(state);
 	
 	free(str);
 }
 
 void initStartingPosition()
 {
-	loadFEN(STARTING_FEN);
+	loadFEN(&state, STARTING_FEN);
 }
 
-void printBoard()
+void printBoard(struct GameState state)
 {
 	char* piece;
 	int rank, file, square;
@@ -242,7 +242,7 @@ void printBoard()
 		for (file = 0; file < 8; file++)
 		{
 			square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-			piece = pieceChars[getPieceAtSquare(square)];
+			piece = pieceChars[getPieceAtSquare(state, square)];
 			
 			printf("|");
 			#ifndef _WIN32
