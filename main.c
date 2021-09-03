@@ -12,18 +12,6 @@
 #define TEST_POSITION_EP "rnbqkbnr/ppp2ppp/4p3/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"
 #define TEST_POSITION_CASTLES "r3k2r/pppp1ppp/2n2n2/1Bb1p3/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 0 1"
 
-void exampleMagicBitboard()
-{
-	U64 blocker = 0ULL;
-	set_square(blocker, c6);
-	set_square(blocker, f3);
-	set_square(blocker, g6);
-	set_square(blocker, e2);
-	printBitboard(getBishopAttacks(e4, blocker));
-	printBitboard(getRookAttacks(e6, blocker));
-	printBitboard(getQueenAttacks(e4, blocker));
-}
-
 void testIsAttacked()
 {
 	//printf("Is c6 attacked by BLACK: "BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(isSquareAttacked(c6, WHITE)));
@@ -44,15 +32,11 @@ void testIsAttacked()
 int main()
 {
 	initAttacks();
-	
 	initStartingPosition();
-	//printBoard();
-	
-	loadFEN(TEST_POSITION_CASTLES);
+	//loadFEN(TEST_POSITION_CASTLES);
 	printBoard();
 	generateMoves(state);
 	//testIsAttacked();
-	//exampleMagicBitboard();
 	
 	return 0;
 }

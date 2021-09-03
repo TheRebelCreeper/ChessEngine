@@ -163,20 +163,13 @@ void generateKingMoves(struct GameState pos, int turn, int offset)
 	}
 }
 
-void generateMoves(struct GameState pos)
+void generateKnightMoves(struct GameState pos, int turn, int offset)
 {
 	int src, dst;
-	int turn = pos.turn;
-	int offset = 6 * turn;
 	
-	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	U64 pieceBB, pieceAttacks, friendlyPieces;
 	
-	occupancy = getAllPieces();
 	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
-	
-	generatePawnMoves(pos, turn, offset);
-	generateKingMoves(pos, turn, offset);
-	
 	
 	// Generate Knight Moves
 	pieceBB = pos.pieceBitboards[N + offset];
@@ -192,6 +185,16 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateBishopMoves(struct GameState pos, int turn, int offset)
+{
+	int src, dst;
+	
+	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	
+	occupancy = getAllPieces();
+	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
 	
 	// Generate Bishop Moves
 	pieceBB = pos.pieceBitboards[B + offset];
@@ -207,6 +210,16 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateRookMoves(struct GameState pos, int turn, int offset)
+{
+	int src, dst;
+	
+	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	
+	occupancy = getAllPieces();
+	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
 	
 	// Generate Rook Moves
 	pieceBB = pos.pieceBitboards[R + offset];
@@ -222,6 +235,16 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateQueenMoves(struct GameState pos, int turn, int offset)
+{
+	int src, dst;
+	
+	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
+	
+	occupancy = getAllPieces();
+	friendlyPieces = (turn == WHITE) ? getWhitePieces() : getBlackPieces();
 	
 	// Generate Queen Moves
 	pieceBB = pos.pieceBitboards[Q + offset];
@@ -237,5 +260,17 @@ void generateMoves(struct GameState pos)
 		}
 		clear_square(pieceBB, src);
 	}
+}
+
+void generateMoves(struct GameState pos)
+{
+	int turn = pos.turn;
+	int offset = 6 * turn;
 	
+	generatePawnMoves(pos, turn, offset);
+	generateKingMoves(pos, turn, offset);
+	generateKnightMoves(pos, turn, offset);
+	generateBishopMoves(pos, turn, offset);
+	generateRookMoves(pos, turn, offset);
+	generateQueenMoves(pos, turn, offset);
 }
