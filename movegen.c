@@ -5,7 +5,7 @@
 #include "movegen.h"
 #include "list.h"
 
-void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generatePawnMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst, enpassantSquare;
 	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
@@ -40,15 +40,15 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 			//printf("%d. %s=R\n", pos.fullMove, squareNames[dst]);
 			//printf("%d. %s=B\n", pos.fullMove, squareNames[dst]);
 			//printf("%d. %s=N\n", pos.fullMove, squareNames[dst]);
-			insert(queue, createMove(P + offset, src, dst, Q));
-			insert(queue, createMove(P + offset, src, dst, R));
-			insert(queue, createMove(P + offset, src, dst, B));
-			insert(queue, createMove(P + offset, src, dst, N));
+			insert(moveList, createMove(P + offset, src, dst, Q));
+			insert(moveList, createMove(P + offset, src, dst, R));
+			insert(moveList, createMove(P + offset, src, dst, B));
+			insert(moveList, createMove(P + offset, src, dst, N));
 			
 		}
 		else
 		{
-			insert(queue, createMove(P + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL));
 			//printf("%d. %s\n", pos.fullMove, squareNames[dst]);
 		}		
 		clear_square(singlePushTarget, dst);
@@ -60,7 +60,7 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
 		//printf("%d. %s\n", pos.fullMove, squareNames[dst]);
-		insert(queue, createMove(P + offset, src, dst, NO_SPECIAL));
+		insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL));
 		clear_square(doublePushTarget, dst);
 	}
 	
@@ -77,7 +77,7 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 			{
 				dst = pos.enpassantSquare;
 				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				insert(queue, createMove(P + offset, src, dst, EN_PASSANT_SPECIAL));
+				insert(moveList, createMove(P + offset, src, dst, EN_PASSANT_SPECIAL));
 			}
 		}
 		
@@ -87,10 +87,10 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 			// Promotion
 			if ((dst < 64 && dst >= 0) && (dst >= a7 || dst <= h1))
 			{
-				insert(queue, createMove(P + offset, src, dst, Q));
-				insert(queue, createMove(P + offset, src, dst, R));
-				insert(queue, createMove(P + offset, src, dst, B));
-				insert(queue, createMove(P + offset, src, dst, N));
+				insert(moveList, createMove(P + offset, src, dst, Q));
+				insert(moveList, createMove(P + offset, src, dst, R));
+				insert(moveList, createMove(P + offset, src, dst, B));
+				insert(moveList, createMove(P + offset, src, dst, N));
 				//printf("%d. %sx%s=Q\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				//printf("%d. %sx%s=R\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				//printf("%d. %sx%s=B\n", pos.fullMove, squareNames[src], squareNames[dst]);
@@ -99,7 +99,7 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 			else
 			{
 				//printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				insert(queue, createMove(P + offset, src, dst, NO_SPECIAL));
+				insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL));
 			}
 			clear_square(pieceAttacks, dst);
 		}
@@ -107,7 +107,7 @@ void generatePawnMoves(struct GameState pos, int turn, int offset, Node **queue)
 	}
 }
 
-void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generateKingMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst;
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
@@ -124,7 +124,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 		{
 			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK) || isSquareAttacked(pos, g1, BLACK)))
 			{
-				insert(queue, createMove(K + offset, src, src + 2, OO_SPECIAL));
+				insert(moveList, createMove(K + offset, src, src + 2, OO_SPECIAL));
 				//printf("%d. O-O\n", pos.fullMove);
 			}
 		}
@@ -132,7 +132,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 		{
 			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, c1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
 			{
-				insert(queue, createMove(K + offset, src, src - 2, OOO_SPECIAL));
+				insert(moveList, createMove(K + offset, src, src - 2, OOO_SPECIAL));
 				//printf("%d. O-O-O\n", pos.fullMove);
 			}
 		}
@@ -143,7 +143,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 		{
 			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE) || isSquareAttacked(pos, g8, WHITE)))
 			{
-				insert(queue, createMove(K + offset, src, src + 2, OO_SPECIAL));
+				insert(moveList, createMove(K + offset, src, src + 2, OO_SPECIAL));
 				//printf("%d. O-O\n", pos.fullMove);
 			}
 		}
@@ -151,7 +151,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 		{
 			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, c8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
 			{
-				insert(queue, createMove(K + offset, src, src - 2, OOO_SPECIAL));
+				insert(moveList, createMove(K + offset, src, src - 2, OOO_SPECIAL));
 				//printf("%d. O-O-O\n", pos.fullMove);
 			}
 		}
@@ -165,7 +165,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			insert(queue, createMove(K + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(K + offset, src, dst, NO_SPECIAL));
 			clear_square(pieceAttacks, dst);
 			//printf("%d. K%s\n", pos.fullMove, squareNames[dst]);
 		}
@@ -173,7 +173,7 @@ void generateKingMoves(struct GameState pos, int turn, int offset, Node **queue)
 	}
 }
 
-void generateKnightMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generateKnightMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst;
 	
@@ -189,7 +189,7 @@ void generateKnightMoves(struct GameState pos, int turn, int offset, Node **queu
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			insert(queue, createMove(N + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(N + offset, src, dst, NO_SPECIAL));
 			clear_square(pieceAttacks, dst);
 			//printf("%d. N%s\n", pos.fullMove, squareNames[dst]);
 		}
@@ -197,7 +197,7 @@ void generateKnightMoves(struct GameState pos, int turn, int offset, Node **queu
 	}
 }
 
-void generateBishopMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generateBishopMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst;
 	
@@ -214,7 +214,7 @@ void generateBishopMoves(struct GameState pos, int turn, int offset, Node **queu
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			insert(queue, createMove(B + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(B + offset, src, dst, NO_SPECIAL));
 			clear_square(pieceAttacks, dst);
 			//printf("%d. B%s\n", pos.fullMove, squareNames[dst]);
 		}
@@ -222,7 +222,7 @@ void generateBishopMoves(struct GameState pos, int turn, int offset, Node **queu
 	}
 }
 
-void generateRookMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generateRookMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst;
 	
@@ -239,7 +239,7 @@ void generateRookMoves(struct GameState pos, int turn, int offset, Node **queue)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			insert(queue, createMove(R + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(R + offset, src, dst, NO_SPECIAL));
 			clear_square(pieceAttacks, dst);
 			//printf("%d. R%s\n", pos.fullMove, squareNames[dst]);
 		}
@@ -247,7 +247,7 @@ void generateRookMoves(struct GameState pos, int turn, int offset, Node **queue)
 	}
 }
 
-void generateQueenMoves(struct GameState pos, int turn, int offset, Node **queue)
+void generateQueenMoves(struct GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst;
 	
@@ -264,7 +264,7 @@ void generateQueenMoves(struct GameState pos, int turn, int offset, Node **queue
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			insert(queue, createMove(Q + offset, src, dst, NO_SPECIAL));
+			insert(moveList, createMove(Q + offset, src, dst, NO_SPECIAL));
 			clear_square(pieceAttacks, dst);
 			//printf("%d. Q%s\n", pos.fullMove, squareNames[dst]);
 		}
