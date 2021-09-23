@@ -26,6 +26,8 @@ struct GameState
 
 extern struct GameState state;
 
+extern char *pieceNotation[12];
+
 enum
 {
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE

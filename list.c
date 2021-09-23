@@ -43,14 +43,3 @@ void delete(struct node **head, Move move) {
 		prev->next = temp->next;
 	}
 }
-
-// traverse the list
-void traverse(struct node *head) {
-	struct node *temp;
-	temp = head;
-
-	while (temp != NULL) {
-		printf("%d %s-%s\n",temp->move.piece, squareNames[temp->move.src], squareNames[temp->move.dst]);
-		temp = temp->next;
-	}
-}

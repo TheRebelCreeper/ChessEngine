@@ -2,9 +2,10 @@
 #define MOVEGEN_H
 
 #include "bitboard.h"
-#include "position.h"
 #include "move.h"
+#include "list.h"
 
-void generateMoves(struct GameState position);
+Node *generateMoves(struct GameState position);
+void printMoveList(Node *head, struct GameState position);
 
 #endif

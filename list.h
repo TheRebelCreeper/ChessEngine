@@ -1,3 +1,5 @@
+#ifndef LIST_H
+#define LIST_H
 /**
  * list data structure containing the tasks in the system
  */
@@ -12,4 +14,4 @@ typedef struct node {
 // insert and delete operations.
 void insert(struct node **head, Move move);
 void delete(struct node **head, Move move);
-void traverse(struct node *head);
+#endif
