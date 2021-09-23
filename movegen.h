@@ -3,13 +3,7 @@
 
 #include "bitboard.h"
 #include "position.h"
-
-struct Move
-{
-	int src;
-	int dst;
-	int piece;
-};
+#include "move.h"
 
 void generateMoves(struct GameState position);
 

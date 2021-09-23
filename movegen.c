@@ -3,8 +3,9 @@
 #include "bitboard.h"
 #include "position.h"
 #include "movegen.h"
+#include "list.h"
 
-void generatePawnMoves(struct GameState pos, int turn, int offset)
+void generatePawnMoves(struct GameState pos, int turn, int offset, struct node **queue)
 {
 	int src, dst, enpassantSquare;
 	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
@@ -43,6 +44,11 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 		{
 			printf("%d. %s\n", pos.fullMove, squareNames[dst]);
 		}
+      Move newMove;
+      newMove.src = src;
+      newMove.dst = dst;
+      newMove.piece = P + offset;
+      insert(queue, newMove);
 		
 		
 		clear_square(singlePushTarget, dst);
@@ -54,6 +60,11 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
 		printf("%d. %s\n", pos.fullMove, squareNames[dst]);
+      Move newMove;
+      newMove.src = src;
+      newMove.dst = dst;
+      newMove.piece = P + offset;
+      insert(queue, newMove);
 		clear_square(doublePushTarget, dst);
 	}
 	
@@ -70,6 +81,11 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 			{
 				dst = pos.enpassantSquare;
 				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+            Move newMove;
+            newMove.src = src;
+            newMove.dst = dst;
+            newMove.piece = P + offset;
+            insert(queue, newMove);
 			}
 		}
 		
@@ -89,6 +105,11 @@ void generatePawnMoves(struct GameState pos, int turn, int offset)
 			{
 				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
 			}
+         Move newMove;
+         newMove.src = src;
+         newMove.dst = dst;
+         newMove.piece = P + offset;
+         insert(queue, newMove);
 			clear_square(pieceAttacks, dst);
 		}
 		clear_square(pieceBB, src);
@@ -253,13 +274,15 @@ void generateQueenMoves(struct GameState pos, int turn, int offset)
 
 void generateMoves(struct GameState pos)
 {
+   struct node *queue = NULL;
 	int turn = pos.turn;
 	int offset = 6 * turn;
 	
-	generatePawnMoves(pos, turn, offset);
+	generatePawnMoves(pos, turn, offset, &queue);
 	generateKingMoves(pos, turn, offset);
 	generateKnightMoves(pos, turn, offset);
 	generateBishopMoves(pos, turn, offset);
 	generateRookMoves(pos, turn, offset);
 	generateQueenMoves(pos, turn, offset);
+   traverse(queue);
 }
