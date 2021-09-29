@@ -13,6 +13,8 @@ char *pieceChars[13] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", 
 #else
 char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
 #endif
+char *pieceNotation[12] = {"", "N", "B", "R", "Q", "K", "", "N", "B", "R", "Q", "K"};
+
 
 int getSquareFromNotation(char *str)
 {
