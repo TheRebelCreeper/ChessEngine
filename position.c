@@ -84,18 +84,20 @@ char getCastlingRights(char *str)
 	return rights;
 }
 
-void setOccupancies(GameState *state)
+void setOccupancies(GameState *pos)
 {
 	int i;
+	pos->occupancies[WHITE] = 0ULL;
+	pos->occupancies[BLACK] = 0ULL;
 	for (i = P; i <= K; i++)
 	{
-		state->occupancies[WHITE] |= state->pieceBitboards[i];
+		pos->occupancies[WHITE] |= pos->pieceBitboards[i];
 	}
 	for (i = p; i <= k; i++)
 	{
-		state->occupancies[BLACK] |= state->pieceBitboards[i];
+		pos->occupancies[BLACK] |= pos->pieceBitboards[i];
 	}
-	state->occupancies[BOTH] = state->occupancies[WHITE] | state->occupancies[BLACK];
+	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
 int getPieceAtSquare(GameState state, int square)
@@ -109,7 +111,7 @@ int getPieceAtSquare(GameState state, int square)
 	return NO_PIECE;
 }
 
-char isSquareAttacked(GameState state, int square, int byColor)
+char isSquareAttacked(GameState pos, int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
 		This is only really used for debugging purposes
@@ -123,20 +125,21 @@ char isSquareAttacked(GameState state, int square, int byColor)
 	char attackers = 0;
 	int colorOffset = (byColor == WHITE) ? 0 : 6;
 	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
-	U64 occupancy = state.occupancies[BOTH];
+	U64 occupancy = pos.occupancies[BOTH];
 	
-	if (kingAttacks[square] & state.pieceBitboards[K + colorOffset])
+	if (kingAttacks[square] & pos.pieceBitboards[K + colorOffset])
 		attackers |= (1 << 5);
-	if (knightAttacks[square] & state.pieceBitboards[N + colorOffset])
+	if (knightAttacks[square] & pos.pieceBitboards[N + colorOffset])
 		attackers |= (1 << 1);
-	if (pawnAttacks[pawnAttackColor][square] & state.pieceBitboards[P + colorOffset])
+	if (pawnAttacks[pawnAttackColor][square] & pos.pieceBitboards[P + colorOffset])
 		attackers |= 1;
-	if (getBishopAttacks(square, occupancy) & state.pieceBitboards[B + colorOffset])
+	if (getBishopAttacks(square, occupancy) & pos.pieceBitboards[B + colorOffset])
 		attackers |= (1 << 2);
-	if (getRookAttacks(square, occupancy) & state.pieceBitboards[R + colorOffset])
+	if (getRookAttacks(square, occupancy) & pos.pieceBitboards[R + colorOffset])
 		attackers |= (1 << 3);
-	if (getQueenAttacks(square, occupancy) & state.pieceBitboards[Q + colorOffset])
+	if (getQueenAttacks(square, occupancy) & pos.pieceBitboards[Q + colorOffset])
 		attackers |= (1 << 4);
+		
 	return attackers;	
 }
 

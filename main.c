@@ -13,6 +13,8 @@
 #define TEST_POSITION_PROMOTION "3r4/2P5/K7/8/8/8/5pk1/8 w - - 0 1"
 #define TEST_POSITION_EP "rnbqkbnr/ppp2ppp/4p3/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"
 #define TEST_POSITION_CASTLES "r3k2r/pppp1ppp/2n2n2/1Bb1p3/4P3/5N2/PPPP1PPP/R3K2R b KQkq - 0 1"
+#define TEST_POSITION_STALEMATE "2k5/2P5/2K5/8/8/8/8/8 b - - 0 1"
+#define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
 
 void testIsAttacked()
 {
@@ -36,14 +38,18 @@ int main()
 	Node *moveList = NULL;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, TEST_POSITION_CASTLES);
+	loadFEN(&state, TEST_POSITION_CHECKMATE);
 	printBoard(state);
 	moveList = generateMoves(state);
 	printMoveList(moveList, state);
-	GameState newState = playMove(state, moveList->next->next->next->next->next->next->next->move);
-	moveList = generateMoves(newState);
-	newState = playMove(newState, moveList->next->next->move);
-	printBoard(newState);
+	
+	// e4
+	//GameState newState = playMove(state, moveList->next->next->next->next->next->next->next->move);
+	//moveList = generateMoves(newState);
+	
+	// Nc6
+	//newState = playMove(newState, moveList->next->next->move);
+	//printBoard(newState);
 	//testIsAttacked();
 	
 	return 0;

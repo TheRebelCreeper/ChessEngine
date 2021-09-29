@@ -274,16 +274,34 @@ void generateQueenMoves(GameState pos, int turn, int offset, Node **moveList)
 
 Node *generateMoves(GameState pos)
 {
+	Node *pseudoList = NULL;
 	Node *moveList = NULL;
+	Node *temp = NULL;
+	GameState tempState;
 	int turn = pos.turn;
 	int offset = 6 * turn;
+	int kingLocation;
 	
-	generatePawnMoves(pos, turn, offset, &moveList);
-	generateKingMoves(pos, turn, offset, &moveList);
-	generateKnightMoves(pos, turn, offset, &moveList);
-	generateBishopMoves(pos, turn, offset, &moveList);
-	generateRookMoves(pos, turn, offset, &moveList);
-	generateQueenMoves(pos, turn, offset, &moveList);
+	generatePawnMoves(pos, turn, offset, &pseudoList);
+	generateKingMoves(pos, turn, offset, &pseudoList);
+	generateKnightMoves(pos, turn, offset, &pseudoList);
+	generateBishopMoves(pos, turn, offset, &pseudoList);
+	generateRookMoves(pos, turn, offset, &pseudoList);
+	generateQueenMoves(pos, turn, offset, &pseudoList);
+	
+	// TODO only return legal moves
+	temp = pseudoList;
+	while (temp != NULL)
+	{
+		tempState = playMove(pos, temp->move);
+		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
+		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
+		{
+			insert(&moveList, temp->move);
+		}
+		temp = temp->next;
+	}
+	
 	return moveList;
 }
 
@@ -291,6 +309,20 @@ void printMoveList(Node *head, GameState pos)
 {
 	struct node *temp;
 	temp = head;
+
+	if (temp == NULL)
+	{
+		int offset = 6 * pos.turn;
+		int kingLocation = getFirstBitSquare(pos.pieceBitboards[K + offset]);
+		if (isSquareAttacked(pos, kingLocation, (pos.turn == WHITE) ? BLACK : WHITE) == 0)
+		{
+			printf("Stalemate\n");
+		}
+		else
+		{
+			printf("Checkmate\n");
+		}
+	}
 
 	while (temp != NULL)
 	{
