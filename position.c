@@ -6,7 +6,7 @@
 
 int flip = 0;
 
-struct GameState state;
+GameState state;
 
 #ifndef _WIN32
 char *pieceChars[13] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚", " "};
@@ -84,7 +84,7 @@ char getCastlingRights(char *str)
 	return rights;
 }
 
-void setOccupanies(struct GameState *state)
+void setOccupancies(GameState *state)
 {
 	int i;
 	for (i = P; i <= K; i++)
@@ -98,7 +98,7 @@ void setOccupanies(struct GameState *state)
 	state->occupancies[BOTH] = state->occupancies[WHITE] | state->occupancies[BLACK];
 }
 
-int getPieceAtSquare(struct GameState state, int square)
+int getPieceAtSquare(GameState state, int square)
 {
 	int i;
 	for (i = 0; i < 12; i++)
@@ -109,7 +109,7 @@ int getPieceAtSquare(struct GameState state, int square)
 	return NO_PIECE;
 }
 
-char isSquareAttacked(struct GameState state, int square, int byColor)
+char isSquareAttacked(GameState state, int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
 		This is only really used for debugging purposes
@@ -140,7 +140,7 @@ char isSquareAttacked(struct GameState state, int square, int byColor)
 	return attackers;	
 }
 
-void loadFEN(struct GameState *state, char *fen)
+void loadFEN(GameState *state, char *fen)
 {
 	int rank, file, square, piece, index, length;
 	char *str = NULL;
@@ -219,7 +219,7 @@ void loadFEN(struct GameState *state, char *fen)
 	token = strtok(NULL, DELIMS);
 	state->fullMove = atoi(token);
 	
-	setOccupanies(state);
+	setOccupancies(state);
 	
 	free(str);
 }
@@ -229,7 +229,7 @@ void initStartingPosition()
 	loadFEN(&state, STARTING_FEN);
 }
 
-void printBoard(struct GameState state)
+void printBoard(GameState state)
 {
 	char* piece;
 	int rank, file, square;

@@ -3,6 +3,8 @@
 #include "bitboard.h"
 #include "position.h"
 #include "movegen.h"
+#include "move.h"
+#include "list.h"
 
 #define TEST_POSITION_1 "r4r1k/pp3pR1/2p5/2b1p3/4P2p/NP1P1P2/1PP2K2/3q2Q1 w - - 5 34"
 #define TEST_POSITION_2 "r2qkb1r/pp2pp1p/2p3p1/5b2/Q2nnB1N/3B4/PP3PPP/RN3RK1 w kq - 0 11"
@@ -31,11 +33,17 @@ void testIsAttacked()
 
 int main()
 {
+	Node *moveList = NULL;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, TEST_POSITION_CASTLES);
+	//loadFEN(&state, TEST_POSITION_CASTLES);
 	printBoard(state);
-	printMoveList(generateMoves(state), state);
+	moveList = generateMoves(state);
+	printMoveList(moveList, state);
+	GameState newState = playMove(state, moveList->next->next->next->next->next->next->next->move);
+	moveList = generateMoves(newState);
+	newState = playMove(newState, moveList->next->next->move);
+	printBoard(newState);
 	//testIsAttacked();
 	
 	return 0;

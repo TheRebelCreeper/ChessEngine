@@ -6,6 +6,8 @@
 #define EN_PASSANT_SPECIAL 5
 #define NO_SPECIAL 0
 
+#include "position.h"
+
 /*
 	There are special moves for kings and pawns only
 	For kings, 1 = O-O, 2 = O-O-O
@@ -17,9 +19,11 @@ typedef struct move
 	int dst;
 	int piece;
 	int special;
+	int epSquare;
 } Move;
 
 int compareMoves(Move m1, Move m2);
-Move createMove(int piece, int src, int dst, int special);
+Move createMove(int piece, int src, int dst, int special, int epSquare);
+GameState playMove(GameState pos, Move move);
 
 #endif

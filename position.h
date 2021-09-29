@@ -13,7 +13,7 @@
 
 #define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-struct GameState
+typedef struct gameState
 {
 	U64 pieceBitboards[12];
 	U64 occupancies[3];
@@ -22,9 +22,9 @@ struct GameState
 	int enpassantSquare;
 	int halfMoveClock;
 	int fullMove;
-};
+} GameState;
 
-extern struct GameState state;
+extern GameState state;
 
 extern char *pieceNotation[12];
 
@@ -33,11 +33,11 @@ enum
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
-void loadFEN(struct GameState *state, char *fen);
-void setOccupanies(struct GameState *state);
+void loadFEN(GameState *state, char *fen);
+void setOccupancies(GameState *state);
 void initStartingPosition();
-char isSquareAttacked(struct GameState state, int square, int byColor);
+char isSquareAttacked(GameState state, int square, int byColor);
 
-void printBoard(struct GameState state);
+void printBoard(GameState state);
 
 #endif
