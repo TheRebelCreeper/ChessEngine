@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "move.h"
 #include "position.h"
@@ -25,7 +26,7 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 
 GameState playMove(GameState pos, Move move)
 {
-	//TODO Castling Rights
+	//TODO Castling Rights, pawn promotion
 	
 	GameState newPos;
 	memcpy(&newPos, &pos, sizeof(GameState));
@@ -39,6 +40,10 @@ GameState playMove(GameState pos, Move move)
 		{
 			clear_square(newPos.pieceBitboards[i], dst);
 		}
+		if (move.special == 5)
+		{
+			clear_square(newPos.pieceBitboards[p], dst - 8);
+		}
 		newPos.turn = BLACK;
 	}
 	else
@@ -46,6 +51,10 @@ GameState playMove(GameState pos, Move move)
 		for (int i = P; i <=K; i++)
 		{
 			clear_square(newPos.pieceBitboards[i], dst);
+		}
+		if (move.special == 5)
+		{
+			clear_square(newPos.pieceBitboards[P], dst + 8);
 		}
 		newPos.turn = WHITE;
 		newPos.fullMove += 1;
@@ -56,7 +65,6 @@ GameState playMove(GameState pos, Move move)
 	setOccupancies(&newPos);
 	newPos.halfMoveClock += 1;
 	newPos.enpassantSquare = move.epSquare;
-	
 	
 	return newPos;
 }

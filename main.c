@@ -38,13 +38,14 @@ int main()
 	Node *moveList = NULL;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, TEST_POSITION_CHECKMATE);
+	loadFEN(&state, "8/8/7p/5K1k/6Pp/7P/8/8 b - g3 0 1");
 	printBoard(state);
 	moveList = generateMoves(state);
 	printMoveList(moveList, state);
 	
 	// e4
-	//GameState newState = playMove(state, moveList->next->next->next->next->next->next->next->move);
+	GameState newState = playMove(state, moveList->move);
+	printBoard(newState);
 	//moveList = generateMoves(newState);
 	
 	// Nc6

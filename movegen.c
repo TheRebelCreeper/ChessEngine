@@ -76,7 +76,7 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 			if (epAttacks)
 			{
 				dst = pos.enpassantSquare;
-				printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
+				//printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				insert(moveList, createMove(P + offset, src, dst, EN_PASSANT_SPECIAL, none));
 			}
 		}
