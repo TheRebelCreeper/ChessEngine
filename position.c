@@ -157,6 +157,7 @@ void loadFEN(GameState *state, char *fen)
 		exit(EXIT_FAILURE);
 	}
 	strncpy(str, fen, length);
+	str[length] = 0;
 	
 	memset(state->pieceBitboards, 0ULL, sizeof(state->pieceBitboards));
 	memset(state->occupancies, 0ULL, sizeof(state->occupancies));
