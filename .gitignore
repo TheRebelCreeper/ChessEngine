@@ -1,4 +1,7 @@
 *.o
+*.out
+output
+output2
 *.exe
 *.gch
 engine

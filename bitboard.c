@@ -24,84 +24,85 @@ const U64 Rank7 = 0xFFULL << (8 * 6);
 const U64 Rank8 = 0xFFULL << (8 * 7);
 
 int RBits[64] = {
-  12, 11, 11, 11, 11, 11, 11, 12,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  11, 10, 10, 10, 10, 10, 10, 11,
-  12, 11, 11, 11, 11, 11, 11, 12
+	12, 11, 11, 11, 11, 11, 11, 12,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	11, 10, 10, 10, 10, 10, 10, 11,
+	12, 11, 11, 11, 11, 11, 11, 12
 };
 
 int BBits[64] = {
-  6, 5, 5, 5, 5, 5, 5, 6,
-  5, 5, 5, 5, 5, 5, 5, 5,
-  5, 5, 7, 7, 7, 7, 5, 5,
-  5, 5, 7, 9, 9, 7, 5, 5,
-  5, 5, 7, 9, 9, 7, 5, 5,
-  5, 5, 7, 7, 7, 7, 5, 5,
-  5, 5, 5, 5, 5, 5, 5, 5,
-  6, 5, 5, 5, 5, 5, 5, 6
+	6, 5, 5, 5, 5, 5, 5, 6,
+	5, 5, 5, 5, 5, 5, 5, 5,
+	5, 5, 7, 7, 7, 7, 5, 5,
+	5, 5, 7, 9, 9, 7, 5, 5,
+	5, 5, 7, 9, 9, 7, 5, 5,
+	5, 5, 7, 7, 7, 7, 5, 5,
+	5, 5, 5, 5, 5, 5, 5, 5,
+	6, 5, 5, 5, 5, 5, 5, 6
 };
 
 char *squareNames[65] = {
-  "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
-  "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-  "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-  "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-  "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-  "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-  "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-  "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "-"
+	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+	"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+	"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+	"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+	"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+	"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "-"
 };
 
 // Algorithm from Brian Kernighan
-inline int countBits(U64 board)
+int countBits(U64 board)
 {
-   int count = 0;
-   while (board)
-   {
-      count++;
-      board &= board - 1;
-   }
-   return count;
+	return __builtin_popcountll(board);
+	/*int count = 0;
+	while (board)
+	{
+		count++;
+		board &= board - 1;
+	}
+	return count;
+	*/
 }
 
-inline int getFirstBitSquare(U64 board)
+int getFirstBitSquare(U64 board)
 {
-   if (board)
-   {
-      return countBits((board & -board) - 1);
-   }
-   else
-   {
-      // No bits set, doesn't make sense to return a square
-      return -1;
-   }
+	if (board)
+	{
+		return countBits((board & -board) - 1);
+	}
+	else
+	{
+		// No bits set, doesn't make sense to return a square
+		return -1;
+	}
 }
 
-inline U64 occupancyFromIndex(int index, U64 board)
+U64 occupancyFromIndex(int index, U64 board)
 {
-   int i, square;
-   U64 occupancy = 0ULL;
-   int bits = countBits(board);
+	int i, square;
+	U64 occupancy = 0ULL;
+	int bits = countBits(board);
    
-   // Cannot be easily parallelized since order matters regarding 1st least significant bit
-   for (i = 0; i < bits; i++)
-   {
-      square = getFirstBitSquare(board);
-      clear_square(board, square);
+	// Cannot be easily parallelized since order matters regarding 1st least significant bit
+	for (i = 0; i < bits; i++)
+	{
+		square = getFirstBitSquare(board);
+		clear_square(board, square);
       
-      // Check if the ith bit is marked in the index
-      if (index & (1 << i))
-      {
-         // Add the square to occupancy
-         set_square(occupancy, square);
-      }
-   }
-   
-   return occupancy;
+		// Check if the ith bit is marked in the index
+		if (index & (1 << i))
+		{
+			// Add the square to occupancy
+			set_square(occupancy, square);
+		}
+	}
+	return occupancy;
 }
 
 U64 calculateKnightAttacks(int square)
