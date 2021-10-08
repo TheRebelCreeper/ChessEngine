@@ -16,21 +16,29 @@
 #define TEST_POSITION_STALEMATE "2k5/2P5/2K5/8/8/8/8/8 b - - 0 1"
 #define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
 
-void testIsAttacked()
+U64 perft(int depth, GameState state)
 {
-	//printf("Is c6 attacked by BLACK: "BYTE_TO_BINARY_PATTERN"\n", BYTE_TO_BINARY(isSquareAttacked(c6, WHITE)));
-	U64 attacked = 0ULL;
-	for (int i = 0; i < 2; i++)
+	Node *moveList = NULL;
+	Node *current = NULL;
+	int size;
+	U64 sum = 0;
+	
+	if (depth == 0)
 	{
-		for (int square = 0; square < 64; square++)
-		{
-			if (isSquareAttacked(state, square, i))
-				set_square(attacked, square);
-		}
-		printf("Attacked by %s\n", (i == 0) ? "White" : "Black");
-		printBitboard(attacked);
-		attacked = 0ULL;
+		return 1ULL;
 	}
+	
+	moveList = generateMoves(state, &size);
+	
+	current = moveList;
+	while (current != NULL)
+	{
+		GameState newState = playMove(state, current->move);
+		sum += perft(depth - 1, newState);
+		current = current->next;
+	}
+	deleteList(moveList);
+	return sum;
 }
 
 int main()
@@ -41,21 +49,8 @@ int main()
 	initStartingPosition();
 	//loadFEN(&state, "8/8/7p/5K1k/6Pp/7P/8/8 b - g3 0 1");
 	printBoard(state);
-	moveList = generateMoves(state, &size);
+	size = perft(6, state);
 	printf("Number of legal moves: %d\n", size);
-	printMoveList(moveList, state);
-	
-	// e4
-	//GameState newState = playMove(state, moveList->move);
-	//printBoard(newState);
-	//moveList = generateMoves(newState);
-	
-	// Nc6
-	//newState = playMove(newState, moveList->next->next->move);
-	//printBoard(newState);
-	//testIsAttacked();
-	
-	deleteList(moveList);
 	
 	return 0;
 }
