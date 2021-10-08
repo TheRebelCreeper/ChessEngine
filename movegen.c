@@ -5,6 +5,8 @@
 #include "movegen.h"
 #include "list.h"
 
+//TODO Could possibly speed up by using a fixed size array instead of linked list
+
 void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 {
 	int src, dst, enpassantSquare;
@@ -44,7 +46,7 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, none));
 		}		
-		clear_square(singlePushTarget, dst);
+		clear_lsb(singlePushTarget);
 	}
 	
 	while (doublePushTarget)
@@ -53,7 +55,7 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
 		insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, enpassantSquare));
-		clear_square(doublePushTarget, dst);
+		clear_lsb(doublePushTarget);
 	}
 	
 	// Pawn Captures
@@ -87,9 +89,9 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 			{
 				insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, none));
 			}
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 
@@ -152,10 +154,10 @@ void generateKingMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			insert(moveList, createMove(K + offset, src, dst, NO_SPECIAL, none));
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 			//printf("%d. K%s\n", pos.fullMove, squareNames[dst]);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 
@@ -176,10 +178,10 @@ void generateKnightMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			insert(moveList, createMove(N + offset, src, dst, NO_SPECIAL, none));
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 			//printf("%d. N%s\n", pos.fullMove, squareNames[dst]);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 
@@ -201,10 +203,10 @@ void generateBishopMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			insert(moveList, createMove(B + offset, src, dst, NO_SPECIAL, none));
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 			//printf("%d. B%s\n", pos.fullMove, squareNames[dst]);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 
@@ -226,10 +228,10 @@ void generateRookMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			insert(moveList, createMove(R + offset, src, dst, NO_SPECIAL, none));
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 			//printf("%d. R%s\n", pos.fullMove, squareNames[dst]);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 
@@ -251,10 +253,10 @@ void generateQueenMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			insert(moveList, createMove(Q + offset, src, dst, NO_SPECIAL, none));
-			clear_square(pieceAttacks, dst);
+			clear_lsb(pieceAttacks);
 			//printf("%d. Q%s\n", pos.fullMove, squareNames[dst]);
 		}
-		clear_square(pieceBB, src);
+		clear_lsb(pieceBB);
 	}
 }
 

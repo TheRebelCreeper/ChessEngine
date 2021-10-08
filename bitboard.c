@@ -57,7 +57,7 @@ char *squareNames[65] = {
 };
 
 // Algorithm from Brian Kernighan
-int countBits(U64 board)
+inline int countBits(U64 board)
 {
    int count = 0;
    while (board)
@@ -68,7 +68,7 @@ int countBits(U64 board)
    return count;
 }
 
-int getFirstBitSquare(U64 board)
+inline int getFirstBitSquare(U64 board)
 {
    if (board)
    {
@@ -81,7 +81,7 @@ int getFirstBitSquare(U64 board)
    }
 }
 
-U64 occupancyFromIndex(int index, U64 board)
+inline U64 occupancyFromIndex(int index, U64 board)
 {
    int i, square;
    U64 occupancy = 0ULL;
@@ -406,7 +406,7 @@ U64 generateRookAttacks(int square, U64 blockers)
 	return occupancy;
 }
 
-U64 getBishopAttacks(int square, U64 blockers)
+inline U64 getBishopAttacks(int square, U64 blockers)
 {
 	int mIndex;
 	blockers &= bishopOccupancy[square];
@@ -416,7 +416,7 @@ U64 getBishopAttacks(int square, U64 blockers)
 	return bishopAttacks[square][mIndex];
 }
 
-U64 getRookAttacks(int square, U64 blockers)
+inline U64 getRookAttacks(int square, U64 blockers)
 {
 	int mIndex;
 	blockers &= rookOccupancy[square];
@@ -426,7 +426,7 @@ U64 getRookAttacks(int square, U64 blockers)
 	return rookAttacks[square][mIndex];
 }
 
-U64 getQueenAttacks(int square, U64 blockers)
+inline U64 getQueenAttacks(int square, U64 blockers)
 {
 	return getBishopAttacks(square, blockers) | getRookAttacks(square, blockers);
 }
