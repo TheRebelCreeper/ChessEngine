@@ -286,5 +286,5 @@ void printBoard(GameState state)
 	printf("\n");
 	printf("En Passant Square: %s\n", squareNames[state.enpassantSquare]);
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
-	printf("Move: %d\n", state.fullMove);
+	printf("Move: %d\n\n", state.fullMove);
 }

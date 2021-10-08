@@ -54,7 +54,7 @@ U64 perftDivide(int depth, GameState state)
 	}
 	
 	moveList = generateMoves(state, &size);
-	
+	printf("Perft results for depth %d:\n", depth);
 	current = moveList;
 	while (current != NULL)
 	{
@@ -63,15 +63,15 @@ U64 perftDivide(int depth, GameState state)
 		sum += res;
 		if (current->move.special == NO_SPECIAL || current->move.special == EN_PASSANT_SPECIAL)
 		{
-			printf("%s-%s", squareNames[current->move.src], squareNames[current->move.dst]);
+			printf("%s%s", squareNames[current->move.src], squareNames[current->move.dst]);
 		}
 		else if (current->move.piece == K || current->move.piece == k)
 		{
-			printf("%s", (current->move.special == OO_SPECIAL) ? "O-O" : "O-O-O");
+			printf("%s", (current->move.special == OO_SPECIAL) ? "OO" : "OOO");
 		}
 		else
 		{
-			printf("%s-%s=%s", squareNames[current->move.src], squareNames[current->move.dst], pieceNotation[current->move.special]);
+			printf("%s%s=%s", squareNames[current->move.src], squareNames[current->move.dst], pieceNotation[current->move.special]);
 		}
 		printf(": %d\n", res);
 		current = current->next;
