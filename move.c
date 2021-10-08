@@ -42,7 +42,7 @@ int adjustCastlingRights(GameState pos, int src, int dst, int piece)
 		castlingRights &= (BLACK_OO | WHITE_OO | WHITE_OOO);
 	}
 	
-	if (src == h8 || dst == a8)
+	if (src == h8 || dst == h8)
 	{
 		castlingRights &= (BLACK_OOO | WHITE_OO | WHITE_OOO);
 	}
