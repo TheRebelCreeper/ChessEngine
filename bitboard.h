@@ -33,6 +33,7 @@ enum
 
 #define set_square(board, square) ((board) |= (1ULL << (square)))
 #define clear_square(board, square) ((board) &= ~(1ULL << (square)))
+#define clear_lsb(board) ((board) = ((board) & ((board) - 1)))
 #define get_square(board, square) ((board) & (1ULL << (square)))
 
 extern const U64 FileA;
