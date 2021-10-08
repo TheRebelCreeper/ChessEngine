@@ -1,7 +1,7 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#define DEBUG
+//#define DEBUG
 
 #define WHITE 0
 #define BLACK 1

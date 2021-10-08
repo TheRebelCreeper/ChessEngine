@@ -5,7 +5,7 @@
 #include "move.h"
 #include "list.h"
 
-Node *generateMoves(GameState position);
+Node *generateMoves(GameState position, int *size);
 void printMoveList(Node *head, GameState position);
 
 #endif

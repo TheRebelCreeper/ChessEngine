@@ -43,3 +43,14 @@ void delete(struct node **head, Move move) {
 		prev->next = temp->next;
 	}
 }
+
+void deleteList(struct node *head)
+{
+	Node *temp = head, *prev = NULL;
+	while (temp != NULL)
+	{
+		prev = temp;
+		temp = temp->next;
+		free(prev);
+	}
+}

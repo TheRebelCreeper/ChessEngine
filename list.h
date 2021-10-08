@@ -14,4 +14,5 @@ typedef struct node {
 // insert and delete operations.
 void insert(struct node **head, Move move);
 void delete(struct node **head, Move move);
+void deleteList(struct node *head);
 #endif

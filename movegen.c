@@ -272,7 +272,7 @@ void generateQueenMoves(GameState pos, int turn, int offset, Node **moveList)
 	}
 }
 
-Node *generateMoves(GameState pos)
+Node *generateMoves(GameState pos, int *size)
 {
 	Node *pseudoList = NULL;
 	Node *moveList = NULL;
@@ -281,6 +281,7 @@ Node *generateMoves(GameState pos)
 	int turn = pos.turn;
 	int offset = 6 * turn;
 	int kingLocation;
+	int moveCount = 0;
 	
 	generatePawnMoves(pos, turn, offset, &pseudoList);
 	generateKingMoves(pos, turn, offset, &pseudoList);
@@ -297,11 +298,15 @@ Node *generateMoves(GameState pos)
 		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
 		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
 		{
+			moveCount++;
 			insert(&moveList, temp->move);
 		}
+		//prev = temp;
 		temp = temp->next;
+		//free(prev);
 	}
-	
+	*size = moveCount;
+	deleteList(pseudoList);
 	return moveList;
 }
 
