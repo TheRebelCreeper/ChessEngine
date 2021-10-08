@@ -44,6 +44,19 @@ void delete(struct node **head, Move move) {
 	}
 }
 
+Node *getNode(struct node *head, int index)
+{
+	int i = 0;
+	Node *temp = head;
+	while (temp != NULL)
+	{
+		if (i == index)
+			return temp;
+		temp = temp->next;
+		i++;
+	}
+}
+
 void deleteList(struct node *head)
 {
 	Node *temp = head, *prev = NULL;

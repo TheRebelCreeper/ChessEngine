@@ -24,6 +24,41 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	return newMove;
 }
 
+int adjustCastlingRights(GameState pos, int src, int dst, int piece)
+{
+	int castlingRights = pos.castlingRights;
+	if (src == a1 || dst == a1)
+	{
+		castlingRights &= (WHITE_OO | BLACK_OO | BLACK_OOO);
+	}
+
+	if (src == h1 || dst == h1)
+	{
+		castlingRights &= (WHITE_OOO | BLACK_OO | BLACK_OOO);
+	}
+	
+	if (src == a8 || dst == a8)
+	{
+		castlingRights &= (BLACK_OO | WHITE_OO | WHITE_OOO);
+	}
+	
+	if (src == h8 || dst == a8)
+	{
+		castlingRights &= (BLACK_OOO | WHITE_OO | WHITE_OOO);
+	}
+	
+	if (piece == K)
+	{
+		castlingRights &= (BLACK_OO | BLACK_OOO);
+	}
+	
+	if (piece == k)
+	{
+		castlingRights &= (WHITE_OO | WHITE_OOO);
+	}
+	return castlingRights;
+}
+
 GameState playMove(GameState pos, Move move)
 {	
 	GameState newPos;
@@ -44,6 +79,7 @@ GameState playMove(GameState pos, Move move)
 		{
 			clear_square(newPos.pieceBitboards[p], dst - 8);
 		}
+		
 		newPos.turn = BLACK;
 	}
 	else
@@ -56,12 +92,12 @@ GameState playMove(GameState pos, Move move)
 		{
 			clear_square(newPos.pieceBitboards[P], dst + 8);
 		}
+		
 		newPos.turn = WHITE;
 		newPos.fullMove += 1;
 	}
 	
 	// Clear Source
-	// TODO Castling
 	clear_square(newPos.pieceBitboards[piece], src);
 	
 	// Set destination
@@ -70,17 +106,29 @@ GameState playMove(GameState pos, Move move)
 	{
 		set_square(newPos.pieceBitboards[move.special + offset], dst);
 	}
-	// Castling
-	else if (piece == (K + offset) && move.special != NO_SPECIAL)
-	{
-		
-	}
 	else
 	{
 		set_square(newPos.pieceBitboards[piece], dst);
 	}
 	
+	// Castling
+	if (piece == (K + offset) && move.special != NO_SPECIAL)
+	{
+		set_square(newPos.pieceBitboards[piece], dst);
+		if (move.special == OO_SPECIAL)
+		{
+			clear_square(newPos.pieceBitboards[R + offset], dst + 1);
+			set_square(newPos.pieceBitboards[R + offset], dst - 1);
+		}
+		else if (move.special == OOO_SPECIAL)
+		{
+			clear_square(newPos.pieceBitboards[R + offset], dst - 2);
+			set_square(newPos.pieceBitboards[R + offset], dst + 1);
+		}
+	}
+	
 	setOccupancies(&newPos);
+	newPos.castlingRights = adjustCastlingRights(pos, src, dst, piece);
 	newPos.halfMoveClock += 1;
 	newPos.enpassantSquare = move.epSquare;
 	

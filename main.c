@@ -85,10 +85,19 @@ int main(int argc, char *argv[])
 	int size;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
+	//loadFEN(&state, "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
 	printBoard(state);
+	
+	/*
+	Node *moveList = NULL;
+	moveList = generateMoves(state, &size);
+	printMoveList(moveList, state);
+	GameState newState = playMove(state, getNode(moveList, 1)->move);
+	printBoard(newState);
+	*/
+	
 	size = perftDivide(atoi(argv[1]), state);
-	printf("Perft Nodes: %d\n", size);
+	printf("Perft Nodes: %llu\n", size);
 	
 	return 0;
 }
