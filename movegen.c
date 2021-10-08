@@ -32,14 +32,8 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 	{
 		dst = getFirstBitSquare(singlePushTarget);
 		src = dst - 8 + (16 * turn);
-		if ((dst < 64 && dst >= 0) && (dst >= a7 || dst <= h1))
+		if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 		{
-			
-			// Promotion
-			//printf("%d. %s=Q\n", pos.fullMove, squareNames[dst]);
-			//printf("%d. %s=R\n", pos.fullMove, squareNames[dst]);
-			//printf("%d. %s=B\n", pos.fullMove, squareNames[dst]);
-			//printf("%d. %s=N\n", pos.fullMove, squareNames[dst]);
 			insert(moveList, createMove(P + offset, src, dst, Q, none));
 			insert(moveList, createMove(P + offset, src, dst, R, none));
 			insert(moveList, createMove(P + offset, src, dst, B, none));
@@ -49,7 +43,6 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		else
 		{
 			insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, none));
-			//printf("%d. %s\n", pos.fullMove, squareNames[dst]);
 		}		
 		clear_square(singlePushTarget, dst);
 	}
@@ -59,7 +52,6 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		dst = getFirstBitSquare(doublePushTarget);
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
-		//printf("%d. %s\n", pos.fullMove, squareNames[dst]);
 		insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, enpassantSquare));
 		clear_square(doublePushTarget, dst);
 	}
@@ -76,7 +68,6 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 			if (epAttacks)
 			{
 				dst = pos.enpassantSquare;
-				//printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				insert(moveList, createMove(P + offset, src, dst, EN_PASSANT_SPECIAL, none));
 			}
 		}
@@ -85,20 +76,15 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
 			// Promotion
-			if ((dst < 64 && dst >= 0) && (dst >= a7 || dst <= h1))
+			if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 			{
 				insert(moveList, createMove(P + offset, src, dst, Q, none));
 				insert(moveList, createMove(P + offset, src, dst, R, none));
 				insert(moveList, createMove(P + offset, src, dst, B, none));
 				insert(moveList, createMove(P + offset, src, dst, N, none));
-				//printf("%d. %sx%s=Q\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				//printf("%d. %sx%s=R\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				//printf("%d. %sx%s=B\n", pos.fullMove, squareNames[src], squareNames[dst]);
-				//printf("%d. %sx%s=N\n", pos.fullMove, squareNames[src], squareNames[dst]);
 			}
 			else
 			{
-				//printf("%d. %sx%s\n", pos.fullMove, squareNames[src], squareNames[dst]);
 				insert(moveList, createMove(P + offset, src, dst, NO_SPECIAL, none));
 			}
 			clear_square(pieceAttacks, dst);

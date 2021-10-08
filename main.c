@@ -41,16 +41,55 @@ U64 perft(int depth, GameState state)
 	return sum;
 }
 
-int main()
+U64 perftDivide(int depth, GameState state)
+{
+	Node *moveList = NULL;
+	Node *current = NULL;
+	int size;
+	U64 sum = 0;
+	
+	if (depth == 0)
+	{
+		return 1ULL;
+	}
+	
+	moveList = generateMoves(state, &size);
+	
+	current = moveList;
+	while (current != NULL)
+	{
+		GameState newState = playMove(state, current->move);
+		int res = perft(depth - 1, newState);
+		sum += res;
+		if (current->move.special == NO_SPECIAL || current->move.special == EN_PASSANT_SPECIAL)
+		{
+			printf("%s-%s", squareNames[current->move.src], squareNames[current->move.dst]);
+		}
+		else if (current->move.piece == K || current->move.piece == k)
+		{
+			printf("%s", (current->move.special == OO_SPECIAL) ? "O-O" : "O-O-O");
+		}
+		else
+		{
+			printf("%s-%s=%s", squareNames[current->move.src], squareNames[current->move.dst], pieceNotation[current->move.special]);
+		}
+		printf(": %d\n", res);
+		current = current->next;
+	}
+	deleteList(moveList);
+	return sum;
+}
+
+int main(int argc, char *argv[])
 {
 	Node *moveList = NULL;
 	int size;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, "8/8/7p/5K1k/6Pp/7P/8/8 b - g3 0 1");
+	loadFEN(&state, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
 	printBoard(state);
-	size = perft(6, state);
-	printf("Number of legal moves: %d\n", size);
+	size = perftDivide(atoi(argv[1]), state);
+	printf("Perft Nodes: %d\n", size);
 	
 	return 0;
 }
