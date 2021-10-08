@@ -82,7 +82,7 @@ U64 perftDivide(int depth, GameState state)
 
 int main(int argc, char *argv[])
 {
-	int size;
+	U64 size;
 	initAttacks();
 	initStartingPosition();
 	//loadFEN(&state, "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");

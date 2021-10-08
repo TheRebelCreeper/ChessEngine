@@ -55,6 +55,7 @@ Node *getNode(struct node *head, int index)
 		temp = temp->next;
 		i++;
 	}
+	return temp;
 }
 
 void deleteList(struct node *head)
