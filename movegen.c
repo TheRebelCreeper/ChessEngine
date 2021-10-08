@@ -64,7 +64,7 @@ void generatePawnMoves(GameState pos, int turn, int offset, Node **moveList)
 		src = getFirstBitSquare(pieceBB);
 		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
 
-		if (pos.enpassantSquare != -1)
+		if (pos.enpassantSquare != none)
 		{
 			U64 epAttacks = pawnAttacks[turn][src] & (1ULL << pos.enpassantSquare);
 			if (epAttacks)
@@ -110,7 +110,7 @@ void generateKingMoves(GameState pos, int turn, int offset, Node **moveList)
 	{
 		if (castlingRights & WHITE_OO && !get_square(occupancy, f1) && !get_square(occupancy, g1))
 		{
-			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK) || isSquareAttacked(pos, g1, BLACK)))
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK)))
 			{
 				insert(moveList, createMove(K + offset, src, src + 2, OO_SPECIAL, none));
 				//printf("%d. O-O\n", pos.fullMove);
@@ -118,7 +118,7 @@ void generateKingMoves(GameState pos, int turn, int offset, Node **moveList)
 		}
 		if (castlingRights & WHITE_OOO && !get_square(occupancy, b1) && !get_square(occupancy, c1) && !get_square(occupancy, d1))
 		{
-			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, c1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
 			{
 				insert(moveList, createMove(K + offset, src, src - 2, OOO_SPECIAL, none));
 				//printf("%d. O-O-O\n", pos.fullMove);
@@ -129,7 +129,7 @@ void generateKingMoves(GameState pos, int turn, int offset, Node **moveList)
 	{
 		if (castlingRights & BLACK_OO && !get_square(occupancy, f8) && !get_square(occupancy, g8))
 		{
-			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE) || isSquareAttacked(pos, g8, WHITE)))
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE)))
 			{
 				insert(moveList, createMove(K + offset, src, src + 2, OO_SPECIAL, none));
 				//printf("%d. O-O\n", pos.fullMove);
@@ -137,7 +137,7 @@ void generateKingMoves(GameState pos, int turn, int offset, Node **moveList)
 		}
 		if (castlingRights & BLACK_OOO && !get_square(occupancy, b8) && !get_square(occupancy, c8) && !get_square(occupancy, d8))
 		{
-			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, c8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
 			{
 				insert(moveList, createMove(K + offset, src, src - 2, OOO_SPECIAL, none));
 				//printf("%d. O-O-O\n", pos.fullMove);
