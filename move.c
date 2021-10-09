@@ -21,6 +21,7 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	newMove.dst = dst;
 	newMove.special = special;
 	newMove.epSquare = epSquare;
+	newMove.legal = 0;
 	return newMove;
 }
 

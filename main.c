@@ -17,10 +17,10 @@
 #define TEST_POSITION_STALEMATE "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
 
-U64 perft(int depth, GameState state)
+U64 perft(int depth, GameState pos)
 {
-	Node *moveList = NULL;
-	Node *current = NULL;
+	MoveList moveList;
+	//Node *current = NULL;
 	int size;
 	U64 sum = 0;
 	
@@ -29,23 +29,23 @@ U64 perft(int depth, GameState state)
 		return 1ULL;
 	}
 	
-	moveList = generateMoves(state, &size);
+	moveList = generateMoves(pos, &size);
 	
-	current = moveList;
-	while (current != NULL)
+	//current = moveList;
+	for (int i = 0; i < 256; i++)
 	{
-		GameState newState = playMove(state, current->move);
+		GameState newState = playMove(pos, moveList.list[i]);
 		sum += perft(depth - 1, newState);
-		current = current->next;
+		//current = current->next;
 	}
-	deleteList(moveList);
+	//deleteList(moveList);
 	return sum;
 }
 
-U64 perftDivide(int depth, GameState state)
+U64 perftDivide(int depth, GameState pos)
 {
-	Node *moveList = NULL;
-	Node *current = NULL;
+	MoveList moveList;
+	//Node *current = NULL;
 	int size;
 	U64 sum = 0;
 	
@@ -54,26 +54,27 @@ U64 perftDivide(int depth, GameState state)
 		return 1ULL;
 	}
 	
-	moveList = generateMoves(state, &size);
+	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
-	current = moveList;
-	while (current != NULL)
+	//current = moveList;
+	for (int i = 0; i < 256; i++)
 	{
-		GameState newState = playMove(state, current->move);
+		Move current = moveList.list[i];
+		GameState newState = playMove(pos, moveList.list[i]);
 		U64 res = perft(depth - 1, newState);
 		sum += res;
-		if (current->move.special == NO_SPECIAL || current->move.special == EN_PASSANT_SPECIAL || current->move.piece == K || current->move.piece == k)
+		if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
 		{
-			printf("%s%s", squareNames[current->move.src], squareNames[current->move.dst]);
+			printf("%s%s", squareNames[current.src], squareNames[current.dst]);
 		}
 		else
 		{
-			printf("%s%s=%s", squareNames[current->move.src], squareNames[current->move.dst], pieceNotation[current->move.special]);
+			printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
 		}
 		printf(": %d\n", res);
-		current = current->next;
+		//current = current->next;
 	}
-	deleteList(moveList);
+	//deleteList(moveList);
 	
 	return sum;
 }

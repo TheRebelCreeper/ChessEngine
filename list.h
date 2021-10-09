@@ -11,6 +11,11 @@ typedef struct node {
 	struct node *next;
 } Node;
 
+typedef struct movelist {
+	Move list[256];
+	int nextOpen;
+} MoveList;
+
 // insert and delete operations.
 void insert(struct node **head, Move move);
 void delete(struct node **head, Move move);
