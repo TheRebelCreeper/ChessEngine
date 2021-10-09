@@ -86,7 +86,7 @@ char getCastlingRights(char *str)
 
 void setOccupancies(GameState *pos)
 {
-	int i;
+	//int i;
 	pos->occupancies[WHITE] = 0ULL;
 	pos->occupancies[BLACK] = 0ULL;
 	

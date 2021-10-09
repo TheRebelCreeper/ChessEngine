@@ -5,7 +5,6 @@
 #include "position.h"
 #include "movegen.h"
 #include "move.h"
-#include "list.h"
 
 #define PERFT_POSITION_1 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define PERFT_POSITION_2 "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
@@ -81,7 +80,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_1);
+	loadFEN(&state, PERFT_POSITION_6);
 	printBoard(state);
 	
 	double start, finish;
