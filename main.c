@@ -20,7 +20,6 @@
 U64 perft(int depth, GameState pos)
 {
 	MoveList moveList;
-	//Node *current = NULL;
 	int size;
 	U64 sum = 0;
 	
@@ -28,27 +27,22 @@ U64 perft(int depth, GameState pos)
 	{
 		return 1ULL;
 	}
-	
 	moveList = generateMoves(pos, &size);
 	
-	//current = moveList;
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < moveList.nextOpen; i++)
 	{
 		if (moveList.list[i].legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
 			sum += perft(depth - 1, newState);
 		}
-		//current = current->next;
 	}
-	//deleteList(moveList);
 	return sum;
 }
 
 U64 perftDivide(int depth, GameState pos)
 {
 	MoveList moveList;
-	//Node *current = NULL;
 	int size;
 	U64 sum = 0;
 	
@@ -59,8 +53,7 @@ U64 perftDivide(int depth, GameState pos)
 	
 	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
-	//current = moveList;
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
 		if (current.legal == 1)
@@ -76,11 +69,9 @@ U64 perftDivide(int depth, GameState pos)
 			{
 				printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
 			}
-			printf(": %d\n", res);
+			printf(": %llu\n", res);
 		}
-		//current = current->next;
 	}
-	//deleteList(moveList);
 	
 	return sum;
 }
