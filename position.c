@@ -86,7 +86,7 @@ char getCastlingRights(char *str)
 
 void setOccupancies(GameState *pos)
 {
-	int i;
+	//int i;
 	pos->occupancies[WHITE] = 0ULL;
 	pos->occupancies[BLACK] = 0ULL;
 	
@@ -173,7 +173,8 @@ void loadFEN(GameState *state, char *fen)
 		perror("Malloc error in loadFEN");
 		exit(EXIT_FAILURE);
 	}
-	strncpy(str, fen, length);
+	memset(str, 0, length + 1);
+	memcpy(str, fen, length);
 	str[length] = 0;
 	
 	memset(state->pieceBitboards, 0ULL, sizeof(state->pieceBitboards));

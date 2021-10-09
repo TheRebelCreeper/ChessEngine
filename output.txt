@@ -1,0 +1,427 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 25.60      0.85     0.85                             _mcount_private
+ 14.46      1.33     0.48 57962836     0.00     0.00  playMove
+ 13.55      1.78     0.45                             __fentry__
+  9.79      2.11     0.33 106400864     0.00     0.00  getBishopAttacks
+  8.73      2.40     0.29      128     0.00     0.00  find_magic_number
+  7.08      2.63     0.23 106401036     0.00     0.00  getRookAttacks
+  4.22      2.77     0.14   206604     0.00     0.00  generateMoves
+  3.92      2.90     0.13 52890624     0.00     0.00  isSquareAttacked
+  3.31      3.01     0.11 54437541     0.00     0.00  random_u64
+  3.01      3.11     0.10                             __popcountdi2
+  2.11      3.18     0.07 57952779     0.00     0.00  adjustCastlingRights
+  0.90      3.21     0.03       20     0.00     0.07  perft
+  0.60      3.23     0.02 82137242     0.00     0.00  countBits
+  0.60      3.25     0.02 63775971     0.00     0.00  getFirstBitSquare
+  0.60      3.27     0.02   206604     0.00     0.00  generatePawnMoves
+  0.60      3.29     0.02                             ___chkstk_ms
+  0.30      3.30     0.01 53097208     0.00     0.00  getQueenAttacks
+  0.30      3.31     0.01   215296     0.00     0.00  occupancyFromIndex
+  0.30      3.32     0.01                             memcpy
+  0.00      3.32     0.00 18145847     0.00     0.00  random_u64_fewbits
+  0.00      3.32     0.00  5087587     0.00     0.00  createMove
+  0.00      3.32     0.00   206604     0.00     0.00  generateBishopMoves
+  0.00      3.32     0.00   206604     0.00     0.00  generateKingMoves
+  0.00      3.32     0.00   206604     0.00     0.00  generateKnightMoves
+  0.00      3.32     0.00   206604     0.00     0.00  generateQueenMoves
+  0.00      3.32     0.00   206604     0.00     0.00  generateRookMoves
+  0.00      3.32     0.00   204800     0.00     0.00  generateRookAttacks
+  0.00      3.32     0.00    10496     0.00     0.00  generateBishopAttacks
+  0.00      3.32     0.00      128     0.00     0.00  calculateBishopOccupancy
+  0.00      3.32     0.00      128     0.00     0.00  calculatePawnAttacks
+  0.00      3.32     0.00      128     0.00     0.00  calculateRookOccupancy
+  0.00      3.32     0.00       72     0.00     0.00  getPieceFromChar
+  0.00      3.32     0.00       64     0.00     0.00  calculateKingAttacks
+  0.00      3.32     0.00       64     0.00     0.00  calculateKnightAttacks
+  0.00      3.32     0.00       64     0.00     0.00  getPieceAtSquare
+  0.00      3.32     0.00        2     0.00     0.00  getCastlingRights
+  0.00      3.32     0.00        2     0.00     0.00  loadFEN
+  0.00      3.32     0.00        2     0.00     0.00  setOccupancies
+  0.00      3.32     0.00        1     0.00     0.42  initAttacks
+  0.00      3.32     0.00        1     0.00     0.00  initLeapers
+  0.00      3.32     0.00        1     0.00     0.42  initSliders
+  0.00      3.32     0.00        1     0.00     0.00  initStartingPosition
+  0.00      3.32     0.00        1     0.00     1.47  perftDivide
+  0.00      3.32     0.00        1     0.00     0.00  printBoard
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.30% of 3.32 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     56.9    0.00    1.89                 main [1]
+                0.00    1.47       1/1           perftDivide [2]
+                0.00    0.42       1/1           initAttacks [9]
+                0.00    0.00       1/1           initStartingPosition [44]
+                0.00    0.00       1/2           loadFEN [41]
+                0.00    0.00       1/1           printBoard [45]
+-----------------------------------------------
+                0.00    1.47       1/1           main [1]
+[2]     44.4    0.00    1.47       1         perftDivide [2]
+                0.03    1.44      20/20          perft [3]
+                0.00    0.00       1/206604      generateMoves [4]
+                0.00    0.00      20/57962836     playMove [7]
+-----------------------------------------------
+                             5072192             perft [3]
+                0.03    1.44      20/20          perftDivide [2]
+[3]     44.4    0.03    1.44      20+5072192 perft [3]
+                0.14    1.26  206603/206604      generateMoves [4]
+                0.04    0.01 5072192/57962836     playMove [7]
+                             5072192             perft [3]
+-----------------------------------------------
+                0.00    0.00       1/206604      perftDivide [2]
+                0.14    1.26  206603/206604      perft [3]
+[4]     42.1    0.14    1.26  206604         generateMoves [4]
+                0.13    0.57 52890624/52890624     isSquareAttacked [6]
+                0.44    0.06 52890624/57962836     playMove [7]
+                0.02    0.01 52890624/63775971     getFirstBitSquare [19]
+                0.02    0.00  206604/206604      generatePawnMoves [20]
+                0.00    0.00  206604/206604      generateBishopMoves [25]
+                0.00    0.00  206604/206604      generateQueenMoves [26]
+                0.00    0.00  206604/206604      generateRookMoves [27]
+                0.00    0.00  206604/206604      generateKnightMoves [28]
+                0.00    0.00  206604/206604      generateKingMoves [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[5]     25.6    0.85    0.00                 _mcount_private [5]
+-----------------------------------------------
+                0.13    0.57 52890624/52890624     generateMoves [4]
+[6]     21.0    0.13    0.57 52890624         isSquareAttacked [6]
+                0.01    0.28 52890624/53097208     getQueenAttacks [13]
+                0.16    0.00 52890624/106400864     getBishopAttacks [12]
+                0.12    0.00 52890624/106401036     getRookAttacks [14]
+-----------------------------------------------
+                0.00    0.00      20/57962836     perftDivide [2]
+                0.04    0.01 5072192/57962836     perft [3]
+                0.44    0.06 52890624/57962836     generateMoves [4]
+[7]     16.6    0.48    0.07 57962836         playMove [7]
+                0.07    0.00 57952779/57952779     adjustCastlingRights [18]
+-----------------------------------------------
+                                                 <spontaneous>
+[8]     13.6    0.45    0.00                 __fentry__ [8]
+-----------------------------------------------
+                0.00    0.42       1/1           main [1]
+[9]     12.5    0.00    0.42       1         initAttacks [9]
+                0.00    0.42       1/1           initSliders [10]
+                0.00    0.00       1/1           initLeapers [43]
+-----------------------------------------------
+                0.00    0.42       1/1           initAttacks [9]
+[10]    12.5    0.00    0.42       1         initSliders [10]
+                0.29    0.12     128/128         find_magic_number [11]
+                0.01    0.00  107648/215296      occupancyFromIndex [23]
+                0.00    0.00  102400/204800      generateRookAttacks [31]
+                0.00    0.00    5248/10496       generateBishopAttacks [32]
+                0.00    0.00      64/128         calculateBishopOccupancy [33]
+                0.00    0.00      64/128         calculateRookOccupancy [35]
+-----------------------------------------------
+                0.29    0.12     128/128         initSliders [10]
+[11]    12.4    0.29    0.12     128         find_magic_number [11]
+                0.00    0.11 18145847/18145847     random_u64_fewbits [16]
+                0.01    0.00  107648/215296      occupancyFromIndex [23]
+                0.00    0.00 18145975/82137242     countBits [21]
+                0.00    0.00  102400/204800      generateRookAttacks [31]
+                0.00    0.00    5248/10496       generateBishopAttacks [32]
+                0.00    0.00      64/128         calculateBishopOccupancy [33]
+                0.00    0.00      64/128         calculateRookOccupancy [35]
+-----------------------------------------------
+                0.00    0.00  413032/106400864     generateBishopMoves [25]
+                0.16    0.00 52890624/106400864     isSquareAttacked [6]
+                0.16    0.00 53097208/106400864     getQueenAttacks [13]
+[12]     9.8    0.33    0.00 106400864         getBishopAttacks [12]
+-----------------------------------------------
+                0.00    0.00  206584/53097208     generateQueenMoves [26]
+                0.01    0.28 52890624/53097208     isSquareAttacked [6]
+[13]     8.7    0.01    0.28 53097208         getQueenAttacks [13]
+                0.16    0.00 53097208/106400864     getBishopAttacks [12]
+                0.12    0.00 53097208/106401036     getRookAttacks [14]
+-----------------------------------------------
+                0.00    0.00  413204/106401036     generateRookMoves [27]
+                0.12    0.00 52890624/106401036     isSquareAttacked [6]
+                0.12    0.00 53097208/106401036     getQueenAttacks [13]
+[14]     7.1    0.23    0.00 106401036         getRookAttacks [14]
+-----------------------------------------------
+                0.11    0.00 54437541/54437541     random_u64_fewbits [16]
+[15]     3.3    0.11    0.00 54437541         random_u64 [15]
+-----------------------------------------------
+                0.00    0.11 18145847/18145847     find_magic_number [11]
+[16]     3.3    0.00    0.11 18145847         random_u64_fewbits [16]
+                0.11    0.00 54437541/54437541     random_u64 [15]
+-----------------------------------------------
+                                                 <spontaneous>
+[17]     3.0    0.10    0.00                 __popcountdi2 [17]
+-----------------------------------------------
+                0.07    0.00 57952779/57952779     playMove [7]
+[18]     2.1    0.07    0.00 57952779         adjustCastlingRights [18]
+-----------------------------------------------
+                0.00    0.00  545860/63775971     generateKingMoves [29]
+                0.00    0.00  586755/63775971     generateQueenMoves [26]
+                0.00    0.00  592477/63775971     generateRookMoves [27]
+                0.00    0.00  945626/63775971     generateBishopMoves [25]
+                0.00    0.00 1398027/63775971     generateKnightMoves [28]
+                0.00    0.00 2287360/63775971     occupancyFromIndex [23]
+                0.00    0.00 4529242/63775971     generatePawnMoves [20]
+                0.02    0.01 52890624/63775971     generateMoves [4]
+[19]     1.1    0.02    0.02 63775971         getFirstBitSquare [19]
+                0.02    0.00 63775971/82137242     countBits [21]
+-----------------------------------------------
+                0.02    0.00  206604/206604      generateMoves [4]
+[20]     0.7    0.02    0.00  206604         generatePawnMoves [20]
+                0.00    0.00 4529242/63775971     getFirstBitSquare [19]
+                0.00    0.00 2877913/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  215296/82137242     occupancyFromIndex [23]
+                0.00    0.00 18145975/82137242     find_magic_number [11]
+                0.02    0.00 63775971/82137242     getFirstBitSquare [19]
+[21]     0.6    0.02    0.00 82137242         countBits [21]
+-----------------------------------------------
+                                                 <spontaneous>
+[22]     0.6    0.02    0.00                 ___chkstk_ms [22]
+-----------------------------------------------
+                0.01    0.00  107648/215296      initSliders [10]
+                0.01    0.00  107648/215296      find_magic_number [11]
+[23]     0.3    0.01    0.00  215296         occupancyFromIndex [23]
+                0.00    0.00 2287360/63775971     getFirstBitSquare [19]
+                0.00    0.00  215296/82137242     countBits [21]
+-----------------------------------------------
+                                                 <spontaneous>
+[24]     0.3    0.01    0.00                 memcpy [24]
+-----------------------------------------------
+                0.00    0.00  206604/206604      generateMoves [4]
+[25]     0.1    0.00    0.00  206604         generateBishopMoves [25]
+                0.00    0.00  413032/106400864     getBishopAttacks [12]
+                0.00    0.00  945626/63775971     getFirstBitSquare [19]
+                0.00    0.00  532594/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  206604/206604      generateMoves [4]
+[26]     0.0    0.00    0.00  206604         generateQueenMoves [26]
+                0.00    0.00  206584/53097208     getQueenAttacks [13]
+                0.00    0.00  586755/63775971     getFirstBitSquare [19]
+                0.00    0.00  380171/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  206604/206604      generateMoves [4]
+[27]     0.0    0.00    0.00  206604         generateRookMoves [27]
+                0.00    0.00  413204/106401036     getRookAttacks [14]
+                0.00    0.00  592477/63775971     getFirstBitSquare [19]
+                0.00    0.00  179273/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  206604/206604      generateMoves [4]
+[28]     0.0    0.00    0.00  206604         generateKnightMoves [28]
+                0.00    0.00 1398027/63775971     getFirstBitSquare [19]
+                0.00    0.00  984984/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  206604/206604      generateMoves [4]
+[29]     0.0    0.00    0.00  206604         generateKingMoves [29]
+                0.00    0.00  545860/63775971     getFirstBitSquare [19]
+                0.00    0.00  132652/5087587     createMove [30]
+-----------------------------------------------
+                0.00    0.00  132652/5087587     generateKingMoves [29]
+                0.00    0.00  179273/5087587     generateRookMoves [27]
+                0.00    0.00  380171/5087587     generateQueenMoves [26]
+                0.00    0.00  532594/5087587     generateBishopMoves [25]
+                0.00    0.00  984984/5087587     generateKnightMoves [28]
+                0.00    0.00 2877913/5087587     generatePawnMoves [20]
+[30]     0.0    0.00    0.00 5087587         createMove [30]
+-----------------------------------------------
+                0.00    0.00  102400/204800      initSliders [10]
+                0.00    0.00  102400/204800      find_magic_number [11]
+[31]     0.0    0.00    0.00  204800         generateRookAttacks [31]
+-----------------------------------------------
+                0.00    0.00    5248/10496       initSliders [10]
+                0.00    0.00    5248/10496       find_magic_number [11]
+[32]     0.0    0.00    0.00   10496         generateBishopAttacks [32]
+-----------------------------------------------
+                0.00    0.00      64/128         initSliders [10]
+                0.00    0.00      64/128         find_magic_number [11]
+[33]     0.0    0.00    0.00     128         calculateBishopOccupancy [33]
+-----------------------------------------------
+                0.00    0.00     128/128         initLeapers [43]
+[34]     0.0    0.00    0.00     128         calculatePawnAttacks [34]
+-----------------------------------------------
+                0.00    0.00      64/128         initSliders [10]
+                0.00    0.00      64/128         find_magic_number [11]
+[35]     0.0    0.00    0.00     128         calculateRookOccupancy [35]
+-----------------------------------------------
+                0.00    0.00      72/72          loadFEN [41]
+[36]     0.0    0.00    0.00      72         getPieceFromChar [36]
+-----------------------------------------------
+                0.00    0.00      64/64          initLeapers [43]
+[37]     0.0    0.00    0.00      64         calculateKingAttacks [37]
+-----------------------------------------------
+                0.00    0.00      64/64          initLeapers [43]
+[38]     0.0    0.00    0.00      64         calculateKnightAttacks [38]
+-----------------------------------------------
+                0.00    0.00      64/64          printBoard [45]
+[39]     0.0    0.00    0.00      64         getPieceAtSquare [39]
+-----------------------------------------------
+                0.00    0.00       2/2           loadFEN [41]
+[40]     0.0    0.00    0.00       2         getCastlingRights [40]
+-----------------------------------------------
+                0.00    0.00       1/2           main [1]
+                0.00    0.00       1/2           initStartingPosition [44]
+[41]     0.0    0.00    0.00       2         loadFEN [41]
+                0.00    0.00      72/72          getPieceFromChar [36]
+                0.00    0.00       2/2           getCastlingRights [40]
+                0.00    0.00       2/2           setOccupancies [42]
+-----------------------------------------------
+                0.00    0.00       2/2           loadFEN [41]
+[42]     0.0    0.00    0.00       2         setOccupancies [42]
+-----------------------------------------------
+                0.00    0.00       1/1           initAttacks [9]
+[43]     0.0    0.00    0.00       1         initLeapers [43]
+                0.00    0.00     128/128         calculatePawnAttacks [34]
+                0.00    0.00      64/64          calculateKnightAttacks [38]
+                0.00    0.00      64/64          calculateKingAttacks [37]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[44]     0.0    0.00    0.00       1         initStartingPosition [44]
+                0.00    0.00       1/2           loadFEN [41]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[45]     0.0    0.00    0.00       1         printBoard [45]
+                0.00    0.00      64/64          getPieceAtSquare [39]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [22] ___chkstk_ms           [29] generateKingMoves      [43] initLeapers
+   [8] __fentry__             [28] generateKnightMoves    [10] initSliders
+  [17] __popcountdi2           [4] generateMoves          [44] initStartingPosition
+   [5] _mcount_private        [20] generatePawnMoves       [6] isSquareAttacked
+  [18] adjustCastlingRights   [26] generateQueenMoves     [41] loadFEN
+  [33] calculateBishopOccupancy [31] generateRookAttacks  [24] memcpy
+  [37] calculateKingAttacks   [27] generateRookMoves      [23] occupancyFromIndex
+  [38] calculateKnightAttacks [12] getBishopAttacks        [3] perft
+  [34] calculatePawnAttacks   [40] getCastlingRights       [2] perftDivide
+  [35] calculateRookOccupancy [19] getFirstBitSquare       [7] playMove
+  [21] countBits              [39] getPieceAtSquare       [45] printBoard
+  [30] createMove             [36] getPieceFromChar       [15] random_u64
+  [11] find_magic_number      [13] getQueenAttacks        [16] random_u64_fewbits
+  [32] generateBishopAttacks  [14] getRookAttacks         [42] setOccupancies
+  [25] generateBishopMoves     [9] initAttacks

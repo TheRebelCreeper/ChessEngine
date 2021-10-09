@@ -5,7 +5,6 @@
 #include "position.h"
 #include "movegen.h"
 #include "move.h"
-#include "list.h"
 
 #define PERFT_POSITION_1 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define PERFT_POSITION_2 "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
@@ -17,36 +16,33 @@
 #define TEST_POSITION_STALEMATE "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
 
-U64 perft(int depth, GameState state)
+U64 perft(int depth, GameState pos)
 {
-	Node *moveList = NULL;
-	Node *current = NULL;
+	MoveList moveList;
 	int size;
 	U64 sum = 0;
 	
-	if (depth == 0)
+	moveList = generateMoves(pos, &size);
+	if (depth == 1)
 	{
-		return 1ULL;
+		return (U64)size;
 	}
 	
-	moveList = generateMoves(state, &size);
-	
-	current = moveList;
-	while (current != NULL)
+	for (int i = 0; i < moveList.nextOpen; i++)
 	{
-		GameState newState = playMove(state, current->move);
-		sum += perft(depth - 1, newState);
-		current = current->next;
+		if (moveList.list[i].legal == 1)
+		{
+			GameState newState = playMove(pos, moveList.list[i]);
+			sum += perft(depth - 1, newState);
+		}
 	}
-	deleteList(moveList);
 	return sum;
 }
 
-U64 perftDivide(int depth, GameState state)
+U64 perftDivide(int depth, GameState pos)
 {
-	Node *moveList = NULL;
-	Node *current = NULL;
-	int size;
+	MoveList moveList;
+	int size, i;
 	U64 sum = 0;
 	
 	if (depth == 0)
@@ -54,26 +50,30 @@ U64 perftDivide(int depth, GameState state)
 		return 1ULL;
 	}
 	
-	moveList = generateMoves(state, &size);
+	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
-	current = moveList;
-	while (current != NULL)
+	
+	// OMP doesn't seem to speed up here, not sure why
+	//#pragma omp parallel for num_threads(4) private(i) shared(moveList) reduction(+:sum)
+	for (i = 0; i < moveList.nextOpen; i++)
 	{
-		GameState newState = playMove(state, current->move);
-		U64 res = perft(depth - 1, newState);
-		sum += res;
-		if (current->move.special == NO_SPECIAL || current->move.special == EN_PASSANT_SPECIAL || current->move.piece == K || current->move.piece == k)
+		Move current = moveList.list[i];
+		if (current.legal == 1)
 		{
-			printf("%s%s", squareNames[current->move.src], squareNames[current->move.dst]);
+			GameState newState = playMove(pos, moveList.list[i]);
+			U64 res = perft(depth - 1, newState);
+			sum += res;
+			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
+			{
+				printf("%s%s", squareNames[current.src], squareNames[current.dst]);
+			}
+			else
+			{
+				printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
+			}
+			printf(": %llu\n", res);
 		}
-		else
-		{
-			printf("%s%s=%s", squareNames[current->move.src], squareNames[current->move.dst], pieceNotation[current->move.special]);
-		}
-		printf(": %d\n", res);
-		current = current->next;
 	}
-	deleteList(moveList);
 	
 	return sum;
 }
@@ -83,24 +83,18 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_1);
+	loadFEN(&state, PERFT_POSITION_2);
 	printBoard(state);
 	
-	/*
-	Node *moveList = NULL;
-	moveList = generateMoves(state, &size);
-	printMoveList(moveList, state);
-	GameState newState = playMove(state, getNode(moveList, 1)->move);
-	printBoard(newState);
-	*/
 	double start, finish;
 	start = omp_get_wtime();
+	
 	size = perftDivide(atoi(argv[1]), state);
+	
 	finish = omp_get_wtime();
 	printf("Perft Nodes: %llu\n\n", size);
 	printf("Finished perft in %f seconds\n", finish - start);
 	printf("NPS: %f\n", size / (finish - start));
-	
 	
 	return 0;
 }

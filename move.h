@@ -20,6 +20,7 @@ typedef struct move
 	int piece;
 	int special;
 	int epSquare;
+	int legal;
 } Move;
 
 int compareMoves(Move m1, Move m2);
