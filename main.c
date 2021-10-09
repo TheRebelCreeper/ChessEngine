@@ -23,11 +23,11 @@ U64 perft(int depth, GameState pos)
 	int size;
 	U64 sum = 0;
 	
-	if (depth == 0)
-	{
-		return 1ULL;
-	}
 	moveList = generateMoves(pos, &size);
+	if (depth == 1)
+	{
+		return (U64)size;
+	}
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_1);
+	loadFEN(&state, PERFT_POSITION_6);
 	printBoard(state);
 	
 	/*
