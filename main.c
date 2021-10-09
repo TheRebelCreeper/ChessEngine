@@ -59,7 +59,7 @@ U64 perftDivide(int depth, GameState state)
 	while (current != NULL)
 	{
 		GameState newState = playMove(state, current->move);
-		int res = perft(depth - 1, newState);
+		U64 res = perft(depth - 1, newState);
 		sum += res;
 		if (current->move.special == NO_SPECIAL || current->move.special == EN_PASSANT_SPECIAL || current->move.piece == K || current->move.piece == k)
 		{
