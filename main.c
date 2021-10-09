@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_6);
+	loadFEN(&state, PERFT_POSITION_2);
 	printBoard(state);
 	
 	/*
@@ -98,7 +98,6 @@ int main(int argc, char *argv[])
 	printf("Perft Nodes: %llu\n\n", size);
 	printf("Finished perft in %f seconds\n", finish - start);
 	printf("NPS: %f\n", size / (finish - start));
-	
 	
 	return 0;
 }
