@@ -267,7 +267,7 @@ MoveList generateMoves(GameState pos, int *size)
 {
 	MoveList moveList;
 	moveList.nextOpen = 0;
-	memset(moveList.list, 0, sizeof(moveList.list));
+	memset(moveList.list, 0, sizeof(Move) * MAX_MOVES);
 	GameState tempState;
 	int turn = pos.turn;
 	int offset = 6 * turn;

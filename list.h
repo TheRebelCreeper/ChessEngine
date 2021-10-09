@@ -5,7 +5,7 @@
  */
 
 #include "move.h"
-#define MAX_MOVES
+#define MAX_MOVES 256
 
 typedef struct node {
 	Move move;
@@ -13,8 +13,8 @@ typedef struct node {
 } Node;
 
 typedef struct movelist {
-	Move list[MAX_MOVES];
 	int nextOpen;
+	Move list[MAX_MOVES];
 } MoveList;
 
 // insert and delete operations.

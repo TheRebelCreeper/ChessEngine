@@ -81,19 +81,14 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_2);
+	loadFEN(&state, PERFT_POSITION_1);
 	printBoard(state);
 	
-	/*
-	Node *moveList = NULL;
-	moveList = generateMoves(state, &size);
-	printMoveList(moveList, state);
-	GameState newState = playMove(state, getNode(moveList, 1)->move);
-	printBoard(newState);
-	*/
 	double start, finish;
 	start = omp_get_wtime();
+	
 	size = perftDivide(atoi(argv[1]), state);
+	
 	finish = omp_get_wtime();
 	printf("Perft Nodes: %llu\n\n", size);
 	printf("Finished perft in %f seconds\n", finish - start);
