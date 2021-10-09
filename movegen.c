@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "bitboard.h"
 #include "position.h"
 #include "movegen.h"
@@ -106,6 +107,7 @@ void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 void generateKingMoves(GameState pos, int turn, int offset, MoveList *moveList)
@@ -173,6 +175,7 @@ void generateKingMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 void generateKnightMoves(GameState pos, int turn, int offset, MoveList *moveList)
@@ -198,6 +201,7 @@ void generateKnightMoves(GameState pos, int turn, int offset, MoveList *moveList
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 void generateBishopMoves(GameState pos, int turn, int offset, MoveList *moveList)
@@ -224,6 +228,7 @@ void generateBishopMoves(GameState pos, int turn, int offset, MoveList *moveList
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 void generateRookMoves(GameState pos, int turn, int offset, MoveList *moveList)
@@ -250,6 +255,7 @@ void generateRookMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 void generateQueenMoves(GameState pos, int turn, int offset, MoveList *moveList)
@@ -277,11 +283,14 @@ void generateQueenMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		}
 		clear_lsb(pieceBB);
 	}
+	moveList->nextOpen = i;
 }
 
 MoveList generateMoves(GameState pos, int *size)
 {
 	MoveList moveList;
+	moveList.nextOpen = 0;
+	memset(moveList.list, 0, sizeof(moveList.list));
 	//Node *moveList = NULL;
 	//Node *temp = NULL;
 	GameState tempState;
@@ -297,17 +306,24 @@ MoveList generateMoves(GameState pos, int *size)
 	generateRookMoves(pos, turn, offset, &moveList);
 	generateQueenMoves(pos, turn, offset, &moveList);
 	
+	//printMoveList(&moveList, pos);
+	
 	// TODO only return legal moves
 	//temp = pseudoList;
 	for (int i = 0; i < 256; i++)
 	{
-		tempState = playMove(pos, moveList.list[i]);
+		Move temp = moveList.list[i];
+		tempState = playMove(pos, temp);
 		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
-		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
+		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0 && temp.src != temp.dst)
 		{
 			moveCount++;
 			//insert(&moveList, temp->move);
 			moveList.list[i].legal = 1;
+		}
+		else
+		{
+			moveList.list[i].legal = 0;
 		}
 		//prev = temp;
 		//temp = temp->next;
@@ -318,12 +334,12 @@ MoveList generateMoves(GameState pos, int *size)
 	return moveList;
 }
 
-void printMoveList(Node *head, GameState pos)
+void printMoveList(MoveList *list, GameState pos)
 {
-	struct node *temp;
-	temp = head;
+	//struct node *temp;
+	//temp = head;
 
-	if (temp == NULL)
+	if (list->nextOpen == 0)
 	{
 		int offset = 6 * pos.turn;
 		int kingLocation = getFirstBitSquare(pos.pieceBitboards[K + offset]);
@@ -336,23 +352,24 @@ void printMoveList(Node *head, GameState pos)
 			printf("Checkmate\n");
 		}
 	}
-
-	while (temp != NULL)
+	else
 	{
-		printf("%d. ", pos.fullMove);
-		if (temp->move.special == NO_SPECIAL || temp->move.special == EN_PASSANT_SPECIAL)
+		for (int i = 0; i < 256; i++)
 		{
-			printf("%s%s-%s\n", pieceNotation[temp->move.piece], squareNames[temp->move.src], squareNames[temp->move.dst]);
+			Move temp = list->list[i];
+			printf("%d. ", pos.fullMove);
+			if (temp.special == NO_SPECIAL || temp.special == EN_PASSANT_SPECIAL)
+			{
+				printf("%s%s-%s\n", pieceNotation[temp.piece], squareNames[temp.src], squareNames[temp.dst]);
+			}
+			else if (temp.piece == K || temp.piece == k)
+			{
+				printf("%s\n", (temp.special == OO_SPECIAL) ? "O-O" : "O-O-O");
+			}
+			else
+			{
+				printf("%s%s-%s=%s\n", pieceNotation[temp.piece], squareNames[temp.src], squareNames[temp.dst], pieceNotation[temp.special]);
+			}
 		}
-		else if (temp->move.piece == K || temp->move.piece == k)
-		{
-			printf("%s\n", (temp->move.special == OO_SPECIAL) ? "O-O" : "O-O-O");
-		}
-		else
-		{
-			printf("%s%s-%s=%s\n", pieceNotation[temp->move.piece], squareNames[temp->move.src], squareNames[temp->move.dst], pieceNotation[temp->move.special]);
-		}
-		
-		temp = temp->next;
 	}
 }

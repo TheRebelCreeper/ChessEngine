@@ -34,8 +34,11 @@ U64 perft(int depth, GameState pos)
 	//current = moveList;
 	for (int i = 0; i < 256; i++)
 	{
-		GameState newState = playMove(pos, moveList.list[i]);
-		sum += perft(depth - 1, newState);
+		if (moveList.list[i].legal == 1)
+		{
+			GameState newState = playMove(pos, moveList.list[i]);
+			sum += perft(depth - 1, newState);
+		}
 		//current = current->next;
 	}
 	//deleteList(moveList);
@@ -60,18 +63,21 @@ U64 perftDivide(int depth, GameState pos)
 	for (int i = 0; i < 256; i++)
 	{
 		Move current = moveList.list[i];
-		GameState newState = playMove(pos, moveList.list[i]);
-		U64 res = perft(depth - 1, newState);
-		sum += res;
-		if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
+		if (current.legal == 1)
 		{
-			printf("%s%s", squareNames[current.src], squareNames[current.dst]);
+			GameState newState = playMove(pos, moveList.list[i]);
+			U64 res = perft(depth - 1, newState);
+			sum += res;
+			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
+			{
+				printf("%s%s", squareNames[current.src], squareNames[current.dst]);
+			}
+			else
+			{
+				printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
+			}
+			printf(": %d\n", res);
 		}
-		else
-		{
-			printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
-		}
-		printf(": %d\n", res);
 		//current = current->next;
 	}
 	//deleteList(moveList);

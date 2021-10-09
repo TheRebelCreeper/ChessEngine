@@ -6,6 +6,6 @@
 #include "list.h"
 
 MoveList generateMoves(GameState position, int *size);
-void printMoveList(Node *head, GameState position);
+void printMoveList(MoveList *list, GameState position);
 
 #endif
