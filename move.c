@@ -68,40 +68,51 @@ GameState playMove(GameState pos, Move move)
 	int dst = move.dst;
 	int offset = 6 * pos.turn;
 	
+	// Clear Source
+	clear_square(newPos.pieceBitboards[piece], src);
+	clear_square(newPos.occupancies[pos.turn], src);
+	
+	// En Passant Moves
+	if ((piece == P || piece == p) && move.special == EN_PASSANT_SPECIAL)
+	{
+		if (pos.turn == WHITE)
+		{
+			clear_square(newPos.pieceBitboards[p], dst - 8);
+			clear_square(newPos.occupancies[BLACK], dst - 8);
+		}
+		else
+		{
+			clear_square(newPos.pieceBitboards[P], dst + 8);
+			clear_square(newPos.occupancies[WHITE], dst + 8);
+		}
+	}
+	
 	// Clear Destination
 	if (pos.turn == WHITE)
 	{
+		clear_square(newPos.occupancies[BLACK], dst);
 		for (int i = p; i <=k; i++)
 		{
 			clear_square(newPos.pieceBitboards[i], dst);
-		}
-		if (move.special == EN_PASSANT_SPECIAL)
-		{
-			clear_square(newPos.pieceBitboards[p], dst - 8);
 		}
 		
 		newPos.turn = BLACK;
 	}
 	else
 	{
+		clear_square(newPos.occupancies[WHITE], dst);
 		for (int i = P; i <=K; i++)
 		{
 			clear_square(newPos.pieceBitboards[i], dst);
-		}
-		if (move.special == EN_PASSANT_SPECIAL)
-		{
-			clear_square(newPos.pieceBitboards[P], dst + 8);
 		}
 		
 		newPos.turn = WHITE;
 		newPos.fullMove += 1;
 	}
 	
-	// Clear Source
-	clear_square(newPos.pieceBitboards[piece], src);
-	
 	// Set destination
 	// If pawn promotion
+	set_square(newPos.occupancies[pos.turn], dst);
 	if (piece == (P + offset) && move.special != EN_PASSANT_SPECIAL)
 	{
 		set_square(newPos.pieceBitboards[move.special + offset], dst);
@@ -118,17 +129,21 @@ GameState playMove(GameState pos, Move move)
 		if (move.special == OO_SPECIAL)
 		{
 			clear_square(newPos.pieceBitboards[R + offset], dst + 1);
+			clear_square(newPos.occupancies[pos.turn], dst + 1);
 			set_square(newPos.pieceBitboards[R + offset], dst - 1);
+			set_square(newPos.occupancies[pos.turn], dst - 1);
 		}
 		else if (move.special == OOO_SPECIAL)
 		{
 			clear_square(newPos.pieceBitboards[R + offset], dst - 2);
+			clear_square(newPos.occupancies[pos.turn], dst - 2);
 			set_square(newPos.pieceBitboards[R + offset], dst + 1);
+			set_square(newPos.occupancies[pos.turn], dst + 1);
 		}
 	}
 	
-	setOccupancies(&newPos);
-	newPos.castlingRights = adjustCastlingRights(pos, src, dst, piece);
+	newPos.occupancies[BOTH] = newPos.occupancies[WHITE] | newPos.occupancies[BLACK];
+	newPos.castlingRights = (pos.castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
 	newPos.halfMoveClock += 1;
 	newPos.enpassantSquare = move.epSquare;
 	

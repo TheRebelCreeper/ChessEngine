@@ -89,14 +89,31 @@ void setOccupancies(GameState *pos)
 	int i;
 	pos->occupancies[WHITE] = 0ULL;
 	pos->occupancies[BLACK] = 0ULL;
-	for (i = P; i <= K; i++)
+	
+//Might be faster?
+	pos->occupancies[WHITE] |= pos->pieceBitboards[P];
+	pos->occupancies[WHITE] |= pos->pieceBitboards[N];
+	pos->occupancies[WHITE] |= pos->pieceBitboards[B];
+	pos->occupancies[WHITE] |= pos->pieceBitboards[R];
+	pos->occupancies[WHITE] |= pos->pieceBitboards[Q];
+	pos->occupancies[WHITE] |= pos->pieceBitboards[K];
+
+	pos->occupancies[BLACK] |= pos->pieceBitboards[p];
+	pos->occupancies[BLACK] |= pos->pieceBitboards[n];
+	pos->occupancies[BLACK] |= pos->pieceBitboards[b];
+	pos->occupancies[BLACK] |= pos->pieceBitboards[r];
+	pos->occupancies[BLACK] |= pos->pieceBitboards[q];
+	pos->occupancies[BLACK] |= pos->pieceBitboards[k];
+	
+	
+	/*for (i = P; i <= K; i++)
 	{
 		pos->occupancies[WHITE] |= pos->pieceBitboards[i];
 	}
 	for (i = p; i <= k; i++)
 	{
 		pos->occupancies[BLACK] |= pos->pieceBitboards[i];
-	}
+	}*/
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 

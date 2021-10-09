@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
 #include "bitboard.h"
 #include "position.h"
 #include "movegen.h"
@@ -73,6 +74,7 @@ U64 perftDivide(int depth, GameState state)
 		current = current->next;
 	}
 	deleteList(moveList);
+	
 	return sum;
 }
 
@@ -91,9 +93,14 @@ int main(int argc, char *argv[])
 	GameState newState = playMove(state, getNode(moveList, 1)->move);
 	printBoard(newState);
 	*/
-	
+	double start, finish;
+	start = omp_get_wtime();
 	size = perftDivide(atoi(argv[1]), state);
-	printf("Perft Nodes: %llu\n", size);
+	finish = omp_get_wtime();
+	printf("Perft Nodes: %llu\n\n", size);
+	printf("Finished perft in %f seconds\n", finish - start);
+	printf("NPS: %f\n", size / (finish - start));
+	
 	
 	return 0;
 }
