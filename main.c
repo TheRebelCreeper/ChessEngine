@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_2);
+	loadFEN(&state, PERFT_POSITION_1);
 	printBoard(state);
 	
 	double start, finish;
