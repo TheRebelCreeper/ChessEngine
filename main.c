@@ -42,7 +42,7 @@ U64 perft(int depth, GameState pos)
 U64 perftDivide(int depth, GameState pos)
 {
 	MoveList moveList;
-	int size;
+	int size, i;
 	U64 sum = 0;
 	
 	if (depth == 0)
@@ -52,7 +52,10 @@ U64 perftDivide(int depth, GameState pos)
 	
 	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
-	for (int i = 0; i < moveList.nextOpen; i++)
+	
+	// OMP doesn't seem to speed up here, not sure why
+	//#pragma omp parallel for num_threads(4) private(i) shared(moveList) reduction(+:sum)
+	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
 		if (current.legal == 1)
@@ -80,7 +83,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_6);
+	loadFEN(&state, PERFT_POSITION_2);
 	printBoard(state);
 	
 	double start, finish;

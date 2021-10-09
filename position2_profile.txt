@@ -1,0 +1,295 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 34.04      6.34     6.34  4185553     0.00     0.00  generateMoves
+ 27.65     11.49     5.15 204378257     0.00     0.00  playMove
+ 13.37     13.99     2.49 211420975     0.00     0.00  isSquareAttacked
+  4.99     14.92     0.93                             __popcountdi2
+  3.87     15.64     0.72 219783929     0.00     0.00  getRookAttacks
+  3.65     16.32     0.68 215550159     0.00     0.00  getQueenAttacks
+  2.85     16.85     0.53 219615178     0.00     0.00  getBishopAttacks
+  2.36     17.29     0.44 464775023     0.00     0.00  getFirstBitSquare
+  1.93     17.65     0.36  4185553     0.00     0.00  generatePawnMoves
+  1.50     17.93     0.28      128     2.19     3.01  find_magic_number
+  1.05     18.12     0.20 200192705     0.00     0.00  createMove
+  0.67     18.25     0.13  4185553     0.00     0.00  generateKingMoves
+  0.38     18.32     0.07 12197374     0.00     0.00  countBits
+  0.38     18.39     0.07   204800     0.00     0.00  generateRookAttacks
+  0.32     18.45     0.06                             getPieceAtSquare
+  0.32     18.51     0.06    97862     0.00     0.17  perft
+  0.24     18.55     0.05                             compareMoves
+  0.21     18.59     0.04                             perftDivide
+  0.19     18.63     0.04                             adjustCastlingRights
+  0.03     18.63     0.01                             printBitboard
+  0.00     18.63     0.00   107648     0.00     0.00  occupancyFromIndex
+  0.00     18.63     0.00    10496     0.00     0.00  generateBishopAttacks
+  0.00     18.63     0.00      128     0.00     0.00  calculateBishopOccupancy
+  0.00     18.63     0.00       64     0.00     0.00  calculateRookOccupancy
+  0.00     18.63     0.00        1     0.00   420.16  initSliders
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.05% of 18.63 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     92.0    0.04   17.10                 perftDivide [1]
+                0.06   17.03   97862/97862       perft [2]
+                0.00    0.01    2088/4185553     generateMoves [3]
+                0.00    0.00   99949/204378257     playMove [4]
+-----------------------------------------------
+                0.06   17.03   97862/97862       perftDivide [1]
+[2]     91.7    0.06   17.03   97862         perft [2]
+                6.34   10.58 4183465/4185553     generateMoves [3]
+                0.10    0.00 4085603/204378257     playMove [4]
+-----------------------------------------------
+                0.00    0.01    2088/4185553     perftDivide [1]
+                6.34   10.58 4183465/4185553     perft [2]
+[3]     90.9    6.34   10.59 4185553         generateMoves [3]
+                5.05    0.00 200192705/204378257     playMove [4]
+                2.36    1.77 200192705/211420975     isSquareAttacked [5]
+                0.36    0.10 4185553/4185553     generatePawnMoves [10]
+                0.13    0.26 4185553/4185553     generateKingMoves [14]
+                0.36    0.00 379171033/464775023     getFirstBitSquare [11]
+                0.15    0.00 150200607/200192705     createMove [16]
+                0.03    0.00 8362954/219783929     getRookAttacks [7]
+                0.02    0.00 8194203/219615178     getBishopAttacks [9]
+                0.01    0.00 4129184/215550159     getQueenAttacks [8]
+-----------------------------------------------
+                0.00    0.00   99949/204378257     perftDivide [1]
+                0.10    0.00 4085603/204378257     perft [2]
+                5.05    0.00 200192705/204378257     generateMoves [3]
+[4]     27.7    5.15    0.00 204378257         playMove [4]
+-----------------------------------------------
+                0.13    0.10 11228270/211420975     generateKingMoves [14]
+                2.36    1.77 200192705/211420975     generateMoves [3]
+[5]     23.4    2.49    1.87 211420975         isSquareAttacked [5]
+                0.69    0.00 211420975/219783929     getRookAttacks [7]
+                0.67    0.00 211420975/215550159     getQueenAttacks [8]
+                0.51    0.00 211420975/219615178     getBishopAttacks [9]
+-----------------------------------------------
+                                                 <spontaneous>
+[6]      5.0    0.93    0.00                 __popcountdi2 [6]
+-----------------------------------------------
+                0.03    0.00 8362954/219783929     generateMoves [3]
+                0.69    0.00 211420975/219783929     isSquareAttacked [5]
+[7]      3.9    0.72    0.00 219783929         getRookAttacks [7]
+-----------------------------------------------
+                0.01    0.00 4129184/215550159     generateMoves [3]
+                0.67    0.00 211420975/215550159     isSquareAttacked [5]
+[8]      3.7    0.68    0.00 215550159         getQueenAttacks [8]
+-----------------------------------------------
+                0.02    0.00 8194203/219615178     generateMoves [3]
+                0.51    0.00 211420975/219615178     isSquareAttacked [5]
+[9]      2.8    0.53    0.00 219615178         getBishopAttacks [9]
+-----------------------------------------------
+                0.36    0.10 4185553/4185553     generateMoves [3]
+[10]     2.5    0.36    0.10 4185553         generatePawnMoves [10]
+                0.06    0.00 68053912/464775023     getFirstBitSquare [11]
+                0.03    0.00 35675938/200192705     createMove [16]
+-----------------------------------------------
+                0.02    0.00 17550078/464775023     generateKingMoves [14]
+                0.06    0.00 68053912/464775023     generatePawnMoves [10]
+                0.36    0.00 379171033/464775023     generateMoves [3]
+[11]     2.4    0.44    0.00 464775023         getFirstBitSquare [11]
+-----------------------------------------------
+                0.00    0.42       1/1           initAttacks [13]
+[12]     2.3    0.00    0.42       1         initSliders [12]
+                0.28    0.11     128/128         find_magic_number [15]
+                0.04    0.00  102400/204800      generateRookAttacks [18]
+                0.00    0.00    5248/10496       generateBishopAttacks [24]
+                0.00    0.00      64/128         calculateBishopOccupancy [25]
+-----------------------------------------------
+                                                 <spontaneous>
+[13]     2.3    0.00    0.42                 initAttacks [13]
+                0.00    0.42       1/1           initSliders [12]
+-----------------------------------------------
+                0.13    0.26 4185553/4185553     generateMoves [3]
+[14]     2.1    0.13    0.26 4185553         generateKingMoves [14]
+                0.13    0.10 11228270/211420975     isSquareAttacked [5]
+                0.02    0.00 17550078/464775023     getFirstBitSquare [11]
+                0.01    0.00 14316160/200192705     createMove [16]
+-----------------------------------------------
+                0.28    0.11     128/128         initSliders [12]
+[15]     2.1    0.28    0.11     128         find_magic_number [15]
+                0.07    0.00 12197374/12197374     countBits [17]
+                0.04    0.00  102400/204800      generateRookAttacks [18]
+                0.00    0.00  107648/107648      occupancyFromIndex [23]
+                0.00    0.00    5248/10496       generateBishopAttacks [24]
+                0.00    0.00      64/128         calculateBishopOccupancy [25]
+                0.00    0.00      64/64          calculateRookOccupancy [26]
+-----------------------------------------------
+                0.01    0.00 14316160/200192705     generateKingMoves [14]
+                0.03    0.00 35675938/200192705     generatePawnMoves [10]
+                0.15    0.00 150200607/200192705     generateMoves [3]
+[16]     1.0    0.20    0.00 200192705         createMove [16]
+-----------------------------------------------
+                0.07    0.00 12197374/12197374     find_magic_number [15]
+[17]     0.4    0.07    0.00 12197374         countBits [17]
+-----------------------------------------------
+                0.04    0.00  102400/204800      find_magic_number [15]
+                0.04    0.00  102400/204800      initSliders [12]
+[18]     0.4    0.07    0.00  204800         generateRookAttacks [18]
+-----------------------------------------------
+                                                 <spontaneous>
+[19]     0.3    0.06    0.00                 getPieceAtSquare [19]
+-----------------------------------------------
+                                                 <spontaneous>
+[20]     0.2    0.05    0.00                 compareMoves [20]
+-----------------------------------------------
+                                                 <spontaneous>
+[21]     0.2    0.04    0.00                 adjustCastlingRights [21]
+-----------------------------------------------
+                                                 <spontaneous>
+[22]     0.0    0.01    0.00                 printBitboard [22]
+-----------------------------------------------
+                0.00    0.00  107648/107648      find_magic_number [15]
+[23]     0.0    0.00    0.00  107648         occupancyFromIndex [23]
+-----------------------------------------------
+                0.00    0.00    5248/10496       find_magic_number [15]
+                0.00    0.00    5248/10496       initSliders [12]
+[24]     0.0    0.00    0.00   10496         generateBishopAttacks [24]
+-----------------------------------------------
+                0.00    0.00      64/128         find_magic_number [15]
+                0.00    0.00      64/128         initSliders [12]
+[25]     0.0    0.00    0.00     128         calculateBishopOccupancy [25]
+-----------------------------------------------
+                0.00    0.00      64/64          find_magic_number [15]
+[26]     0.0    0.00    0.00      64         calculateRookOccupancy [26]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+   [6] __popcountdi2          [14] generateKingMoves      [12] initSliders
+  [21] adjustCastlingRights    [3] generateMoves           [5] isSquareAttacked
+  [25] calculateBishopOccupancy [10] generatePawnMoves    [23] occupancyFromIndex
+  [26] calculateRookOccupancy [18] generateRookAttacks     [2] perft
+  [20] compareMoves            [9] getBishopAttacks        [1] perftDivide
+  [17] countBits              [11] getFirstBitSquare       [4] playMove
+  [16] createMove             [19] getPieceAtSquare       [22] printBitboard
+  [15] find_magic_number       [8] getQueenAttacks
+  [24] generateBishopAttacks   [7] getRookAttacks
