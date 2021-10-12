@@ -145,19 +145,19 @@ char isSquareAttacked(GameState pos, int square, int byColor)
 	U64 occupancy = pos.occupancies[BOTH];
 	
 	if (kingAttacks[square] & pos.pieceBitboards[K + colorOffset])
-		attackers |= (1 << 5);
+		return 1;
 	if (knightAttacks[square] & pos.pieceBitboards[N + colorOffset])
-		attackers |= (1 << 1);
+		return 1;
 	if (pawnAttacks[pawnAttackColor][square] & pos.pieceBitboards[P + colorOffset])
-		attackers |= 1;
+		return 1;
 	if (getBishopAttacks(square, occupancy) & pos.pieceBitboards[B + colorOffset])
-		attackers |= (1 << 2);
+		return 1;
 	if (getRookAttacks(square, occupancy) & pos.pieceBitboards[R + colorOffset])
-		attackers |= (1 << 3);
+		return 1;
 	if (getQueenAttacks(square, occupancy) & pos.pieceBitboards[Q + colorOffset])
-		attackers |= (1 << 4);
+		return 1;
 		
-	return attackers;	
+	return 0;	
 }
 
 void loadFEN(GameState *state, char *fen)
