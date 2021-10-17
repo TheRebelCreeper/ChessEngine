@@ -13,7 +13,7 @@ int negaMax(int depth, GameState pos)
 	int bestScore;
 	int moveScores[256];
 	
-	memset(moveScores, 0, 256);
+	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
 	
 	if (size == 0)
@@ -54,7 +54,7 @@ Move search(int depth, GameState pos, int *score)
 	int bestScore, bestIndex;
 	int moveScores[256];
 	
-	memset(moveScores, 0, 256);
+	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
 	
 	bestIndex = 0;
