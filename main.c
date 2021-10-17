@@ -6,6 +6,7 @@
 #include "movegen.h"
 #include "move.h"
 #include "evaluation.h"
+#include "search.h"
 
 #define PERFT_POSITION_1 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define PERFT_POSITION_2 "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
@@ -84,11 +85,10 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_1);
+	loadFEN(&state, "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2");
 	printBoard(state);
-	printf("Eval: %d\n", evaluation(&state));
 	
-	double start, finish;
+	/*double start, finish;
 	start = omp_get_wtime();
 	
 	size = perftDivide(atoi(argv[1]), state);
@@ -96,7 +96,12 @@ int main(int argc, char *argv[])
 	finish = omp_get_wtime();
 	printf("Perft Nodes: %llu\n\n", size);
 	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));
+	printf("NPS: %f\n", size / (finish - start));*/
+	
+	int score, depth = 7;
+	Move bestMove = search(depth, state, &score);
+	printf("Eval at depth %d: %d\n", depth, score);
+	printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
 	
 	return 0;
 }
