@@ -113,14 +113,14 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 	{
 		if (castlingRights & WHITE_OO && !get_square(occupancy, f1) && !get_square(occupancy, g1))
 		{
-			if (!(isSquareAttacked(*pos, e1, BLACK) || isSquareAttacked(*pos, f1, BLACK)))
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK)))
 			{
 				moveList->list[i++] = createMove(K + offset, src, src + 2, OO_SPECIAL, none);
 			}
 		}
 		if (castlingRights & WHITE_OOO && !get_square(occupancy, b1) && !get_square(occupancy, c1) && !get_square(occupancy, d1))
 		{
-			if (!(isSquareAttacked(*pos, e1, BLACK) || isSquareAttacked(*pos, d1, BLACK)))
+			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
 			{
 				moveList->list[i++] = createMove(K + offset, src, src - 2, OOO_SPECIAL, none);
 			}
@@ -130,14 +130,14 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 	{
 		if (castlingRights & BLACK_OO && !get_square(occupancy, f8) && !get_square(occupancy, g8))
 		{
-			if (!(isSquareAttacked(*pos, e8, WHITE) || isSquareAttacked(*pos, f8, WHITE)))
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE)))
 			{
 				moveList->list[i++] = createMove(K + offset, src, src + 2, OO_SPECIAL, none);
 			}
 		}
 		if (castlingRights & BLACK_OOO && !get_square(occupancy, b8) && !get_square(occupancy, c8) && !get_square(occupancy, d8))
 		{
-			if (!(isSquareAttacked(*pos, e8, WHITE) || isSquareAttacked(*pos, d8, WHITE)))
+			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
 			{
 				moveList->list[i++] = createMove(K + offset, src, src - 2, OOO_SPECIAL, none);
 			}
@@ -286,7 +286,7 @@ MoveList generateMoves(GameState *pos, int *size)
 		Move temp = moveList.list[i];
 		tempState = playMove(pos, temp);
 		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
-		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
+		if (isSquareAttacked(&tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
 		{
 			moveCount++;
 			moveList.list[i].legal = 1;
@@ -307,7 +307,7 @@ void printMoveList(MoveList *list, GameState *pos)
 	{
 		int offset = 6 * pos->turn;
 		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
-		if (isSquareAttacked(*pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE) == 0)
+		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE) == 0)
 		{
 			printf("Stalemate\n");
 		}

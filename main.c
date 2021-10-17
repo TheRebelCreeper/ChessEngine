@@ -89,16 +89,16 @@ int main(int argc, char *argv[])
 	//loadFEN(&state, "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2");
 	printBoard(state);
 	
-	double start, finish;
+	int depth = atoi(argv[1]);
+	/*double start, finish;
 	start = omp_get_wtime();
 	
-	int depth = atoi(argv[1]);
 	size = perftDivide(depth, &state);
 	printf("Perft Nodes: %llu\n\n", size);
 	
 	finish = omp_get_wtime();
 	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));
+	printf("NPS: %f\n", size / (finish - start));*/
 	
 	int score;
 	Move bestMove = search(depth, &state, &score);
