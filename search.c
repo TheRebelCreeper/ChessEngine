@@ -6,7 +6,7 @@
 #include "search.h"
 #include "evaluation.h"
 
-int negaMax(int depth, GameState pos)
+int negaMax(int depth, GameState *pos)
 {
 	MoveList moveList;
 	int size, i;
@@ -18,16 +18,16 @@ int negaMax(int depth, GameState pos)
 	
 	if (size == 0)
 	{
-		int offset = 6 * pos.turn;
-		int kingLocation = getFirstBitSquare(pos.pieceBitboards[K + offset]);
-		if (isSquareAttacked(pos, kingLocation, (pos.turn == WHITE) ? BLACK : WHITE))
+		int offset = 6 * pos->turn;
+		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
+		if (isSquareAttacked(*pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
 			return CHECKMATE;
 		return 0;
 	}
 	
 	if (depth == 0)
 	{
-		return evaluation(&pos);
+		return evaluation(pos);
 	}
 	
 	bestScore = -CHECKMATE;
@@ -37,7 +37,7 @@ int negaMax(int depth, GameState pos)
 		if (current.legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			moveScores[i] = -negaMax(depth - 1, newState);
+			moveScores[i] = -negaMax(depth - 1, &newState);
 			if (moveScores[i] > bestScore)
 			{
 				bestScore = moveScores[i];
@@ -47,7 +47,7 @@ int negaMax(int depth, GameState pos)
 	return bestScore;
 }
 
-Move search(int depth, GameState pos, int *score)
+Move search(int depth, GameState *pos, int *score)
 {
 	MoveList moveList;
 	int size, i;
@@ -65,7 +65,7 @@ Move search(int depth, GameState pos, int *score)
 		if (current.legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			moveScores[i] = -negaMax(depth - 1, newState);
+			moveScores[i] = -negaMax(depth - 1, &newState);
 			if (moveScores[i] > bestScore)
 			{
 				bestIndex = i;

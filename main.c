@@ -17,8 +17,9 @@
 #define PERFT_POSITION_6 "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define TEST_POSITION_STALEMATE "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
+#define TEST_POSITION_KPENDGAME "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2"
 
-U64 perft(int depth, GameState pos)
+U64 perft(int depth, GameState *pos)
 {
 	MoveList moveList;
 	int size;
@@ -35,13 +36,13 @@ U64 perft(int depth, GameState pos)
 		if (moveList.list[i].legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			sum += perft(depth - 1, newState);
+			sum += perft(depth - 1, &newState);
 		}
 	}
 	return sum;
 }
 
-U64 perftDivide(int depth, GameState pos)
+U64 perftDivide(int depth, GameState *pos)
 {
 	MoveList moveList;
 	int size, i;
@@ -63,7 +64,7 @@ U64 perftDivide(int depth, GameState pos)
 		if (current.legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			U64 res = perft(depth - 1, newState);
+			U64 res = perft(depth - 1, &newState);
 			sum += res;
 			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
 			{
@@ -85,21 +86,22 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2");
+	//loadFEN(&state, "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2");
 	printBoard(state);
 	
-	/*double start, finish;
+	double start, finish;
 	start = omp_get_wtime();
 	
-	size = perftDivide(atoi(argv[1]), state);
+	int depth = atoi(argv[1]);
+	size = perftDivide(depth, &state);
+	printf("Perft Nodes: %llu\n\n", size);
 	
 	finish = omp_get_wtime();
-	printf("Perft Nodes: %llu\n\n", size);
 	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));*/
+	printf("NPS: %f\n", size / (finish - start));
 	
-	int score, depth = 7;
-	Move bestMove = search(depth, state, &score);
+	int score;
+	Move bestMove = search(depth, &state, &score);
 	printf("Eval at depth %d: %d\n", depth, score);
 	printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
 	

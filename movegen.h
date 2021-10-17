@@ -4,7 +4,7 @@
 #include "bitboard.h"
 #include "list.h"
 
-MoveList generateMoves(GameState position, int *size);
-void printMoveList(MoveList *list, GameState position);
+MoveList generateMoves(GameState *position, int *size);
+void printMoveList(MoveList *list, GameState *position);
 
 #endif

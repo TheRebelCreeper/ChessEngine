@@ -25,6 +25,6 @@ typedef struct move
 
 int compareMoves(Move m1, Move m2);
 Move createMove(int piece, int src, int dst, int special, int epSquare);
-GameState playMove(GameState pos, Move move);
+GameState playMove(GameState *pos, Move move);
 
 #endif
