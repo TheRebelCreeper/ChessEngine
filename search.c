@@ -21,7 +21,7 @@ int negaMax(int depth, GameState *pos)
 		int offset = 6 * pos->turn;
 		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
 		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
-			return CHECKMATE;
+			return -CHECKMATE;
 		return 0;
 	}
 	
