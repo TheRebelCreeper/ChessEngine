@@ -5,6 +5,6 @@
 #include "move.h"
 
 Move search(int depth, GameState *pos, int *score);
-int negaMax(int depth, GameState *pos);
+//int negaMax(int depth, GameState *pos);
 
 #endif

@@ -87,24 +87,27 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, TEST_POSITION_M2);
+	//loadFEN(&state, TEST_POSITION_KPENDGAME);
 	printBoard(state);
 	
 	int depth = atoi(argv[1]);
-	/*double start, finish;
+	double start, finish;
 	start = omp_get_wtime();
 	
-	size = perftDivide(depth, &state);
-	printf("Perft Nodes: %llu\n\n", size);
-	
-	finish = omp_get_wtime();
-	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));*/
-	
+	/*size = perftDivide(depth, &state);
+	printf("Perft Nodes: %llu\n\n", size);*/
 	int score;
 	Move bestMove = search(depth, &state, &score);
+	finish = omp_get_wtime();
 	printf("Eval at depth %d: %d\n", depth, score);
 	printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
+	printf("Finished search in %f seconds\n", finish - start);
+	
+	
+	//printf("Finished perft in %f seconds\n", finish - start);
+	//printf("NPS: %f\n", size / (finish - start));*/
+	
+	
 	
 	return 0;
 }

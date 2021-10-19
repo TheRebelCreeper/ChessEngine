@@ -6,7 +6,7 @@
 #include "search.h"
 #include "evaluation.h"
 
-int negaMax(int depth, GameState *pos)
+int negaMax(int alpha, int beta, int depth, GameState *pos)
 {
 	MoveList moveList;
 	int size, i;
@@ -30,21 +30,24 @@ int negaMax(int depth, GameState *pos)
 		return evaluation(pos);
 	}
 	
-	bestScore = -CHECKMATE;
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
 		if (current.legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			moveScores[i] = -negaMax(depth - 1, &newState);
-			if (moveScores[i] > bestScore)
+			moveScores[i] = -negaMax(-beta, -alpha, depth - 1, &newState);
+			if (moveScores[i] >= beta)
 			{
-				bestScore = moveScores[i];
+				return beta;
+			}				
+			if (moveScores[i] > alpha)
+			{
+				alpha = moveScores[i];
 			}
 		}
 	}
-	return bestScore;
+	return alpha;
 }
 
 Move search(int depth, GameState *pos, int *score)
@@ -65,7 +68,7 @@ Move search(int depth, GameState *pos, int *score)
 		if (current.legal == 1)
 		{
 			GameState newState = playMove(pos, moveList.list[i]);
-			moveScores[i] = -negaMax(depth - 1, &newState);
+			moveScores[i] = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState);
 			if (moveScores[i] > bestScore)
 			{
 				bestIndex = i;
