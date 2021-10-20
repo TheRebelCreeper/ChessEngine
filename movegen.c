@@ -290,12 +290,22 @@ MoveList generateMoves(GameState *pos, int *size)
 		{
 			moveCount++;
 			moveList.list[i].legal = 1;
+			kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
+			if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
+			{
+				moveList.list[i].prop |= IS_CHECK;
+			}
+			if (get_square(pos->occupancies[2], moveList.list[i].dst))
+			{
+				moveList.list[i].prop |= IS_CAPTURE;
+			}
 		}
 		else
 		{
 			moveList.list[i].legal = 0;
 		}
 	}
+	qsort(moveList.list, moveList.nextOpen, sizeof(Move), compareMoves);
 	*size = moveCount;
 	return moveList;
 }

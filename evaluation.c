@@ -18,7 +18,6 @@ int materialCount(GameState *pos)
 
 int evaluation(GameState *pos)
 {
-	int i;
 	int score = 0;
 	score += materialCount(pos);
 	return score;

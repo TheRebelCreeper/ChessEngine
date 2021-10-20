@@ -6,6 +6,9 @@
 #define EN_PASSANT_SPECIAL 5
 #define NO_SPECIAL 0
 
+#define IS_CHECK 2
+#define IS_CAPTURE 1
+
 #include "position.h"
 
 /*
@@ -21,9 +24,10 @@ typedef struct move
 	int special;
 	int epSquare;
 	int legal;
+	int prop;
 } Move;
 
-int compareMoves(Move m1, Move m2);
+int compareMoves(const void * a, const void * b);
 Move createMove(int piece, int src, int dst, int special, int epSquare);
 GameState playMove(GameState *pos, Move move);
 

@@ -128,7 +128,7 @@ int getPieceAtSquare(GameState state, int square)
 	return NO_PIECE;
 }
 
-char isSquareAttacked(GameState *pos, int square, int byColor)
+int isSquareAttacked(GameState *pos, int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
 		This is only really used for debugging purposes
@@ -139,7 +139,6 @@ char isSquareAttacked(GameState *pos, int square, int byColor)
 		Bit 4 - Queen
 		Bit 5 - King
 	*/
-	char attackers = 0;
 	int colorOffset = (byColor == WHITE) ? 0 : 6;
 	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
 	U64 occupancy = pos->occupancies[BOTH];

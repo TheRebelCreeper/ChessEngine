@@ -3,9 +3,33 @@
 #include "move.h"
 #include "position.h"
 #include "bitboard.h"
-int compareMoves(Move m1, Move m2)
+
+
+int compareMoves(const void * a, const void * b)
 {
-	    return (m1.piece == m2.piece) && (m1.src == m2.src) && (m1.dst == m2.dst);
+	Move *m1 = (Move*)a;
+	Move *m2 = (Move*)b;
+	if (m1->legal > m2->legal)
+	{
+		return -1;
+	}
+	else if (m1->legal < m2->legal)
+	{
+		return 1;
+	}
+	
+	if (m1->prop > m2->prop)
+	{
+		return -1;
+	}
+	else if (m1->prop < m2->prop)
+	{
+		return 1;
+	}
+	else
+	{
+		return (m1->piece - m2->piece);
+	}
 }
 
 /*
@@ -22,6 +46,7 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	newMove.special = special;
 	newMove.epSquare = epSquare;
 	newMove.legal = 0;
+	newMove.prop = 0;
 	return newMove;
 }
 

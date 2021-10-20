@@ -10,7 +10,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos)
 {
 	MoveList moveList;
 	int size, i;
-	int bestScore;
 	int moveScores[256];
 	
 	memset(moveScores, 0, 256 * sizeof(int));
