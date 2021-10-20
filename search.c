@@ -24,6 +24,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos)
 		return 0;
 	}
 	
+	// Draw by 50 move rule
+	if (pos->halfMoveClock == 100)
+	{
+		return 0;
+	}
+	
 	if (depth == 0)
 	{
 		return evaluation(pos);

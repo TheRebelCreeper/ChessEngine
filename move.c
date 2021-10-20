@@ -4,7 +4,6 @@
 #include "position.h"
 #include "bitboard.h"
 
-
 int compareMoves(const void * a, const void * b)
 {
 	Move *m1 = (Move*)a;
@@ -170,7 +169,16 @@ GameState playMove(GameState *pos, Move move)
 	
 	newPos.occupancies[BOTH] = newPos.occupancies[WHITE] | newPos.occupancies[BLACK];
 	newPos.castlingRights = (pos->castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
-	newPos.halfMoveClock += 1;
+	
+	// Reset 50 move counter if capture or pawn push
+	if ((move.prop & IS_CAPTURE) || move.piece == P || move.piece == p)
+	{
+		newPos.halfMoveClock = 0;
+	}
+	else
+	{
+		newPos.halfMoveClock += 1;
+	}
 	newPos.enpassantSquare = move.epSquare;
 	
 	return newPos;
