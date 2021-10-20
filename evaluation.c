@@ -3,7 +3,7 @@
 #include "position.h"
 #include "evaluation.h"
 
-int pieceValue[12] = {100, 300, 310, 500, 900, 1000000, -100, -300, -310, -500, -900, -1000000};
+int pieceValue[12] = {100, 300, 325, 500, 900, 10000, -100, -300, -325, -500, -900, -10000};
 
 int materialCount(GameState *pos)
 {

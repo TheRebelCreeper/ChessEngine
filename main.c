@@ -18,6 +18,7 @@
 #define TEST_POSITION_STALEMATE "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
 #define TEST_POSITION_CHECKMATE "2k1R3/8/2K5/8/8/8/8/8 b - - 0 1"
 #define TEST_POSITION_KPENDGAME "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2"
+#define TEST_POSITION_M5 "8/3K4/5k2/8/8/3Q4/8/8 w - - 7 9"
 #define TEST_POSITION_M2 "r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6"
 
 U64 perft(int depth, GameState *pos)
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
 	U64 size;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, TEST_POSITION_KPENDGAME);
+	loadFEN(&state, TEST_POSITION_M2);
 	printBoard(state);
 	
 	int depth = atoi(argv[1]);
