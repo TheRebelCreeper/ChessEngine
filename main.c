@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <omp.h>
 #include "bitboard.h"
 #include "position.h"
@@ -96,24 +97,63 @@ void runPerft(int depth)
 
 int main(int argc, char *argv[])
 {
-	
+	char moveInput[6];
+	char srcInput[3];
+	char dstInput[3];
+	int score;
+	MoveList moveList;
+	Move bestMove;
 	initAttacks();
 	initStartingPosition();
 	//loadFEN(&state, TEST_POSITION_DRAW_50);
-	printBoard(state);
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
 	
-	runPerft(depth);
+	//runPerft(depth);
 	
-	start = omp_get_wtime();
-	
-	int score;
-	Move bestMove = search(depth, &state, &score);
-	finish = omp_get_wtime();
-	printf("Eval at depth %d: %d\n", depth, score);
-	printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
-	printf("Finished search in %f seconds\n", finish - start);
+	// Game Loop
+	srcInput[2] = 0;
+	dstInput[2] = 0;
+	while (1)
+	{
+		int size, src, dst, found = 0;
+		printBoard(state);
+		moveList = generateMoves(&state, &size);
+		start = omp_get_wtime();
+		bestMove = search(depth, &state, &score);
+		finish = omp_get_wtime();
+		
+		printf("Eval at depth %d: %d\n", depth, score);
+		printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
+		//printf("Finished search in %f seconds\n\n", finish - start);
+		
+		do
+		{
+			printf("Enter move: ");
+			fgets(moveInput, 6, stdin);
+			if (strcmp(moveInput, "quit\n") == 0)
+				exit(0);
+			srcInput[0] = moveInput[0];
+			srcInput[1] = moveInput[1];
+			dstInput[0] = moveInput[2];
+			dstInput[1] = moveInput[3];
+			src = getSquareFromNotation(srcInput);
+			dst = getSquareFromNotation(dstInput);
+			
+			// Find move and play it
+			for (int i = 0; i < moveList.nextOpen; i++)
+			{
+				Move move = moveList.list[i];
+				if (move.src == src && move.dst == dst && move.legal)
+				{
+					state = playMove(&state, move);
+					found = 1;
+					break;
+				}
+			}
+		} while (!found);
+	}
+
 	return 0;
 }

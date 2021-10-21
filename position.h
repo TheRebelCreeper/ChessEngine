@@ -33,6 +33,7 @@ enum
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
+int getSquareFromNotation(char *str);
 void loadFEN(GameState *state, char *fen);
 void setOccupancies(GameState *state);
 void initStartingPosition();

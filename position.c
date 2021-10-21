@@ -20,7 +20,7 @@ int getSquareFromNotation(char *str)
 {
 	if (strlen(str) != 2)
 	{
-		printf("Invalid FEN\n");
+		printf("Invalid square\n");
 		exit(EXIT_FAILURE);
 	}
 	return (str[1] - '0' - 1) * 8 + (tolower(str[0]) - 'a');
