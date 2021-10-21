@@ -97,7 +97,7 @@ void runPerft(int depth)
 
 int main(int argc, char *argv[])
 {
-	char moveInput[6];
+	char moveInput[5];
 	char srcInput[3];
 	char dstInput[3];
 	int score;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	Move bestMove;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, TEST_POSITION_DRAW_50);
+	//loadFEN(&state, "6K1/3k4/1pp5/5n1p/1P5P/6P1/1q6/8 b - - 2 43");
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
@@ -120,6 +120,11 @@ int main(int argc, char *argv[])
 		int size, src, dst, found = 0;
 		printBoard(state);
 		moveList = generateMoves(&state, &size);
+		if (size == 0)
+		{
+			printf("Game Over!\n");
+			exit(0);
+		}
 		start = omp_get_wtime();
 		bestMove = search(depth, &state, &score);
 		finish = omp_get_wtime();
@@ -130,9 +135,11 @@ int main(int argc, char *argv[])
 		
 		do
 		{
+			char c;
 			printf("Enter move: ");
-			fgets(moveInput, 6, stdin);
-			if (strcmp(moveInput, "quit\n") == 0)
+			fgets(moveInput, 5, stdin);
+			while (((c = getchar()) != EOF) && (c != '\n'));
+			if (strcmp(moveInput, "quit") == 0)
 				exit(0);
 			srcInput[0] = moveInput[0];
 			srcInput[1] = moveInput[1];
