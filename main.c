@@ -82,32 +82,38 @@ U64 perftDivide(int depth, GameState *pos)
 	return sum;
 }
 
-int main(int argc, char *argv[])
+void runPerft(int depth)
 {
 	U64 size;
+	double start, finish;
+	start = omp_get_wtime();
+	size = perftDivide(depth, &state);
+	printf("Perft Nodes: %llu\n\n", size);
+	finish = omp_get_wtime();
+	printf("Finished perft in %f seconds\n", finish - start);
+	printf("NPS: %f\n", size / (finish - start));
+}
+
+int main(int argc, char *argv[])
+{
+	
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, TEST_POSITION_DRAW_50);
+	//loadFEN(&state, TEST_POSITION_DRAW_50);
 	printBoard(state);
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
+	
+	runPerft(depth);
+	
 	start = omp_get_wtime();
 	
-	/*size = perftDivide(depth, &state);
-	printf("Perft Nodes: %llu\n\n", size);*/
 	int score;
 	Move bestMove = search(depth, &state, &score);
 	finish = omp_get_wtime();
 	printf("Eval at depth %d: %d\n", depth, score);
 	printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
 	printf("Finished search in %f seconds\n", finish - start);
-	
-	
-	//printf("Finished perft in %f seconds\n", finish - start);
-	//printf("NPS: %f\n", size / (finish - start));*/
-	
-	
-	
 	return 0;
 }

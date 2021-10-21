@@ -305,7 +305,6 @@ MoveList generateMoves(GameState *pos, int *size)
 			moveList.list[i].legal = 0;
 		}
 	}
-	qsort(moveList.list, moveList.nextOpen, sizeof(Move), compareMoves);
 	*size = moveCount;
 	return moveList;
 }

@@ -14,6 +14,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos)
 	
 	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
+	qsort(moveList.list, moveList.nextOpen, sizeof(Move), compareMoves);
 	
 	if (size == 0)
 	{
@@ -64,6 +65,7 @@ Move search(int depth, GameState *pos, int *score)
 	
 	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
+	qsort(moveList.list, moveList.nextOpen, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
