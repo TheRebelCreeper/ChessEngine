@@ -22,3 +22,19 @@ int evaluation(GameState *pos)
 	score += materialCount(pos);
 	return score;
 }
+
+void printEvaluation(int score)
+{
+	int mated = 0;
+	if (score > MAX_PLY_CHECKMATE)
+	{
+		score = CHECKMATE - score;
+		mated = 1;
+	}
+	else if (score < -MAX_PLY_CHECKMATE)
+	{
+		score = -CHECKMATE - score;
+		mated = 1;
+	}
+	printf("Eval: %s%d\n", (mated) ? "#" : "", score);
+}

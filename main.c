@@ -20,6 +20,7 @@
 #define TEST_POSITION_KPENDGAME "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2"
 #define TEST_POSITION_M5 "8/3K4/5k2/8/8/3Q4/8/8 w - - 7 9"
 #define TEST_POSITION_M2 "r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6"
+#define TEST_POSITION_M1 "3r1r2/pQ2pp1N/3pk1p1/2pNb2n/P7/1P4P1/7P/R1B1KR2 w Q - 6 22"
 
 U64 perft(int depth, GameState *pos)
 {
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 	Move bestMove;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, "6K1/3k4/1pp5/5n1p/1P5P/6P1/1q6/8 b - - 2 43");
+	//loadFEN(&state, "3r1r2/pQ2pp1N/3pk1p1/2pNb2n/P7/1P4P1/7P/R1B1KR2 w Q - 6 22");
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
@@ -129,9 +130,9 @@ int main(int argc, char *argv[])
 		bestMove = search(depth, &state, &score);
 		finish = omp_get_wtime();
 		
-		printf("Eval at depth %d: %d\n", depth, score);
+		printEvaluation(score);
 		printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
-		//printf("Finished search in %f seconds\n\n", finish - start);
+		printf("Finished search in %f seconds\n\n", finish - start);
 		
 		do
 		{
