@@ -62,7 +62,7 @@ U64 perftDivide(int depth, GameState *pos)
 	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
 	// OMP doesn't seem to speed up here, not sure why
-	//#pragma omp parallel for num_threads(4) private(i) shared(moveList) reduction(+:sum)
+	#pragma omp parallel for num_threads(12) shared(moveList) reduction(+:sum)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
