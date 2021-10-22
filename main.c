@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 		{
 			char c;
 			printf("Enter move: ");
-			fgets(moveInput, 5, stdin);
+			if (fgets(moveInput, 5, stdin) == NULL) exit(0);
 			while (((c = getchar()) != EOF) && (c != '\n'));
 			if (strcmp(moveInput, "quit") == 0)
 				exit(0);
