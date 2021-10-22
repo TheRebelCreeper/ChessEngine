@@ -3,47 +3,46 @@ Flat profile:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls   s/call   s/call  name    
- 28.61     11.36    11.36                             _mcount_private
- 27.00     22.08    10.72                             __fentry__
-  7.43     25.03     2.95                             compareMoves
-  6.04     27.43     2.40 1012706508     0.00     0.00  isSquareAttacked
-  6.02     29.82     2.39 548687416     0.00     0.00  playMove
-  3.93     31.38     1.56 17570956     0.00     0.00  generateMoves
-  3.27     32.68     1.30 1031819263     0.00     0.00  getRookAttacks
-  3.10     33.91     1.23                             __popcountdi2
-  2.62     34.95     1.04 1013054965     0.00     0.00  getQueenAttacks
-  2.37     35.89     0.94 1043168594     0.00     0.00  getBishopAttacks
-  2.32     36.81     0.92 15259880     0.00     0.00  materialCount
-  1.79     37.52     0.71 2285755096     0.00     0.00  getFirstBitSquare
-  1.51     38.12     0.60 17570956     0.00     0.00  generatePawnMoves
-  0.71     38.40     0.28 17570956     0.00     0.00  generateQueenMoves
-  0.65     38.66     0.26      207     0.00     0.06  negaMax
-  0.60     38.90     0.24 17570956     0.00     0.00  generateBishopMoves
-  0.48     39.09     0.19 531116468     0.00     0.00  createMove
-  0.35     39.23     0.14                             ___chkstk_ms
-  0.30     39.35     0.12 17570956     0.00     0.00  generateKingMoves
-  0.28     39.46     0.11 17570956     0.00     0.00  generateRookMoves
-  0.28     39.57     0.11      128     0.00     0.00  find_magic_number
-  0.28     39.68     0.11                             memcpy
-  0.03     39.69     0.01 15259880     0.00     0.00  evaluation
-  0.03     39.70     0.01                             qsort
-  0.03     39.71     0.01                             rand
-  0.00     39.71     0.00 18145975     0.00     0.00  countBits
-  0.00     39.71     0.00   107648     0.00     0.00  occupancyFromIndex
-  0.00     39.71     0.00   102400     0.00     0.00  generateRookAttacks
-  0.00     39.71     0.00    10496     0.00     0.00  generateBishopAttacks
-  0.00     39.71     0.00      128     0.00     0.00  calculateBishopOccupancy
-  0.00     39.71     0.00      128     0.00     0.00  calculateRookOccupancy
-  0.00     39.71     0.00       14     0.00     0.00  getSquareFromNotation
-  0.00     39.71     0.00        7     0.00     0.00  printBoard
-  0.00     39.71     0.00        7     0.00     0.00  printEvaluation
-  0.00     39.71     0.00        7     0.00     1.87  search
-  0.00     39.71     0.00        1     0.00     0.00  getCastlingRights
-  0.00     39.71     0.00        1     0.00     0.11  initAttacks
-  0.00     39.71     0.00        1     0.00     0.00  initLeapers
-  0.00     39.71     0.00        1     0.00     0.11  initSliders
-  0.00     39.71     0.00        1     0.00     0.00  initStartingPosition
-  0.00     39.71     0.00        1     0.00     0.00  loadFEN
+ 31.32     15.04    15.04                             _mcount_private
+ 29.01     28.97    13.93                             __fentry__
+  7.37     32.51     3.54                             compareMoves
+  6.06     35.42     2.91 661975578     0.00     0.00  playMove
+  5.48     38.05     2.63 1236949595     0.00     0.00  isSquareAttacked
+  3.39     39.68     1.63 20720399     0.00     0.00  generateMoves
+  3.21     41.22     1.54 1256098556     0.00     0.00  getRookAttacks
+  2.85     42.59     1.37 1234042378     0.00     0.00  getQueenAttacks
+  2.46     43.77     1.18 17796342     0.00     0.00  materialCount
+  2.23     44.84     1.07 1272891696     0.00     0.00  getBishopAttacks
+  1.54     45.58     0.74 20720399     0.00     0.00  generatePawnMoves
+  1.25     46.18     0.60 2780049489     0.00     0.00  getFirstBitSquare
+  0.75     46.54     0.36 20720399     0.00     0.00  generateBishopMoves
+  0.73     46.89     0.35      205     0.00     0.07  negaMax
+  0.62     47.19     0.30 641255187     0.00     0.00  createMove
+  0.40     47.38     0.19                             memcpy
+  0.33     47.54     0.16 20720399     0.00     0.00  generateQueenMoves
+  0.27     47.67     0.13 20720399     0.00     0.00  generateKingMoves
+  0.23     47.78     0.11                             ___chkstk_ms
+  0.21     47.88     0.10      128     0.00     0.00  find_magic_number
+  0.19     47.97     0.09 20720399     0.00     0.00  generateRookMoves
+  0.04     47.99     0.02 17796342     0.00     0.00  evaluation
+  0.02     48.00     0.01        1     0.01     0.11  initSliders
+  0.02     48.01     0.01                             qsort
+  0.02     48.02     0.01                             rand
+  0.00     48.02     0.00 18145975     0.00     0.00  countBits
+  0.00     48.02     0.00   107648     0.00     0.00  occupancyFromIndex
+  0.00     48.02     0.00   102400     0.00     0.00  generateRookAttacks
+  0.00     48.02     0.00    10496     0.00     0.00  generateBishopAttacks
+  0.00     48.02     0.00      128     0.00     0.00  calculateBishopOccupancy
+  0.00     48.02     0.00      128     0.00     0.00  calculateRookOccupancy
+  0.00     48.02     0.00       14     0.00     0.00  getSquareFromNotation
+  0.00     48.02     0.00        8     0.00     0.00  printBoard
+  0.00     48.02     0.00        7     0.00     0.00  printEvaluation
+  0.00     48.02     0.00        7     0.00     2.15  search
+  0.00     48.02     0.00        1     0.00     0.00  getCastlingRights
+  0.00     48.02     0.00        1     0.00     0.11  initAttacks
+  0.00     48.02     0.00        1     0.00     0.00  initLeapers
+  0.00     48.02     0.00        1     0.00     0.00  initStartingPosition
+  0.00     48.02     0.00        1     0.00     0.00  loadFEN
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -81,219 +80,216 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 4 byte(s) for 0.03% of 39.71 seconds
+granularity: each sample hit covers 4 byte(s) for 0.02% of 48.02 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]     33.2    0.00   13.18                 main [1]
-                0.00   13.07       7/7           search [2]
-                0.00    0.11       1/1           initAttacks [24]
-                0.00    0.00       7/17570956     generateMoves [4]
-                0.00    0.00       6/548687416     playMove [9]
-                0.00    0.00      14/14          getSquareFromNotation [36]
-                0.00    0.00       7/7           printBoard [37]
-                0.00    0.00       7/7           printEvaluation [38]
-                0.00    0.00       1/1           initLeapers [40]
-                0.00    0.00       1/1           loadFEN [42]
-                0.00    0.00       1/1           initStartingPosition [41]
+[1]     31.6    0.00   15.19                 main [1]
+                0.00   15.08       7/7           search [2]
+                0.00    0.11       1/1           initAttacks [22]
+                0.00    0.00       8/20720399     generateMoves [6]
+                0.00    0.00       7/661975578     playMove [9]
+                0.00    0.00      14/14          getSquareFromNotation [35]
+                0.00    0.00       8/8           printBoard [36]
+                0.00    0.00       7/7           printEvaluation [37]
+                0.00    0.00       1/1           initLeapers [39]
+                0.00    0.00       1/1           loadFEN [41]
+                0.00    0.00       1/1           initStartingPosition [40]
 -----------------------------------------------
-                0.00   13.07       7/7           main [1]
-[2]     32.9    0.00   13.07       7         search [2]
-                0.26   12.81     207/207         negaMax [3]
-                0.00    0.00       7/17570956     generateMoves [4]
-                0.00    0.00     207/548687416     playMove [9]
+                0.00   15.08       7/7           main [1]
+[2]     31.4    0.00   15.08       7         search [2]
+                0.35   14.73     205/205         negaMax [3]
+                0.00    0.00       7/20720399     generateMoves [6]
+                0.00    0.00     205/661975578     playMove [9]
 -----------------------------------------------
-                             17570735             negaMax [3]
-                0.26   12.81     207/207         search [2]
-[3]     32.9    0.26   12.81     207+17570735 negaMax [3]
-                1.56   10.10 17570942/17570956     generateMoves [4]
-                0.92    0.14 15259880/15259880     materialCount [12]
-                0.08    0.00 17570735/548687416     playMove [9]
-                0.01    0.00 15259880/15259880     evaluation [27]
-                0.00    0.00    4290/1012706508     isSquareAttacked [7]
-                0.00    0.00    4290/2285755096     getFirstBitSquare [16]
-                             17570735             negaMax [3]
------------------------------------------------
-                0.00    0.00       7/17570956     search [2]
-                0.00    0.00       7/17570956     main [1]
-                1.56   10.10 17570942/17570956     negaMax [3]
-[4]     29.4    1.56   10.10 17570956         generateMoves [4]
-                2.40    3.19 1011907561/1012706508     isSquareAttacked [7]
-                2.31    0.00 531116468/548687416     playMove [9]
-                0.60    0.18 17570956/17570956     generatePawnMoves [15]
-                0.36    0.00 1150587803/2285755096     getFirstBitSquare [16]
-                0.28    0.08 17570956/17570956     generateQueenMoves [17]
-                0.24    0.10 17570956/17570956     generateBishopMoves [18]
-                0.11    0.07 17570956/17570956     generateRookMoves [20]
-                0.12    0.03 17570956/17570956     generateKingMoves [21]
-                0.04    0.00 103956996/531116468     createMove [19]
+                             20720179             negaMax [3]
+                0.35   14.73     205/205         search [2]
+[3]     31.4    0.35   14.73     205+20720179 negaMax [3]
+                1.63   11.69 20720384/20720399     generateMoves [6]
+                1.18    0.12 17796342/17796342     materialCount [12]
+                0.09    0.00 20720179/661975578     playMove [9]
+                0.02    0.00 17796342/17796342     evaluation [26]
+                0.00    0.00   20337/1236949595     isSquareAttacked [7]
+                0.00    0.00   20337/2780049489     getFirstBitSquare [15]
+                             20720179             negaMax [3]
 -----------------------------------------------
                                                  <spontaneous>
-[5]     28.6   11.36    0.00                 _mcount_private [5]
+[4]     31.3   15.04    0.00                 _mcount_private [4]
 -----------------------------------------------
                                                  <spontaneous>
-[6]     27.0   10.72    0.00                 __fentry__ [6]
+[5]     29.0   13.93    0.00                 __fentry__ [5]
 -----------------------------------------------
-                0.00    0.00    4290/1012706508     negaMax [3]
-                0.00    0.00  794657/1012706508     generateKingMoves [21]
-                2.40    3.19 1011907561/1012706508     generateMoves [4]
-[7]     14.1    2.40    3.19 1012706508         isSquareAttacked [7]
-                1.26    0.00 996703472/1031819263     getRookAttacks [10]
-                1.02    0.00 996661736/1013054965     getQueenAttacks [13]
-                0.91    0.00 1008562740/1043168594     getBishopAttacks [14]
+                0.00    0.00       7/20720399     search [2]
+                0.00    0.00       8/20720399     main [1]
+                1.63   11.69 20720384/20720399     negaMax [3]
+[6]     27.7    1.63   11.69 20720399         generateMoves [6]
+                2.63    3.87 1235727626/1236949595     isSquareAttacked [7]
+                2.82    0.00 641255187/661975578     playMove [9]
+                0.74    0.20 20720399/20720399     generatePawnMoves [14]
+                0.36    0.12 20720399/20720399     generateBishopMoves [16]
+                0.30    0.00 1391490624/2780049489     getFirstBitSquare [15]
+                0.16    0.10 20720399/20720399     generateQueenMoves [18]
+                0.13    0.04 20720399/20720399     generateKingMoves [20]
+                0.09    0.08 20720399/20720399     generateRookMoves [21]
+                0.05    0.00 114681407/641255187     createMove [17]
 -----------------------------------------------
-                                                 <spontaneous>
-[8]      7.4    2.95    0.00                 compareMoves [8]
------------------------------------------------
-                0.00    0.00       6/548687416     main [1]
-                0.00    0.00     207/548687416     search [2]
-                0.08    0.00 17570735/548687416     negaMax [3]
-                2.31    0.00 531116468/548687416     generateMoves [4]
-[9]      6.0    2.39    0.00 548687416         playMove [9]
------------------------------------------------
-                0.04    0.00 35115791/1031819263     generateRookMoves [20]
-                1.26    0.00 996703472/1031819263     isSquareAttacked [7]
-[10]     3.3    1.30    0.00 1031819263         getRookAttacks [10]
------------------------------------------------
-                                                 <spontaneous>
-[11]     3.1    1.23    0.00                 __popcountdi2 [11]
------------------------------------------------
-                0.92    0.14 15259880/15259880     negaMax [3]
-[12]     2.7    0.92    0.14 15259880         materialCount [12]
-                0.14    0.00 460532449/2285755096     getFirstBitSquare [16]
------------------------------------------------
-                0.02    0.00 16393229/1013054965     generateQueenMoves [17]
-                1.02    0.00 996661736/1013054965     isSquareAttacked [7]
-[13]     2.6    1.04    0.00 1013054965         getQueenAttacks [13]
------------------------------------------------
-                0.03    0.00 34605854/1043168594     generateBishopMoves [18]
-                0.91    0.00 1008562740/1043168594     isSquareAttacked [7]
-[14]     2.4    0.94    0.00 1043168594         getBishopAttacks [14]
------------------------------------------------
-                0.60    0.18 17570956/17570956     generateMoves [4]
-[15]     2.0    0.60    0.18 17570956         generatePawnMoves [15]
-                0.10    0.00 335707816/2285755096     getFirstBitSquare [16]
-                0.07    0.00 209136955/531116468     createMove [19]
------------------------------------------------
-                0.00    0.00    4290/2285755096     negaMax [3]
-                0.02    0.00 57372460/2285755096     generateRookMoves [20]
-                0.02    0.00 62545004/2285755096     generateKingMoves [21]
-                0.03    0.00 98318051/2285755096     generateQueenMoves [17]
-                0.04    0.00 120687223/2285755096     generateBishopMoves [18]
-                0.10    0.00 335707816/2285755096     generatePawnMoves [15]
-                0.14    0.00 460532449/2285755096     materialCount [12]
-                0.36    0.00 1150587803/2285755096     generateMoves [4]
-[16]     1.8    0.71    0.00 2285755096         getFirstBitSquare [16]
------------------------------------------------
-                0.28    0.08 17570956/17570956     generateMoves [4]
-[17]     0.9    0.28    0.08 17570956         generateQueenMoves [17]
-                0.03    0.00 98318051/2285755096     getFirstBitSquare [16]
-                0.03    0.00 81924822/531116468     createMove [19]
-                0.02    0.00 16393229/1013054965     getQueenAttacks [13]
------------------------------------------------
-                0.24    0.10 17570956/17570956     generateMoves [4]
-[18]     0.9    0.24    0.10 17570956         generateBishopMoves [18]
-                0.04    0.00 120687223/2285755096     getFirstBitSquare [16]
-                0.03    0.00 34605854/1043168594     getBishopAttacks [14]
-                0.03    0.00 86081369/531116468     createMove [19]
------------------------------------------------
-                0.01    0.00 22256669/531116468     generateRookMoves [20]
-                0.01    0.00 27759657/531116468     generateKingMoves [21]
-                0.03    0.00 81924822/531116468     generateQueenMoves [17]
-                0.03    0.00 86081369/531116468     generateBishopMoves [18]
-                0.04    0.00 103956996/531116468     generateMoves [4]
-                0.07    0.00 209136955/531116468     generatePawnMoves [15]
-[19]     0.5    0.19    0.00 531116468         createMove [19]
------------------------------------------------
-                0.11    0.07 17570956/17570956     generateMoves [4]
-[20]     0.5    0.11    0.07 17570956         generateRookMoves [20]
-                0.04    0.00 35115791/1031819263     getRookAttacks [10]
-                0.02    0.00 57372460/2285755096     getFirstBitSquare [16]
-                0.01    0.00 22256669/531116468     createMove [19]
------------------------------------------------
-                0.12    0.03 17570956/17570956     generateMoves [4]
-[21]     0.4    0.12    0.03 17570956         generateKingMoves [21]
-                0.02    0.00 62545004/2285755096     getFirstBitSquare [16]
-                0.01    0.00 27759657/531116468     createMove [19]
-                0.00    0.00  794657/1012706508     isSquareAttacked [7]
+                0.00    0.00   20337/1236949595     negaMax [3]
+                0.00    0.00 1201632/1236949595     generateKingMoves [20]
+                2.63    3.87 1235727626/1236949595     generateMoves [6]
+[7]     13.5    2.63    3.87 1236949595         isSquareAttacked [7]
+                1.49    0.00 1214675930/1256098556     getRookAttacks [10]
+                1.35    0.00 1214650690/1234042378     getQueenAttacks [11]
+                1.04    0.00 1232045908/1272891696     getBishopAttacks [13]
 -----------------------------------------------
                                                  <spontaneous>
-[22]     0.4    0.14    0.00                 ___chkstk_ms [22]
+[8]      7.4    3.54    0.00                 compareMoves [8]
 -----------------------------------------------
-                0.11    0.00     128/128         initSliders [25]
-[23]     0.3    0.11    0.00     128         find_magic_number [23]
-                0.00    0.00 18145975/18145975     countBits [30]
-                0.00    0.00  107648/107648      occupancyFromIndex [31]
-                0.00    0.00  102400/102400      generateRookAttacks [32]
-                0.00    0.00    5248/10496       generateBishopAttacks [33]
-                0.00    0.00      64/128         calculateBishopOccupancy [34]
-                0.00    0.00      64/128         calculateRookOccupancy [35]
+                0.00    0.00       7/661975578     main [1]
+                0.00    0.00     205/661975578     search [2]
+                0.09    0.00 20720179/661975578     negaMax [3]
+                2.82    0.00 641255187/661975578     generateMoves [6]
+[9]      6.1    2.91    0.00 661975578         playMove [9]
+-----------------------------------------------
+                0.05    0.00 41422626/1256098556     generateRookMoves [21]
+                1.49    0.00 1214675930/1256098556     isSquareAttacked [7]
+[10]     3.2    1.54    0.00 1256098556         getRookAttacks [10]
+-----------------------------------------------
+                0.02    0.00 19391688/1234042378     generateQueenMoves [18]
+                1.35    0.00 1214650690/1234042378     isSquareAttacked [7]
+[11]     2.9    1.37    0.00 1234042378         getQueenAttacks [11]
+-----------------------------------------------
+                1.18    0.12 17796342/17796342     negaMax [3]
+[12]     2.7    1.18    0.12 17796342         materialCount [12]
+                0.12    0.00 557263800/2780049489     getFirstBitSquare [15]
+-----------------------------------------------
+                0.03    0.00 40845788/1272891696     generateBishopMoves [16]
+                1.04    0.00 1232045908/1272891696     isSquareAttacked [7]
+[13]     2.2    1.07    0.00 1272891696         getBishopAttacks [13]
+-----------------------------------------------
+                0.74    0.20 20720399/20720399     generateMoves [6]
+[14]     2.0    0.74    0.20 20720399         generatePawnMoves [14]
+                0.11    0.00 243394244/641255187     createMove [17]
+                0.09    0.00 405563073/2780049489     getFirstBitSquare [15]
+-----------------------------------------------
+                0.00    0.00   20337/2780049489     negaMax [3]
+                0.01    0.00 66701378/2780049489     generateRookMoves [21]
+                0.02    0.00 78745372/2780049489     generateKingMoves [20]
+                0.03    0.00 131300611/2780049489     generateQueenMoves [18]
+                0.03    0.00 148964294/2780049489     generateBishopMoves [16]
+                0.09    0.00 405563073/2780049489     generatePawnMoves [14]
+                0.12    0.00 557263800/2780049489     materialCount [12]
+                0.30    0.00 1391490624/2780049489     generateMoves [6]
+[15]     1.2    0.60    0.00 2780049489         getFirstBitSquare [15]
+-----------------------------------------------
+                0.36    0.12 20720399/20720399     generateMoves [6]
+[16]     1.0    0.36    0.12 20720399         generateBishopMoves [16]
+                0.05    0.00 108118506/641255187     createMove [17]
+                0.03    0.00 40845788/1272891696     getBishopAttacks [13]
+                0.03    0.00 148964294/2780049489     getFirstBitSquare [15]
+-----------------------------------------------
+                0.01    0.00 25278752/641255187     generateRookMoves [21]
+                0.02    0.00 37873355/641255187     generateKingMoves [20]
+                0.05    0.00 108118506/641255187     generateBishopMoves [16]
+                0.05    0.00 111908923/641255187     generateQueenMoves [18]
+                0.05    0.00 114681407/641255187     generateMoves [6]
+                0.11    0.00 243394244/641255187     generatePawnMoves [14]
+[17]     0.6    0.30    0.00 641255187         createMove [17]
+-----------------------------------------------
+                0.16    0.10 20720399/20720399     generateMoves [6]
+[18]     0.5    0.16    0.10 20720399         generateQueenMoves [18]
+                0.05    0.00 111908923/641255187     createMove [17]
+                0.03    0.00 131300611/2780049489     getFirstBitSquare [15]
+                0.02    0.00 19391688/1234042378     getQueenAttacks [11]
+-----------------------------------------------
+                                                 <spontaneous>
+[19]     0.4    0.19    0.00                 memcpy [19]
+-----------------------------------------------
+                0.13    0.04 20720399/20720399     generateMoves [6]
+[20]     0.4    0.13    0.04 20720399         generateKingMoves [20]
+                0.02    0.00 37873355/641255187     createMove [17]
+                0.02    0.00 78745372/2780049489     getFirstBitSquare [15]
+                0.00    0.00 1201632/1236949595     isSquareAttacked [7]
+-----------------------------------------------
+                0.09    0.08 20720399/20720399     generateMoves [6]
+[21]     0.3    0.09    0.08 20720399         generateRookMoves [21]
+                0.05    0.00 41422626/1256098556     getRookAttacks [10]
+                0.01    0.00 66701378/2780049489     getFirstBitSquare [15]
+                0.01    0.00 25278752/641255187     createMove [17]
 -----------------------------------------------
                 0.00    0.11       1/1           main [1]
-[24]     0.3    0.00    0.11       1         initAttacks [24]
-                0.00    0.11       1/1           initSliders [25]
+[22]     0.2    0.00    0.11       1         initAttacks [22]
+                0.01    0.10       1/1           initSliders [23]
 -----------------------------------------------
-                0.00    0.11       1/1           initAttacks [24]
-[25]     0.3    0.00    0.11       1         initSliders [25]
-                0.11    0.00     128/128         find_magic_number [23]
-                0.00    0.00    5248/10496       generateBishopAttacks [33]
-                0.00    0.00      64/128         calculateBishopOccupancy [34]
-                0.00    0.00      64/128         calculateRookOccupancy [35]
------------------------------------------------
-                                                 <spontaneous>
-[26]     0.3    0.11    0.00                 memcpy [26]
------------------------------------------------
-                0.01    0.00 15259880/15259880     negaMax [3]
-[27]     0.0    0.01    0.00 15259880         evaluation [27]
+                0.01    0.10       1/1           initAttacks [22]
+[23]     0.2    0.01    0.10       1         initSliders [23]
+                0.10    0.00     128/128         find_magic_number [25]
+                0.00    0.00    5248/10496       generateBishopAttacks [32]
+                0.00    0.00      64/128         calculateBishopOccupancy [33]
+                0.00    0.00      64/128         calculateRookOccupancy [34]
 -----------------------------------------------
                                                  <spontaneous>
-[28]     0.0    0.01    0.00                 qsort [28]
+[24]     0.2    0.11    0.00                 ___chkstk_ms [24]
+-----------------------------------------------
+                0.10    0.00     128/128         initSliders [23]
+[25]     0.2    0.10    0.00     128         find_magic_number [25]
+                0.00    0.00 18145975/18145975     countBits [29]
+                0.00    0.00  107648/107648      occupancyFromIndex [30]
+                0.00    0.00  102400/102400      generateRookAttacks [31]
+                0.00    0.00    5248/10496       generateBishopAttacks [32]
+                0.00    0.00      64/128         calculateBishopOccupancy [33]
+                0.00    0.00      64/128         calculateRookOccupancy [34]
+-----------------------------------------------
+                0.02    0.00 17796342/17796342     negaMax [3]
+[26]     0.0    0.02    0.00 17796342         evaluation [26]
 -----------------------------------------------
                                                  <spontaneous>
-[29]     0.0    0.01    0.00                 rand [29]
+[27]     0.0    0.01    0.00                 qsort [27]
 -----------------------------------------------
-                0.00    0.00 18145975/18145975     find_magic_number [23]
-[30]     0.0    0.00    0.00 18145975         countBits [30]
+                                                 <spontaneous>
+[28]     0.0    0.01    0.00                 rand [28]
 -----------------------------------------------
-                0.00    0.00  107648/107648      find_magic_number [23]
-[31]     0.0    0.00    0.00  107648         occupancyFromIndex [31]
+                0.00    0.00 18145975/18145975     find_magic_number [25]
+[29]     0.0    0.00    0.00 18145975         countBits [29]
 -----------------------------------------------
-                0.00    0.00  102400/102400      find_magic_number [23]
-[32]     0.0    0.00    0.00  102400         generateRookAttacks [32]
+                0.00    0.00  107648/107648      find_magic_number [25]
+[30]     0.0    0.00    0.00  107648         occupancyFromIndex [30]
 -----------------------------------------------
-                0.00    0.00    5248/10496       initSliders [25]
-                0.00    0.00    5248/10496       find_magic_number [23]
-[33]     0.0    0.00    0.00   10496         generateBishopAttacks [33]
+                0.00    0.00  102400/102400      find_magic_number [25]
+[31]     0.0    0.00    0.00  102400         generateRookAttacks [31]
 -----------------------------------------------
-                0.00    0.00      64/128         initSliders [25]
-                0.00    0.00      64/128         find_magic_number [23]
-[34]     0.0    0.00    0.00     128         calculateBishopOccupancy [34]
+                0.00    0.00    5248/10496       initSliders [23]
+                0.00    0.00    5248/10496       find_magic_number [25]
+[32]     0.0    0.00    0.00   10496         generateBishopAttacks [32]
 -----------------------------------------------
-                0.00    0.00      64/128         initSliders [25]
-                0.00    0.00      64/128         find_magic_number [23]
-[35]     0.0    0.00    0.00     128         calculateRookOccupancy [35]
+                0.00    0.00      64/128         initSliders [23]
+                0.00    0.00      64/128         find_magic_number [25]
+[33]     0.0    0.00    0.00     128         calculateBishopOccupancy [33]
+-----------------------------------------------
+                0.00    0.00      64/128         initSliders [23]
+                0.00    0.00      64/128         find_magic_number [25]
+[34]     0.0    0.00    0.00     128         calculateRookOccupancy [34]
 -----------------------------------------------
                 0.00    0.00      14/14          main [1]
-[36]     0.0    0.00    0.00      14         getSquareFromNotation [36]
+[35]     0.0    0.00    0.00      14         getSquareFromNotation [35]
+-----------------------------------------------
+                0.00    0.00       8/8           main [1]
+[36]     0.0    0.00    0.00       8         printBoard [36]
 -----------------------------------------------
                 0.00    0.00       7/7           main [1]
-[37]     0.0    0.00    0.00       7         printBoard [37]
+[37]     0.0    0.00    0.00       7         printEvaluation [37]
 -----------------------------------------------
-                0.00    0.00       7/7           main [1]
-[38]     0.0    0.00    0.00       7         printEvaluation [38]
------------------------------------------------
-                0.00    0.00       1/1           loadFEN [42]
-[39]     0.0    0.00    0.00       1         getCastlingRights [39]
+                0.00    0.00       1/1           loadFEN [41]
+[38]     0.0    0.00    0.00       1         getCastlingRights [38]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[40]     0.0    0.00    0.00       1         initLeapers [40]
+[39]     0.0    0.00    0.00       1         initLeapers [39]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[41]     0.0    0.00    0.00       1         initStartingPosition [41]
+[40]     0.0    0.00    0.00       1         initStartingPosition [40]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
-[42]     0.0    0.00    0.00       1         loadFEN [42]
-                0.00    0.00       1/1           getCastlingRights [39]
+[41]     0.0    0.00    0.00       1         loadFEN [41]
+                0.00    0.00       1/1           getCastlingRights [38]
 -----------------------------------------------
 
  This table describes the call tree of the program, and was sorted by
@@ -386,17 +382,17 @@ notice and this notice are preserved.
 
 Index by function name
 
-  [22] ___chkstk_ms            [4] generateMoves          [41] initStartingPosition
-   [6] __fentry__             [15] generatePawnMoves       [7] isSquareAttacked
-  [11] __popcountdi2          [17] generateQueenMoves     [42] loadFEN
-   [5] _mcount_private        [32] generateRookAttacks    [12] materialCount
-  [34] calculateBishopOccupancy [20] generateRookMoves    [26] memcpy
-  [35] calculateRookOccupancy [14] getBishopAttacks        [3] negaMax
-   [8] compareMoves           [39] getCastlingRights      [31] occupancyFromIndex
-  [30] countBits              [16] getFirstBitSquare       [9] playMove
-  [19] createMove             [13] getQueenAttacks        [37] printBoard
-  [27] evaluation             [10] getRookAttacks         [38] printEvaluation
-  [23] find_magic_number      [36] getSquareFromNotation  [28] qsort
-  [33] generateBishopAttacks  [24] initAttacks            [29] rand
-  [18] generateBishopMoves    [40] initLeapers             [2] search
-  [21] generateKingMoves      [25] initSliders
+  [24] ___chkstk_ms           [14] generatePawnMoves       [7] isSquareAttacked
+   [5] __fentry__             [18] generateQueenMoves     [41] loadFEN
+   [4] _mcount_private        [31] generateRookAttacks    [12] materialCount
+  [33] calculateBishopOccupancy [21] generateRookMoves    [19] memcpy
+  [34] calculateRookOccupancy [13] getBishopAttacks        [3] negaMax
+   [8] compareMoves           [38] getCastlingRights      [30] occupancyFromIndex
+  [29] countBits              [15] getFirstBitSquare       [9] playMove
+  [17] createMove             [11] getQueenAttacks        [36] printBoard
+  [26] evaluation             [10] getRookAttacks         [37] printEvaluation
+  [25] find_magic_number      [35] getSquareFromNotation  [27] qsort
+  [32] generateBishopAttacks  [22] initAttacks            [28] rand
+  [16] generateBishopMoves    [39] initLeapers             [2] search
+  [20] generateKingMoves      [23] initSliders
+   [6] generateMoves          [40] initStartingPosition
