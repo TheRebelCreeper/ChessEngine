@@ -5,7 +5,6 @@
 #include "movegen.h"
 #include "move.h"
 #include "search.h"
-#include "evaluation.h"
 
 int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 {

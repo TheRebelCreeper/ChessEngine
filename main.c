@@ -4,7 +4,6 @@
 #include <omp.h>
 #include "bitboard.h"
 #include "movegen.h"
-#include "evaluation.h"
 #include "search.h"
 #include "uci.h"
 
@@ -21,94 +20,25 @@
 #define TEST_POSITION_M2 "r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6"
 #define TEST_POSITION_M1 "3r1r2/pQ2pp1N/3pk1p1/2pNb2n/P7/1P4P1/7P/R1B1KR2 w Q - 6 22"
 
-U64 perft(int depth, GameState *pos)
-{
-	MoveList moveList;
-	int size;
-	U64 sum = 0;
-	if (depth == 0)
-	{
-		return 1ULL;
-	}
-	moveList = generateMoves(pos, &size);
-	if (depth == 1)
-	{
-		return (U64)size;
-	}
-	
-	for (int i = 0; i < moveList.nextOpen; i++)
-	{
-		if (moveList.list[i].legal == 1)
-		{
-			GameState newState = playMove(pos, moveList.list[i]);
-			sum += perft(depth - 1, &newState);
-		}
-	}
-	return sum;
-}
-
-U64 perftDivide(int depth, GameState *pos)
-{
-	MoveList moveList;
-	int size, i;
-	U64 sum = 0;
-	
-	if (depth == 0)
-	{
-		return 1ULL;
-	}
-	
-	moveList = generateMoves(pos, &size);
-	printf("Perft results for depth %d:\n", depth);
-
-	#pragma omp parallel for num_threads(12) shared(moveList) reduction(+:sum)
-	for (i = 0; i < moveList.nextOpen; i++)
-	{
-		Move current = moveList.list[i];
-		if (current.legal == 1)
-		{
-			GameState newState = playMove(pos, moveList.list[i]);
-			U64 res = perft(depth - 1, &newState);
-			sum += res;
-			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
-			{
-				printf("%s%s", squareNames[current.src], squareNames[current.dst]);
-			}
-			else
-			{
-				printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
-			}
-			printf(": %llu\n", res);
-		}
-	}
-	
-	return sum;
-}
-
-void runPerft(int depth)
-{
-	U64 size;
-	double start, finish;
-	start = omp_get_wtime();
-	size = perftDivide(depth, &state);
-	printf("Perft Nodes: %llu\n\n", size);
-	finish = omp_get_wtime();
-	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));
-}
-
 int main(int argc, char *argv[])
 {
-	char moveInput[32];
+	char moveInput[256];
 	int size;
 	int score;
 	MoveList moveList;
 	Move bestMove;
 	initAttacks();
-	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_1);
+
+	parsePosition("position startpos", &state);
 	
+	#ifdef DEBUG
+	parseGo("go perft 6", &state);
+	parsePosition("position fen r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6 moves c4f7", &state);
+	parseGo("go depth 6", &state);
+	return 0;
+	#endif
 	int depth = atoi(argv[1]);
+	global_depth = depth;
 	double start, finish;
 	
 	//runPerft(depth);
@@ -117,9 +47,9 @@ int main(int argc, char *argv[])
 	
 	while (1)
 	{
-		int size, src, dst, found = 0;
-		moveList = generateMoves(&state, &size);
+		int size;
 		printBoard(state);
+		moveList = generateMoves(&state, &size);
 		
 		if (size == 0)
 		{
@@ -127,6 +57,7 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 		start = omp_get_wtime();
+		parseGo("go", &state);
 		bestMove = search(depth, &state, &score);
 		finish = omp_get_wtime();
 		
@@ -134,26 +65,28 @@ int main(int argc, char *argv[])
 		printf("%s%s-%s\n", pieceNotation[bestMove.piece], squareNames[bestMove.src], squareNames[bestMove.dst]);
 		printf("Finished search in %f seconds\n\n", finish - start);
 		
-		do
+		while (1)
 		{
-			char c;
 			printf("Enter move: ");
-			if (fgets(moveInput, 32, stdin) == NULL) exit(0);
-			//while (((c = getchar()) != EOF) && (c != '\n'));
-			if (strcmp(moveInput, "quit\n") == 0)
+			if (fgets(moveInput, 256, stdin) == NULL)
+			{
 				exit(0);
+			}
+			if (strncmp(moveInput, "quit", 4) == 0)
+			{
+				return 0;
+			}
 			int idx = parseMove(moveInput, &moveList);
 			if (idx != -1)
 			{
 				state = playMove(&state, moveList.list[idx]);
-				found = 1;
+				break;
 			}
 			else
 			{
 				printf("Illegal move\n");
 			}
-			
-		} while (!found);
+		}
 	}
 
 	return 0;
