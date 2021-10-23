@@ -72,7 +72,7 @@ Move search(int depth, GameState *pos, int *score)
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(12) shared(bestIndex, bestScore, moveList)
+	#pragma omp parallel for num_threads(8) shared(bestIndex, bestScore, moveList)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
