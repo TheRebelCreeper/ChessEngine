@@ -8,17 +8,17 @@
 
 //TODO Could possibly speed up by using a fixed size array instead of linked list
 
-void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst, enpassantSquare;
 	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
 	U64 singlePushTarget, doublePushTarget;
-	occupancy = pos.occupancies[BOTH];
-	enemyPieces = (turn == WHITE) ? pos.occupancies[BLACK] : pos.occupancies[WHITE];
+	occupancy = pos->occupancies[BOTH];
+	enemyPieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
 	// Generate pawn moves
-	pieceBB = pos.pieceBitboards[P + offset];
+	pieceBB = pos->pieceBitboards[P + offset];
 	
 	// Pawn pushes
 	if (turn == WHITE)
@@ -38,10 +38,14 @@ void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		src = dst - 8 + (16 * turn);
 		if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 		{
-			moveList->list[i++] = createMove(P + offset, src, dst, Q, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, R, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, B, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, N, none);
+			moveList->list[i] = createMove(P + offset, src, dst, Q, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, R, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, B, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, N, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
 		}
 		else
 		{
@@ -65,13 +69,14 @@ void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
 		src = getFirstBitSquare(pieceBB);
 		pieceAttacks = pawnAttacks[turn][src] & enemyPieces;
 
-		if (pos.enpassantSquare != none)
+		if (pos->enpassantSquare != none)
 		{
-			U64 epAttacks = pawnAttacks[turn][src] & (1ULL << pos.enpassantSquare);
+			U64 epAttacks = pawnAttacks[turn][src] & (1ULL << pos->enpassantSquare);
 			if (epAttacks)
 			{
-				dst = pos.enpassantSquare;
-				moveList->list[i++] = createMove(P + offset, src, dst, EN_PASSANT_SPECIAL, none);
+				dst = pos->enpassantSquare;
+				moveList->list[i] = createMove(P + offset, src, dst, NO_SPECIAL, none);
+				moveList->list[i++].prop |= IS_EN_PASSANT;
 			}
 		}
 		
@@ -81,10 +86,14 @@ void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
 			// Promotion
 			if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 			{
-				moveList->list[i++] = createMove(P + offset, src, dst, Q, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, R, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, B, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, N, none);
+				moveList->list[i] = createMove(P + offset, src, dst, Q, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, R, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, B, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, N, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
 			}
 			else
 			{
@@ -97,17 +106,16 @@ void generatePawnMoves(GameState pos, int turn, int offset, MoveList *moveList)
 	moveList->nextOpen = i;
 }
 
-void generateKingMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst;
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	occupancy = pos.occupancies[BOTH];
-	friendlyPieces = pos.occupancies[turn];
+	occupancy = pos->occupancies[BOTH];
+	friendlyPieces = pos->occupancies[turn];
 
-	// TODO Not check if king destination is attacked since should always check if king is in check after move
-	pieceBB = pos.pieceBitboards[K + offset];
-	int castlingRights = pos.castlingRights;
+	pieceBB = pos->pieceBitboards[K + offset];
+	int castlingRights = pos->castlingRights;
 	src = getFirstBitSquare(pieceBB);
 	if (turn == WHITE)
 	{
@@ -160,16 +168,16 @@ void generateKingMoves(GameState pos, int turn, int offset, MoveList *moveList)
 	moveList->nextOpen = i;
 }
 
-void generateKnightMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generateKnightMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces;
-	friendlyPieces = pos.occupancies[turn];
+	friendlyPieces = pos->occupancies[turn];
 	
 	// Generate Knight Moves
-	pieceBB = pos.pieceBitboards[N + offset];
+	pieceBB = pos->pieceBitboards[N + offset];
 	while (pieceBB)
 	{
 		src = getFirstBitSquare(pieceBB);
@@ -185,17 +193,17 @@ void generateKnightMoves(GameState pos, int turn, int offset, MoveList *moveList
 	moveList->nextOpen = i;
 }
 
-void generateBishopMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generateBishopMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	occupancy = pos.occupancies[BOTH];
-	friendlyPieces = pos.occupancies[turn];
+	occupancy = pos->occupancies[BOTH];
+	friendlyPieces = pos->occupancies[turn];
 	
 	// Generate Bishop Moves
-	pieceBB = pos.pieceBitboards[B + offset];
+	pieceBB = pos->pieceBitboards[B + offset];
 	while (pieceBB)
 	{
 		src = getFirstBitSquare(pieceBB);
@@ -211,17 +219,17 @@ void generateBishopMoves(GameState pos, int turn, int offset, MoveList *moveList
 	moveList->nextOpen = i;
 }
 
-void generateRookMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generateRookMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	occupancy = pos.occupancies[BOTH];
-	friendlyPieces = pos.occupancies[turn];
+	occupancy = pos->occupancies[BOTH];
+	friendlyPieces = pos->occupancies[turn];
 	
 	// Generate Rook Moves
-	pieceBB = pos.pieceBitboards[R + offset];
+	pieceBB = pos->pieceBitboards[R + offset];
 	while (pieceBB)
 	{
 		src = getFirstBitSquare(pieceBB);
@@ -237,17 +245,17 @@ void generateRookMoves(GameState pos, int turn, int offset, MoveList *moveList)
 	moveList->nextOpen = i;
 }
 
-void generateQueenMoves(GameState pos, int turn, int offset, MoveList *moveList)
+void generateQueenMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
 	int src, dst;
 	
 	U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
-	occupancy = pos.occupancies[BOTH];
-	friendlyPieces = pos.occupancies[turn];
+	occupancy = pos->occupancies[BOTH];
+	friendlyPieces = pos->occupancies[turn];
 	
 	// Generate Queen Moves
-	pieceBB = pos.pieceBitboards[Q + offset];
+	pieceBB = pos->pieceBitboards[Q + offset];
 	while (pieceBB)
 	{
 		src = getFirstBitSquare(pieceBB);
@@ -263,33 +271,42 @@ void generateQueenMoves(GameState pos, int turn, int offset, MoveList *moveList)
 	moveList->nextOpen = i;
 }
 
-MoveList generateMoves(GameState pos, int *size)
+MoveList generateMoves(GameState *pos, int *size)
 {
 	MoveList moveList;
 	moveList.nextOpen = 0;
 	memset(moveList.list, 0, sizeof(Move) * MAX_MOVES);
 	GameState tempState;
-	int turn = pos.turn;
+	int turn = pos->turn;
 	int offset = 6 * turn;
 	int kingLocation;
 	int moveCount = 0;
 	
 	generatePawnMoves(pos, turn, offset, &moveList);
-	generateKingMoves(pos, turn, offset, &moveList);
+	generateQueenMoves(pos, turn, offset, &moveList);
 	generateKnightMoves(pos, turn, offset, &moveList);
 	generateBishopMoves(pos, turn, offset, &moveList);
 	generateRookMoves(pos, turn, offset, &moveList);
-	generateQueenMoves(pos, turn, offset, &moveList);
+	generateKingMoves(pos, turn, offset, &moveList);
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
 		Move temp = moveList.list[i];
 		tempState = playMove(pos, temp);
 		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
-		if (isSquareAttacked(tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
+		if (isSquareAttacked(&tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
 		{
 			moveCount++;
 			moveList.list[i].legal = 1;
+			kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
+			if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
+			{
+				moveList.list[i].prop |= IS_CHECK;
+			}
+			if (get_square(pos->occupancies[2], moveList.list[i].dst))
+			{
+				moveList.list[i].prop |= IS_CAPTURE;
+			}
 		}
 		else
 		{
@@ -301,13 +318,13 @@ MoveList generateMoves(GameState pos, int *size)
 }
 
 // Prints psuedolegal moves
-void printMoveList(MoveList *list, GameState pos)
+void printMoveList(MoveList *list, GameState *pos)
 {
 	if (list->nextOpen == 0)
 	{
-		int offset = 6 * pos.turn;
-		int kingLocation = getFirstBitSquare(pos.pieceBitboards[K + offset]);
-		if (isSquareAttacked(pos, kingLocation, (pos.turn == WHITE) ? BLACK : WHITE) == 0)
+		int offset = 6 * pos->turn;
+		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
+		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE) == 0)
 		{
 			printf("Stalemate\n");
 		}
@@ -321,7 +338,7 @@ void printMoveList(MoveList *list, GameState pos)
 		for (int i = 0; i < list->nextOpen; i++)
 		{
 			Move temp = list->list[i];
-			printf("%d. ", pos.fullMove);
+			printf("%d. ", pos->fullMove);
 			if (temp.special == NO_SPECIAL || temp.special == EN_PASSANT_SPECIAL)
 			{
 				printf("%s%s-%s\n", pieceNotation[temp.piece], squareNames[temp.src], squareNames[temp.dst]);

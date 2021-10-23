@@ -33,10 +33,11 @@ enum
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
+int getSquareFromNotation(char *str);
 void loadFEN(GameState *state, char *fen);
 void setOccupancies(GameState *state);
 void initStartingPosition();
-char isSquareAttacked(GameState state, int square, int byColor);
+int isSquareAttacked(GameState *pos, int square, int byColor);
 
 void printBoard(GameState state);
 

@@ -72,15 +72,7 @@ int countBits(U64 board)
 
 int getFirstBitSquare(U64 board)
 {
-	if (board)
-	{
-		return countBits((board & -board) - 1);
-	}
-	else
-	{
-		// No bits set, doesn't make sense to return a square
-		return -1;
-	}
+	return __builtin_ffsll(board) - 1;
 }
 
 U64 occupancyFromIndex(int index, U64 board)
