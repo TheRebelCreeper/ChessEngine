@@ -38,10 +38,7 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 	int depth = atoi(argv[1]);
-	global_depth = depth;
 	double start, finish;
-	
-	//runPerft(depth);
 
 	// Game Loop
 	
@@ -57,7 +54,6 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 		start = omp_get_wtime();
-		parseGo("go", &state);
 		bestMove = search(depth, &state, &score);
 		finish = omp_get_wtime();
 		
