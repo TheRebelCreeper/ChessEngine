@@ -3,11 +3,10 @@
 #include <string.h>
 #include <omp.h>
 #include "bitboard.h"
-#include "position.h"
 #include "movegen.h"
-#include "move.h"
 #include "evaluation.h"
 #include "search.h"
+#include "uci.h"
 
 #define PERFT_POSITION_1 "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define PERFT_POSITION_2 "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
@@ -100,28 +99,28 @@ void runPerft(int depth)
 
 int main(int argc, char *argv[])
 {
-	char moveInput[5];
-
+	char moveInput[32];
+	int size;
 	int score;
 	MoveList moveList;
 	Move bestMove;
 	initAttacks();
 	initStartingPosition();
-	loadFEN(&state, PERFT_POSITION_6);
+	loadFEN(&state, PERFT_POSITION_1);
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
 	
-	runPerft(depth);
-	return 0;
+	//runPerft(depth);
 
 	// Game Loop
 	
 	while (1)
 	{
 		int size, src, dst, found = 0;
-		printBoard(state);
 		moveList = generateMoves(&state, &size);
+		printBoard(state);
+		
 		if (size == 0)
 		{
 			printf("Game Over!\n");
@@ -139,10 +138,20 @@ int main(int argc, char *argv[])
 		{
 			char c;
 			printf("Enter move: ");
-			if (fgets(moveInput, 5, stdin) == NULL) exit(0);
-			while (((c = getchar()) != EOF) && (c != '\n'));
-			if (strcmp(moveInput, "quit") == 0)
+			if (fgets(moveInput, 32, stdin) == NULL) exit(0);
+			//while (((c = getchar()) != EOF) && (c != '\n'));
+			if (strcmp(moveInput, "quit\n") == 0)
 				exit(0);
+			int idx = parseMove(moveInput, &moveList);
+			if (idx != -1)
+			{
+				state = playMove(&state, moveList.list[idx]);
+				found = 1;
+			}
+			else
+			{
+				printf("Illegal move\n");
+			}
 			
 		} while (!found);
 	}
