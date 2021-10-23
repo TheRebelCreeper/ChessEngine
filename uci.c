@@ -7,8 +7,6 @@
 #include "perft.h"
 #include "uci.h"
 
-int global_depth = 6;
-
 // The code is to allow the engine to connect to GUI's via UCI protocol
 
 int parseMove(char *inputString, MoveList *moveList)
