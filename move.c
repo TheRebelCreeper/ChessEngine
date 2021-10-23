@@ -34,7 +34,7 @@ int compareMoves(const void * a, const void * b)
 /*
 	There are special moves for kings and pawns only
 	For kings, 1 = O-O, 2 = O-O-O
-	For pawns, 4 = Q, 3 = R, 2 = B, 1 = N, 5 = EP
+	For pawns, 4 = Q, 3 = R, 2 = B, 1 = N
 */
 Move createMove(int piece, int src, int dst, int special, int epSquare)
 {
@@ -98,7 +98,7 @@ GameState playMove(GameState *pos, Move move)
 	clear_square(newPos.occupancies[pos->turn], src);
 	
 	// En Passant Moves
-	if ((piece == P || piece == p) && move.special == EN_PASSANT_SPECIAL)
+	if ((piece == P || piece == p) && move.prop & IS_EN_PASSANT)
 	{
 		if (pos->turn == WHITE)
 		{
@@ -138,7 +138,7 @@ GameState playMove(GameState *pos, Move move)
 	// Set destination
 	// If pawn promotion
 	set_square(newPos.occupancies[pos->turn], dst);
-	if (piece == (P + offset) && move.special != EN_PASSANT_SPECIAL)
+	if (piece == (P + offset) && move.prop & IS_PROMOTION)
 	{
 		set_square(newPos.pieceBitboards[move.special + offset], dst);
 	}

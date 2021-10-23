@@ -101,23 +101,22 @@ void runPerft(int depth)
 int main(int argc, char *argv[])
 {
 	char moveInput[5];
-	char srcInput[3];
-	char dstInput[3];
+
 	int score;
 	MoveList moveList;
 	Move bestMove;
 	initAttacks();
 	initStartingPosition();
-	//loadFEN(&state, PERFT_POSITION_3);
+	loadFEN(&state, PERFT_POSITION_6);
 	
 	int depth = atoi(argv[1]);
 	double start, finish;
 	
-	//runPerft(depth);
+	runPerft(depth);
+	return 0;
 
 	// Game Loop
-	srcInput[2] = 0;
-	dstInput[2] = 0;
+	
 	while (1)
 	{
 		int size, src, dst, found = 0;
@@ -144,24 +143,7 @@ int main(int argc, char *argv[])
 			while (((c = getchar()) != EOF) && (c != '\n'));
 			if (strcmp(moveInput, "quit") == 0)
 				exit(0);
-			srcInput[0] = moveInput[0];
-			srcInput[1] = moveInput[1];
-			dstInput[0] = moveInput[2];
-			dstInput[1] = moveInput[3];
-			src = getSquareFromNotation(srcInput);
-			dst = getSquareFromNotation(dstInput);
 			
-			// Find move and play it
-			for (int i = 0; i < moveList.nextOpen; i++)
-			{
-				Move move = moveList.list[i];
-				if (move.src == src && move.dst == dst && move.legal)
-				{
-					state = playMove(&state, move);
-					found = 1;
-					break;
-				}
-			}
 		} while (!found);
 	}
 

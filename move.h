@@ -6,8 +6,10 @@
 #define EN_PASSANT_SPECIAL 5
 #define NO_SPECIAL 0
 
-#define IS_CHECK 2
-#define IS_CAPTURE 1
+#define IS_CHECK 8
+#define IS_CAPTURE 4
+#define IS_PROMOTION 2
+#define IS_EN_PASSANT 1
 
 #include "position.h"
 

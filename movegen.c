@@ -38,10 +38,14 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		src = dst - 8 + (16 * turn);
 		if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 		{
-			moveList->list[i++] = createMove(P + offset, src, dst, Q, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, R, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, B, none);
-			moveList->list[i++] = createMove(P + offset, src, dst, N, none);
+			moveList->list[i] = createMove(P + offset, src, dst, Q, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, R, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, B, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
+			moveList->list[i] = createMove(P + offset, src, dst, N, none);
+			moveList->list[i++].prop |= IS_PROMOTION;
 		}
 		else
 		{
@@ -71,7 +75,8 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			if (epAttacks)
 			{
 				dst = pos->enpassantSquare;
-				moveList->list[i++] = createMove(P + offset, src, dst, EN_PASSANT_SPECIAL, none);
+				moveList->list[i] = createMove(P + offset, src, dst, NO_SPECIAL, none);
+				moveList->list[i++].prop |= IS_EN_PASSANT;
 			}
 		}
 		
@@ -81,10 +86,14 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			// Promotion
 			if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 			{
-				moveList->list[i++] = createMove(P + offset, src, dst, Q, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, R, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, B, none);
-				moveList->list[i++] = createMove(P + offset, src, dst, N, none);
+				moveList->list[i] = createMove(P + offset, src, dst, Q, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, R, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, B, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
+				moveList->list[i] = createMove(P + offset, src, dst, N, none);
+				moveList->list[i++].prop |= IS_PROMOTION;
 			}
 			else
 			{
@@ -105,7 +114,6 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 	occupancy = pos->occupancies[BOTH];
 	friendlyPieces = pos->occupancies[turn];
 
-	// TODO Not check if king destination is attacked since should always check if king is in check after move
 	pieceBB = pos->pieceBitboards[K + offset];
 	int castlingRights = pos->castlingRights;
 	src = getFirstBitSquare(pieceBB);
