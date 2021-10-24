@@ -155,6 +155,10 @@ void uciLoop()
 	{
 		memset(buf, 0, sizeof(buf));
 		fflush(stdout);
+		
+		int c;
+		while ((c = getchar()) != '\n' && c != EOF)
+		
 		if (fgets(buf, sizeof(buf), stdin) == NULL)
 		{
 			continue;
