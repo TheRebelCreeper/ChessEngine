@@ -157,12 +157,14 @@ void uciLoop()
 		fflush(stdout);
 		
 		int c;
-		while ((c = getchar()) != '\n' && c != EOF)
+		
 		
 		if (fgets(buf, sizeof(buf), stdin) == NULL)
 		{
-			continue;
+			exit(1);
 		}
+		
+		while ((c = getchar()) != '\n' && c != EOF)
 		
 		// Engine should respond with "readyok\n"
 		if (strncmp(buf, "isready", 7) == 0)
