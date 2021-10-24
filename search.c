@@ -6,6 +6,8 @@
 #include "move.h"
 #include "search.h"
 
+int NUM_THREADS = 1;
+
 int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 {
 	MoveList moveList;
@@ -72,7 +74,7 @@ Move search(int depth, GameState *pos, int *score)
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(8) shared(bestIndex, bestScore, moveList)
+	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
