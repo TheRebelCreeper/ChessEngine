@@ -145,3 +145,54 @@ void parseGo(char *line, GameState *pos)
 	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 	
 }
+
+void uciLoop()
+{
+	GameState pos;
+	char buf[2048];
+	parsePosition("position startpos", &pos);
+	while (1)
+	{
+		memset(buf, 0, sizeof(buf));
+		fflush(stdout);
+		if (fgets(buf, sizeof(buf), stdin) == NULL)
+		{
+			continue;
+		}
+		
+		// Engine should respond with "readyok\n"
+		if (strncmp(buf, "isready", 7) == 0)
+		{
+			printf("readyok\n");
+			continue;
+		}
+		
+		if (strncmp(buf, "position", 8) == 0)
+		{
+			parsePosition(buf, &pos);
+		}
+		else if (strncmp(buf, "ucinewgame", 10) == 0)
+		{
+			parsePosition("position startpos", &pos);
+		}
+		else if (strncmp(buf, "go", 2) == 0)
+		{
+			parseGo(buf, &pos);
+		}
+		else if (strncmp(buf, "d", 1) == 0)
+		{
+			printBoard(pos);
+		}			
+		else if (strncmp(buf, "quit", 4) == 0)
+		{
+			return;
+		}
+		else if (strncmp(buf, "uci", 3) == 0)
+		{
+			// Print engine info
+			printf("id name Saxton\n");
+			printf("id author Aaron Lampert\n");
+			printf("uciok\n");
+		}
+	}
+}

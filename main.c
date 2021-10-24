@@ -28,15 +28,8 @@ int main(int argc, char *argv[])
 	MoveList moveList;
 	Move bestMove;
 	initAttacks();
-
-	parsePosition("position startpos", &state);
 	
 	#ifdef DEBUG
-	parseGo("go perft 6", &state);
-	parsePosition("position fen r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6 moves c4f7", &state);
-	parseGo("go depth 6", &state);
-	return 0;
-	#endif
 	int depth = atoi(argv[1]);
 	double start, finish;
 
@@ -84,6 +77,8 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
+	#else
+	uciLoop();
+	#endif
 	return 0;
 }
