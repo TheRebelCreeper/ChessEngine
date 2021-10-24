@@ -19,7 +19,6 @@
 #define TEST_POSITION_M5 "8/3K4/5k2/8/8/3Q4/8/8 w - - 7 9"
 #define TEST_POSITION_M2 "r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6"
 #define TEST_POSITION_M1 "3r1r2/pQ2pp1N/3pk1p1/2pNb2n/P7/1P4P1/7P/R1B1KR2 w Q - 6 22"
-#define TEST_POSITION_BUG "4rrk1/R3Q2p/5p2/1P6/2pP2P1/2P1p2P/5pK1/3R4 w - - 2 32"
 
 int main(int argc, char *argv[])
 {
