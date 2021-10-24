@@ -179,7 +179,7 @@ void uciLoop()
 		{
 			parseGo(buf, &pos);
 		}
-		else if (strncmp(buf, "d", 1) == 0)
+		else if (strncmp(buf, "d\n", 2) == 0)
 		{
 			printBoard(pos);
 		}			
