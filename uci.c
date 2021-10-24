@@ -156,15 +156,10 @@ void uciLoop()
 		memset(buf, 0, sizeof(buf));
 		fflush(stdout);
 		
-		int c;
-		
-		
 		if (fgets(buf, sizeof(buf), stdin) == NULL)
 		{
 			exit(1);
 		}
-		
-		while ((c = getchar()) != '\n' && c != EOF)
 		
 		// Engine should respond with "readyok\n"
 		if (strncmp(buf, "isready", 7) == 0)
