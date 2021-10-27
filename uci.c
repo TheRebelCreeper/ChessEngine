@@ -144,7 +144,6 @@ void parseGo(char *line, GameState *pos)
 	printf("score %s %d ", (mated) ? "mate" : "cp", score);
 	printf("pv %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
-	
 }
 
 void uciLoop()

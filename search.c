@@ -6,7 +6,7 @@
 #include "move.h"
 #include "search.h"
 
-int NUM_THREADS = 1;
+int NUM_THREADS = 12;
 
 int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 {
