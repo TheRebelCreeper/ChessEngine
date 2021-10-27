@@ -8,6 +8,8 @@
 #include "uci.h"
 #include "perft.h"
 
+//#define VALIDATE
+
 #define TEST_POSITION_DRAW_50 "k7/5R2/1K6/8/8/8/8/8 b - - 99 1"
 #define TEST_POSITION_KPENDGAME "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2"
 #define TEST_POSITION_M5 "8/3K4/5k2/8/8/3Q4/8/8 w - - 7 9"
@@ -18,7 +20,7 @@ int main(int argc, char *argv[])
 {
 	initAttacks();
 	
-	#ifdef DEBUG
+	#ifdef VALIDATE
 	moveGeneratorValidator();
 	#else
 	uciLoop();
