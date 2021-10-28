@@ -15,7 +15,8 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	int moveScores[256];
 	
 	int score = evaluation(pos);
-	printf("%d %d eyyyy\n", score, beta);
+	
+	//printf("turn: %d, score: %d, alpha: %d, beta: %d eyyyy\n", pos->turn, score, alpha, beta);
 	if (score >= beta)
 	{
 		return beta;
@@ -32,7 +33,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
-		if (!(current.prop & IS_CAPTURE))
+		if ((current.prop & IS_CAPTURE) == 0)
 		{
 			continue;
 		}
@@ -52,18 +53,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 				alpha = moveScores[i];
 			}
 		}
-	}
-	
-	if (found == 0)
-	{
-		int offset = 6 * pos->turn;
-		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
-		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
-		{
-			int mateDepth = (depth) / 2;
-			return -CHECKMATE + mateDepth;
-		}
-		return 0;
 	}
 	
 	// Draw by 50 move rule
