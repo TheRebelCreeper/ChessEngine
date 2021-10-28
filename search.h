@@ -7,6 +7,15 @@
 
 extern int NUM_THREADS;
 
-Move search(int depth, GameState *pos, int *score);
+typedef struct info
+{
+	int depth;
+	unsigned int ms;
+	unsigned int nps;
+	int bestScore;
+	U64 nodes;
+} SearchInfo;
+
+Move search(int depth, GameState *pos, SearchInfo *info);
 
 #endif

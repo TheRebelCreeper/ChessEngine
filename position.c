@@ -303,3 +303,4 @@ void printBoard(GameState state)
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
 	printf("Move: %d\n\n", state.fullMove);
 }
+

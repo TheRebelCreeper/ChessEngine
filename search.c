@@ -8,7 +8,7 @@
 
 int NUM_THREADS = 12;
 
-int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
+int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal, found = 0;
@@ -27,7 +27,9 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 			found = 1;
 			if (depth == 0)
 				break;
-			moveScores[i] = -negaMax(-beta, -alpha, startDepth, depth - 1, &newState);
+			#pragma omp atomic
+			info->nodes++;
+			moveScores[i] = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (moveScores[i] >= beta)
 			{
 				return beta;
@@ -45,7 +47,7 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
 		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
 		{
-			int mateDepth = (startDepth - depth + 1) / 2;
+			int mateDepth = (info->depth - depth + 1) / 2;
 			return -CHECKMATE + mateDepth;
 		}
 		return 0;
@@ -65,12 +67,15 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 	return alpha;
 }
 
-Move search(int depth, GameState *pos, int *score)
+Move search(int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i;
 	int bestScore, bestIndex;
 	int moveScores[256];
+	double start, finish;
+	start = omp_get_wtime();
+	info->nodes = 0ULL;
 	
 	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
@@ -86,7 +91,9 @@ Move search(int depth, GameState *pos, int *score)
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
-			moveScores[i] = -negaMax(-CHECKMATE, CHECKMATE, depth, depth - 1, &newState);
+			#pragma omp atomic
+			info->nodes++;
+			moveScores[i] = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, info);
 			if (moveScores[i] > bestScore)
 			{
 				#pragma omp critical
@@ -96,6 +103,10 @@ Move search(int depth, GameState *pos, int *score)
 			}
 		}
 	}
-	*score = bestScore;
+	finish = omp_get_wtime() + 0.0001;
+	info->ms = (unsigned int)((finish - start) * 1000);
+	info->nps = (unsigned int)(info->nodes / (finish - start));
+	info->bestScore = bestScore;
+	
 	return moveList.list[bestIndex];
 }
