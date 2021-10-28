@@ -38,18 +38,18 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		src = dst - 8 + (16 * turn);
 		if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 		{
-			createMove(&(moveList->list[i]), P + offset, src, dst, Q, none);
+			moveList->list[i] = createMove(P + offset, src, dst, Q, none);
 			moveList->list[i++].prop |= IS_PROMOTION;
-			createMove(&(moveList->list[i]), P + offset, src, dst, R, none);
+			moveList->list[i] = createMove(P + offset, src, dst, R, none);
 			moveList->list[i++].prop |= IS_PROMOTION;
-			createMove(&(moveList->list[i]), P + offset, src, dst, B, none);
+			moveList->list[i] = createMove(P + offset, src, dst, B, none);
 			moveList->list[i++].prop |= IS_PROMOTION;
-			createMove(&(moveList->list[i]), P + offset, src, dst, N, none);
+			moveList->list[i] = createMove(P + offset, src, dst, N, none);
 			moveList->list[i++].prop |= IS_PROMOTION;
 		}
 		else
 		{
-			createMove(&(moveList->list[i++]), P + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, none);
 		}		
 		clear_lsb(singlePushTarget);
 	}
@@ -59,7 +59,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		dst = getFirstBitSquare(doublePushTarget);
 		src = dst - 16 + (32 * turn);
 		enpassantSquare = src + 8 - (16 * turn);
-		createMove(&(moveList->list[i++]), P + offset, src, dst, NO_SPECIAL, enpassantSquare);
+		moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, enpassantSquare);
 		clear_lsb(doublePushTarget);
 	}
 	
@@ -75,7 +75,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			if (epAttacks)
 			{
 				dst = pos->enpassantSquare;
-				createMove(&(moveList->list[i]), P + offset, src, dst, NO_SPECIAL, none);
+				moveList->list[i] = createMove(P + offset, src, dst, NO_SPECIAL, none);
 				moveList->list[i++].prop |= IS_EN_PASSANT;
 			}
 		}
@@ -86,18 +86,18 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			// Promotion
 			if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1))
 			{
-				createMove(&(moveList->list[i]), P + offset, src, dst, Q, none);
+				moveList->list[i] = createMove(P + offset, src, dst, Q, none);
 				moveList->list[i++].prop |= IS_PROMOTION;
-				createMove(&(moveList->list[i]), P + offset, src, dst, R, none);
+				moveList->list[i] = createMove(P + offset, src, dst, R, none);
 				moveList->list[i++].prop |= IS_PROMOTION;
-				createMove(&(moveList->list[i]), P + offset, src, dst, B, none);
+				moveList->list[i] = createMove(P + offset, src, dst, B, none);
 				moveList->list[i++].prop |= IS_PROMOTION;
-				createMove(&(moveList->list[i]), P + offset, src, dst, N, none);
+				moveList->list[i] = createMove(P + offset, src, dst, N, none);
 				moveList->list[i++].prop |= IS_PROMOTION;
 			}
 			else
 			{
-				createMove(&(moveList->list[i++]), P + offset, src, dst, NO_SPECIAL, none);
+				moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, none);
 			}
 			clear_lsb(pieceAttacks);
 		}
@@ -123,14 +123,14 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		{
 			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK)))
 			{
-				createMove(&(moveList->list[i++]), K + offset, src, src + 2, OO_SPECIAL, none);
+				moveList->list[i++] = createMove(K + offset, src, src + 2, OO_SPECIAL, none);
 			}
 		}
 		if (castlingRights & WHITE_OOO && !get_square(occupancy, b1) && !get_square(occupancy, c1) && !get_square(occupancy, d1))
 		{
 			if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, d1, BLACK)))
 			{
-				createMove(&(moveList->list[i++]), K + offset, src, src - 2, OOO_SPECIAL, none);
+				moveList->list[i++] = createMove(K + offset, src, src - 2, OOO_SPECIAL, none);
 			}
 		}
 	}
@@ -140,14 +140,14 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		{
 			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE)))
 			{
-				createMove(&(moveList->list[i++]), K + offset, src, src + 2, OO_SPECIAL, none);
+				moveList->list[i++] = createMove(K + offset, src, src + 2, OO_SPECIAL, none);
 			}
 		}
 		if (castlingRights & BLACK_OOO && !get_square(occupancy, b8) && !get_square(occupancy, c8) && !get_square(occupancy, d8))
 		{
 			if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, d8, WHITE)))
 			{
-				createMove(&(moveList->list[i++]), K + offset, src, src - 2, OOO_SPECIAL, none);
+				moveList->list[i++] = createMove(K + offset, src, src - 2, OOO_SPECIAL, none);
 			}
 		}
 	}
@@ -160,7 +160,7 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			createMove(&(moveList->list[i++]), K + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(K + offset, src, dst, NO_SPECIAL, none);
 			clear_lsb(pieceAttacks);
 		}
 		clear_lsb(pieceBB);
@@ -185,7 +185,7 @@ void generateKnightMoves(GameState *pos, int turn, int offset, MoveList *moveLis
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			createMove(&(moveList->list[i++]), N + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(N + offset, src, dst, NO_SPECIAL, none);
 			clear_lsb(pieceAttacks);
 		}
 		clear_lsb(pieceBB);
@@ -211,7 +211,7 @@ void generateBishopMoves(GameState *pos, int turn, int offset, MoveList *moveLis
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			createMove(&(moveList->list[i++]), B + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(B + offset, src, dst, NO_SPECIAL, none);
 			clear_lsb(pieceAttacks);
 		}
 		clear_lsb(pieceBB);
@@ -237,7 +237,7 @@ void generateRookMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			createMove(&(moveList->list[i++]), R + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(R + offset, src, dst, NO_SPECIAL, none);
 			clear_lsb(pieceAttacks);
 		}
 		clear_lsb(pieceBB);
@@ -263,7 +263,7 @@ void generateQueenMoves(GameState *pos, int turn, int offset, MoveList *moveList
 		while (pieceAttacks)
 		{
 			dst = getFirstBitSquare(pieceAttacks);
-			createMove(&(moveList->list[i++]), Q + offset, src, dst, NO_SPECIAL, none);
+			moveList->list[i++] = createMove(Q + offset, src, dst, NO_SPECIAL, none);
 			clear_lsb(pieceAttacks);
 		}
 		clear_lsb(pieceBB);

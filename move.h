@@ -30,7 +30,7 @@ typedef struct move
 } Move;
 
 int compareMoves(const void * a, const void * b);
-void createMove(Move *newMove, int piece, int src, int dst, int special, int epSquare);
+Move createMove(int piece, int src, int dst, int special, int epSquare);
 GameState playMove(GameState *pos, Move move, int *isLegal);
 
 #endif

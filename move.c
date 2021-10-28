@@ -36,15 +36,17 @@ int compareMoves(const void * a, const void * b)
 	For kings, 1 = O-O, 2 = O-O-O
 	For pawns, 4 = Q, 3 = R, 2 = B, 1 = N
 */
-void createMove(Move *newMove, int piece, int src, int dst, int special, int epSquare)
+Move createMove(int piece, int src, int dst, int special, int epSquare)
 {
-	newMove->piece = piece;
-	newMove->src = src;
-	newMove->dst = dst;
-	newMove->special = special;
-	newMove->epSquare = epSquare;
-	newMove->legal = 0;
-	newMove->prop = 0;
+	Move newMove;
+	newMove.piece = piece;
+	newMove.src = src;
+	newMove.dst = dst;
+	newMove.special = special;
+	newMove.epSquare = epSquare;
+	newMove.legal = 0;
+	newMove.prop = 0;
+	return newMove;
 }
 
 int adjustCastlingRights(GameState *pos, int src, int dst, int piece)
