@@ -290,12 +290,6 @@ MoveList generateMoves(GameState *pos, int *size)
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
-		Move temp = moveList.list[i];
-		//kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
-		//if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
-		//{
-		//	moveList.list[i].prop |= IS_CHECK;
-		//}
 		if (get_square(pos->occupancies[2], moveList.list[i].dst))
 		{
 			moveList.list[i].prop |= IS_CAPTURE;

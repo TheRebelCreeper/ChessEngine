@@ -8,14 +8,6 @@ int compareMoves(const void * a, const void * b)
 {
 	Move *m1 = (Move*)a;
 	Move *m2 = (Move*)b;
-	if (m1->legal > m2->legal)
-	{
-		return -1;
-	}
-	else if (m1->legal < m2->legal)
-	{
-		return 1;
-	}
 	
 	if (m1->prop > m2->prop)
 	{
@@ -44,7 +36,6 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	newMove.dst = dst;
 	newMove.special = special;
 	newMove.epSquare = epSquare;
-	newMove.legal = 0;
 	newMove.prop = 0;
 	return newMove;
 }

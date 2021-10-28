@@ -26,7 +26,7 @@ int parseMove(char *inputString, MoveList *moveList)
 			promotionPiece = move.special;
 		}
 
-		if (move.src == src && move.dst == dst && move.legal)
+		if (move.src == src && move.dst == dst)
 		{
 			if (promotionPiece)
 			{
@@ -94,7 +94,10 @@ void parsePosition(char *line, GameState *pos)
                 break;
 			}
             
-			*pos = playMove(pos, moveList.list[idx], &legal);
+			GameState tempState = playMove(pos, moveList.list[idx], &legal);
+			if (!legal)
+				break;
+			*pos = tempState;
 			// Increment temp till the next move
             while (*temp && *temp != ' ')
 			{
@@ -146,7 +149,7 @@ void parseGo(char *line, GameState *pos)
 	
 	printf("info depth %d ", depth);
 	printf("score %s %d ", (mated) ? "mate" : "cp", score);
-	printf("time %f ", (finish - start) * 1000);
+	printf("time %d ", (int)((finish - start) * 1000));
 	printf("pv %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 }
@@ -195,7 +198,7 @@ void uciLoop()
 		}
 		else if (strncmp(buf, "setoption name Threads", 22) == 0)
 		{
-			NUM_THREADS = atoi(buf + 22);
+			NUM_THREADS = atoi(buf + 28);
 			if (NUM_THREADS <= 0 || NUM_THREADS > 12)
 			{
 				NUM_THREADS = 1;

@@ -25,7 +25,6 @@ typedef struct move
 	int piece;
 	int special;
 	int epSquare;
-	int legal;
 	int prop;
 } Move;
 

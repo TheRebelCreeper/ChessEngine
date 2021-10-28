@@ -68,7 +68,7 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 Move search(int depth, GameState *pos, int *score)
 {
 	MoveList moveList;
-	int size, i, legal;
+	int size, i;
 	int bestScore, bestIndex;
 	int moveScores[256];
 	
@@ -78,9 +78,10 @@ Move search(int depth, GameState *pos, int *score)
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList) private(legal)
+	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList)
 	for (i = 0; i < size; i++)
 	{
+		int legal;
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
