@@ -11,7 +11,7 @@ int NUM_THREADS = 12;
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
-	int size, i, legal, found = 0;
+	int size, i, legal;
 	int moveScores[256];
 	
 	int score = evaluation(pos);
@@ -25,6 +25,10 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		alpha = score;
 	}
+	
+	// Stop at qdepth of 6
+	if (depth == info->depth + 6)
+		return score;
 	
 	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
