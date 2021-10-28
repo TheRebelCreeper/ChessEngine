@@ -18,9 +18,6 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 	moveList = generateMoves(pos, &size);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
-	if (depth == 0)
-		size = 0;
-	
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
@@ -28,6 +25,8 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 		if (legal == 1)
 		{
 			found = 1;
+			if (depth == 0)
+				break;
 			moveScores[i] = -negaMax(-beta, -alpha, startDepth, depth - 1, &newState);
 			if (moveScores[i] >= beta)
 			{
@@ -79,7 +78,7 @@ Move search(int depth, GameState *pos, int *score)
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList)
+	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList) private(legal)
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
