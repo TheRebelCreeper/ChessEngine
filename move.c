@@ -84,7 +84,7 @@ int adjustCastlingRights(GameState *pos, int src, int dst, int piece)
 	return castlingRights;
 }
 
-GameState playMove(GameState *pos, Move move)
+GameState playMove(GameState *pos, Move move, int *isLegal)
 {	
 	GameState newPos;
 	memcpy(&newPos, pos, sizeof(GameState));
@@ -180,6 +180,17 @@ GameState playMove(GameState *pos, Move move)
 		newPos.halfMoveClock += 1;
 	}
 	newPos.enpassantSquare = move.epSquare;
+	
+	// Legality Check
+	int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
+	if (isSquareAttacked(&newPos, kingLocation, newPos.turn) != 0)
+	{
+		*isLegal = 0;
+	}
+	else
+	{
+		*isLegal = 1;
+	}
 	
 	return newPos;
 }

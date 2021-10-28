@@ -79,7 +79,7 @@ void parsePosition(char *line, GameState *pos)
     temp = strstr(line, "moves");
     if (temp != NULL)
     {
-		int size;
+		int size, legal;
 		MoveList moveList;
         temp += 6;                 // Length of "moves "
         
@@ -93,7 +93,7 @@ void parsePosition(char *line, GameState *pos)
                 break;
 			}
             
-			*pos = playMove(pos, moveList.list[idx]);
+			*pos = playMove(pos, moveList.list[idx], &legal);
 			// Increment temp till the next move
             while (*temp && *temp != ' ')
 			{

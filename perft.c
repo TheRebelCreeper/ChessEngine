@@ -5,23 +5,24 @@ extern int NUM_THREADS;
 U64 perft(int depth, GameState *pos)
 {
 	MoveList moveList;
-	int size;
+	int size, legal;
 	U64 sum = 0;
 	if (depth == 0)
 	{
 		return 1ULL;
 	}
+	
 	moveList = generateMoves(pos, &size);
-	if (depth == 1)
-	{
-		return (U64)size;
-	}
+	//if (depth == 1)
+	//{
+		//return (U64)size;
+	//}
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
-		if (moveList.list[i].legal == 1)
+		GameState newState = playMove(pos, moveList.list[i], &legal);
+		if (legal)
 		{
-			GameState newState = playMove(pos, moveList.list[i]);
 			sum += perft(depth - 1, &newState);
 		}
 	}
@@ -31,7 +32,7 @@ U64 perft(int depth, GameState *pos)
 U64 perftDivide(int depth, GameState *pos)
 {
 	MoveList moveList;
-	int size, i;
+	int size, i, legal;
 	U64 sum = 0;
 	
 	if (depth == 0)
@@ -46,9 +47,10 @@ U64 perftDivide(int depth, GameState *pos)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
-		if (current.legal == 1)
+		GameState newState = playMove(pos, moveList.list[i], &legal);
+		if (legal == 1)
 		{
-			GameState newState = playMove(pos, moveList.list[i]);
+			
 			U64 res = perft(depth - 1, &newState);
 			sum += res;
 			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)

@@ -292,28 +292,28 @@ MoveList generateMoves(GameState *pos, int *size)
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
 		Move temp = moveList.list[i];
-		tempState = playMove(pos, temp);
-		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
-		if (isSquareAttacked(&tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
-		{
+		//tempState = playMove(pos, temp, &(moveList.list[i].legal));
+		//kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
+		//if (moveList.list[i].legal)
+		//{
 			moveCount++;
-			moveList.list[i].legal = 1;
-			kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
-			if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
-			{
-				moveList.list[i].prop |= IS_CHECK;
-			}
+			//moveList.list[i].legal = 1;
+			//kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
+			//if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
+			//{
+			//	moveList.list[i].prop |= IS_CHECK;
+			//}
 			if (get_square(pos->occupancies[2], moveList.list[i].dst))
 			{
 				moveList.list[i].prop |= IS_CAPTURE;
 			}
-		}
-		else
-		{
-			moveList.list[i].legal = 0;
-		}
+		//}
+		//else
+		//{
+		//	moveList.list[i].legal = 0;
+		//}
 	}
-	*size = moveCount;
+	*size = moveList.nextOpen;
 	return moveList;
 }
 

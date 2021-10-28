@@ -11,7 +11,7 @@ int NUM_THREADS = 12;
 int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 {
 	MoveList moveList;
-	int size, i;
+	int size, i, legal;
 	int moveScores[256];
 	
 	memset(moveScores, 0, 256 * sizeof(int));
@@ -44,9 +44,9 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
-		if (current.legal == 1)
+		GameState newState = playMove(pos, moveList.list[i], &legal);
+		if (legal == 1)
 		{
-			GameState newState = playMove(pos, moveList.list[i]);
 			moveScores[i] = -negaMax(-beta, -alpha, startDepth, depth - 1, &newState);
 			if (moveScores[i] >= beta)
 			{
@@ -64,7 +64,7 @@ int negaMax(int alpha, int beta, int startDepth, int depth, GameState *pos)
 Move search(int depth, GameState *pos, int *score)
 {
 	MoveList moveList;
-	int size, i;
+	int size, i, legal;
 	int bestScore, bestIndex;
 	int moveScores[256];
 	
@@ -78,9 +78,10 @@ Move search(int depth, GameState *pos, int *score)
 	for (i = 0; i < moveList.nextOpen; i++)
 	{
 		Move current = moveList.list[i];
-		if (current.legal == 1)
+		GameState newState = playMove(pos, moveList.list[i], &legal);
+		if (legal == 1)
 		{
-			GameState newState = playMove(pos, moveList.list[i]);
+			
 			moveScores[i] = -negaMax(-CHECKMATE, CHECKMATE, depth, depth - 1, &newState);
 			if (moveScores[i] > bestScore)
 			{
