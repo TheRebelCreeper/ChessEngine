@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
 #include "movegen.h"
 #include "search.h"
 #include "perft.h"
@@ -121,6 +122,8 @@ void parseGo(char *line, GameState *pos)
 		return;
 	}
 	
+	double start, finish;
+	start = omp_get_wtime();
 	temp = strstr(line, "depth");
     if (temp != NULL)
     {
@@ -139,9 +142,11 @@ void parseGo(char *line, GameState *pos)
 		score = -CHECKMATE - score;
 		mated = 1;
 	}
+	finish = omp_get_wtime();
 	
 	printf("info depth %d ", depth);
 	printf("score %s %d ", (mated) ? "mate" : "cp", score);
+	printf("time %f ", (finish - start) * 1000);
 	printf("pv %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 }
