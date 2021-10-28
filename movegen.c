@@ -282,11 +282,11 @@ MoveList generateMoves(GameState *pos, int *size)
 	int kingLocation;
 	
 	generatePawnMoves(pos, turn, offset, &moveList);
-	generateQueenMoves(pos, turn, offset, &moveList);
 	generateKnightMoves(pos, turn, offset, &moveList);
 	generateBishopMoves(pos, turn, offset, &moveList);
 	generateRookMoves(pos, turn, offset, &moveList);
 	generateKingMoves(pos, turn, offset, &moveList);
+	generateQueenMoves(pos, turn, offset, &moveList);
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
