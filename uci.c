@@ -125,6 +125,8 @@ void parseGo(char *line, GameState *pos)
 		return;
 	}
 	
+	double start, finish;
+	start = omp_get_wtime();
 	temp = strstr(line, "depth");
     if (temp != NULL)
     {
@@ -143,6 +145,7 @@ void parseGo(char *line, GameState *pos)
 		info.bestScore = -CHECKMATE - info.bestScore;
 		mated = 1;
 	}
+	finish = omp_get_wtime();
 	
 	printf("info depth %d ", info.depth);
 	printf("score %s %d ", (mated) ? "mate" : "cp", info.bestScore);
