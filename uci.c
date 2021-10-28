@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
 #include "movegen.h"
 #include "search.h"
 #include "perft.h"
@@ -25,7 +26,7 @@ int parseMove(char *inputString, MoveList *moveList)
 			promotionPiece = move.special;
 		}
 
-		if (move.src == src && move.dst == dst && move.legal)
+		if (move.src == src && move.dst == dst)
 		{
 			if (promotionPiece)
 			{
@@ -79,7 +80,7 @@ void parsePosition(char *line, GameState *pos)
     temp = strstr(line, "moves");
     if (temp != NULL)
     {
-		int size;
+		int size, legal;
 		MoveList moveList;
         temp += 6;                 // Length of "moves "
         
@@ -93,7 +94,10 @@ void parsePosition(char *line, GameState *pos)
                 break;
 			}
             
-			*pos = playMove(pos, moveList.list[idx]);
+			GameState tempState = playMove(pos, moveList.list[idx], &legal);
+			if (!legal)
+				break;
+			*pos = tempState;
 			// Increment temp till the next move
             while (*temp && *temp != ' ')
 			{
@@ -106,9 +110,9 @@ void parsePosition(char *line, GameState *pos)
 
 void parseGo(char *line, GameState *pos)
 {
+	SearchInfo info;
+	info.depth = 6;
 	Move bestMove;
-	int score;
-	int depth = 6;
 	char *temp;
 	
     line += 3;                     // Start the line after the word "go"
@@ -116,8 +120,8 @@ void parseGo(char *line, GameState *pos)
     
 	if (strncmp(line, "perft", 5) == 0)
 	{
-		depth = atoi(temp + 6);
-        runPerft(depth, pos);
+		info.depth = atoi(temp + 6);
+        runPerft(info.depth, pos);
 		return;
 	}
 	
@@ -126,26 +130,28 @@ void parseGo(char *line, GameState *pos)
 	temp = strstr(line, "depth");
     if (temp != NULL)
     {
-		depth = atoi(temp + 6);
+		info.depth = atoi(temp + 6);
     }
 	
-	bestMove = search(depth, pos, &score);
+	bestMove = search(info.depth, pos, &info);
 	int mated = 0;
-	if (score > MAX_PLY_CHECKMATE)
+	if (info.bestScore > MAX_PLY_CHECKMATE)
 	{
-		score = CHECKMATE - score;
+		info.bestScore = CHECKMATE - info.bestScore;
 		mated = 1;
 	}
-	else if (score < -MAX_PLY_CHECKMATE)
+	else if (info.bestScore < -MAX_PLY_CHECKMATE)
 	{
-		score = -CHECKMATE - score;
+		info.bestScore = -CHECKMATE - info.bestScore;
 		mated = 1;
 	}
 	finish = omp_get_wtime();
 	
-	printf("info depth %d ", depth);
-	printf("score %s %d ", (mated) ? "mate" : "cp", score);
-	printf("time %f ", (finish - start) * 1000);
+	printf("info depth %d ", info.depth);
+	printf("score %s %d ", (mated) ? "mate" : "cp", info.bestScore);
+	printf("time %u ", info.ms);
+	printf("nodes %llu ", info.nodes);
+	printf("nps %u ", info.nps);
 	printf("pv %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
 }
@@ -194,7 +200,7 @@ void uciLoop()
 		}
 		else if (strncmp(buf, "setoption name Threads", 22) == 0)
 		{
-			NUM_THREADS = atoi(buf + 22);
+			NUM_THREADS = atoi(buf + 28);
 			if (NUM_THREADS <= 0 || NUM_THREADS > 12)
 			{
 				NUM_THREADS = 1;

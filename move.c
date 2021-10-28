@@ -8,14 +8,6 @@ int compareMoves(const void * a, const void * b)
 {
 	Move *m1 = (Move*)a;
 	Move *m2 = (Move*)b;
-	if (m1->legal > m2->legal)
-	{
-		return -1;
-	}
-	else if (m1->legal < m2->legal)
-	{
-		return 1;
-	}
 	
 	if (m1->prop > m2->prop)
 	{
@@ -44,7 +36,6 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	newMove.dst = dst;
 	newMove.special = special;
 	newMove.epSquare = epSquare;
-	newMove.legal = 0;
 	newMove.prop = 0;
 	return newMove;
 }
@@ -84,7 +75,7 @@ int adjustCastlingRights(GameState *pos, int src, int dst, int piece)
 	return castlingRights;
 }
 
-GameState playMove(GameState *pos, Move move)
+GameState playMove(GameState *pos, Move move, int *isLegal)
 {	
 	GameState newPos;
 	memcpy(&newPos, pos, sizeof(GameState));
@@ -180,6 +171,17 @@ GameState playMove(GameState *pos, Move move)
 		newPos.halfMoveClock += 1;
 	}
 	newPos.enpassantSquare = move.epSquare;
+	
+	// Legality Check
+	int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
+	if (isSquareAttacked(&newPos, kingLocation, newPos.turn) != 0)
+	{
+		*isLegal = 0;
+	}
+	else
+	{
+		*isLegal = 1;
+	}
 	
 	return newPos;
 }

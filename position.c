@@ -149,11 +149,9 @@ int isSquareAttacked(GameState *pos, int square, int byColor)
 		return 1;
 	if (pawnAttacks[pawnAttackColor][square] & pos->pieceBitboards[P + colorOffset])
 		return 1;
-	if (getBishopAttacks(square, occupancy) & pos->pieceBitboards[B + colorOffset])
+	if (getBishopAttacks(square, occupancy) & (pos->pieceBitboards[B + colorOffset] | pos->pieceBitboards[Q + colorOffset]))
 		return 1;
-	if (getRookAttacks(square, occupancy) & pos->pieceBitboards[R + colorOffset])
-		return 1;
-	if (getQueenAttacks(square, occupancy) & pos->pieceBitboards[Q + colorOffset])
+	if (getRookAttacks(square, occupancy) & (pos->pieceBitboards[R + colorOffset] | pos->pieceBitboards[Q + colorOffset]))
 		return 1;
 		
 	return 0;	
@@ -305,3 +303,4 @@ void printBoard(GameState state)
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
 	printf("Move: %d\n\n", state.fullMove);
 }
+

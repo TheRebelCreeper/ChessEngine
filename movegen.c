@@ -280,40 +280,22 @@ MoveList generateMoves(GameState *pos, int *size)
 	int turn = pos->turn;
 	int offset = 6 * turn;
 	int kingLocation;
-	int moveCount = 0;
 	
 	generatePawnMoves(pos, turn, offset, &moveList);
-	generateQueenMoves(pos, turn, offset, &moveList);
 	generateKnightMoves(pos, turn, offset, &moveList);
 	generateBishopMoves(pos, turn, offset, &moveList);
 	generateRookMoves(pos, turn, offset, &moveList);
 	generateKingMoves(pos, turn, offset, &moveList);
+	generateQueenMoves(pos, turn, offset, &moveList);
 	
 	for (int i = 0; i < moveList.nextOpen; i++)
 	{
-		Move temp = moveList.list[i];
-		tempState = playMove(pos, temp);
-		kingLocation = getFirstBitSquare(tempState.pieceBitboards[K + offset]);
-		if (isSquareAttacked(&tempState, kingLocation, (turn == WHITE) ? BLACK : WHITE) == 0)
+		if (get_square(pos->occupancies[2], moveList.list[i].dst))
 		{
-			moveCount++;
-			moveList.list[i].legal = 1;
-			kingLocation = getFirstBitSquare(tempState.pieceBitboards[k - offset]);
-			if (isSquareAttacked(&tempState, kingLocation, turn) == 1)
-			{
-				moveList.list[i].prop |= IS_CHECK;
-			}
-			if (get_square(pos->occupancies[2], moveList.list[i].dst))
-			{
-				moveList.list[i].prop |= IS_CAPTURE;
-			}
-		}
-		else
-		{
-			moveList.list[i].legal = 0;
+			moveList.list[i].prop |= IS_CAPTURE;
 		}
 	}
-	*size = moveCount;
+	*size = moveList.nextOpen;
 	return moveList;
 }
 
