@@ -37,14 +37,13 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
-		if ((current.prop & IS_CAPTURE) == 0)
+		if ((current.prop & (IS_CAPTURE | IS_PROMOTION)) == 0)
 		{
 			continue;
 		}
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
-			found = 1;
 			#pragma omp atomic
 			info->nodes++;
 			moveScores[i] = -quiescence(-beta, -alpha, depth + 1, &newState, info);
