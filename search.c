@@ -8,6 +8,73 @@
 
 int NUM_THREADS = 12;
 
+int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+{
+	MoveList moveList;
+	int size, i, legal, found = 0;
+	int moveScores[256];
+	
+	int score = evaluation(pos);
+	printf("%d %d eyyyy\n", score, beta);
+	if (score >= beta)
+	{
+		return beta;
+	}				
+	if (score > alpha)
+	{
+		alpha = score;
+	}
+	
+	memset(moveScores, 0, 256 * sizeof(int));
+	moveList = generateMoves(pos, &size);
+	qsort(moveList.list, size, sizeof(Move), compareMoves);
+	
+	for (i = 0; i < size; i++)
+	{
+		Move current = moveList.list[i];
+		if (!(current.prop & IS_CAPTURE))
+		{
+			continue;
+		}
+		GameState newState = playMove(pos, current, &legal);
+		if (legal == 1)
+		{
+			found = 1;
+			#pragma omp atomic
+			info->nodes++;
+			moveScores[i] = -quiescence(-beta, -alpha, depth + 1, &newState, info);
+			if (moveScores[i] >= beta)
+			{
+				return beta;
+			}				
+			if (moveScores[i] > alpha)
+			{
+				alpha = moveScores[i];
+			}
+		}
+	}
+	
+	if (found == 0)
+	{
+		int offset = 6 * pos->turn;
+		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
+		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
+		{
+			int mateDepth = (depth) / 2;
+			return -CHECKMATE + mateDepth;
+		}
+		return 0;
+	}
+	
+	// Draw by 50 move rule
+	if (pos->halfMoveClock == 100)
+	{
+		return 0;
+	}
+	
+	return alpha;
+}
+
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
@@ -61,7 +128,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	if (depth == 0)
 	{
-		return evaluation(pos);
+		return quiescence(alpha, beta, info->depth, pos, info);
 	}
 	
 	return alpha;
