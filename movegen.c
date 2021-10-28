@@ -32,6 +32,15 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 		doublePushTarget = (singlePushTarget >> 8) & Rank5 & ~occupancy;
 	}
 	
+	while (doublePushTarget)
+	{
+		dst = getFirstBitSquare(doublePushTarget);
+		src = dst - 16 + (32 * turn);
+		enpassantSquare = src + 8 - (16 * turn);
+		moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, enpassantSquare);
+		clear_lsb(doublePushTarget);
+	}
+	
 	while (singlePushTarget)
 	{
 		dst = getFirstBitSquare(singlePushTarget);
@@ -52,15 +61,6 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, none);
 		}		
 		clear_lsb(singlePushTarget);
-	}
-	
-	while (doublePushTarget)
-	{
-		dst = getFirstBitSquare(doublePushTarget);
-		src = dst - 16 + (32 * turn);
-		enpassantSquare = src + 8 - (16 * turn);
-		moveList->list[i++] = createMove(P + offset, src, dst, NO_SPECIAL, enpassantSquare);
-		clear_lsb(doublePushTarget);
 	}
 	
 	// Pawn Captures
