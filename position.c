@@ -157,6 +157,13 @@ int isSquareAttacked(GameState *pos, int square, int byColor)
 	return 0;	
 }
 
+int isInCheck(GameState *pos)
+{
+	int offset = 6 * pos->turn;
+	int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
+	return isSquareAttacked(pos, kingLocation, pos->turn ^ 1);
+}
+
 void loadFEN(GameState *state, char *fen)
 {
 	int rank, file, square, piece, index, length;

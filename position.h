@@ -38,6 +38,7 @@ void loadFEN(GameState *state, char *fen);
 void setOccupancies(GameState *state);
 void initStartingPosition();
 int isSquareAttacked(GameState *pos, int square, int byColor);
+int isInCheck(GameState *pos);
 
 void printBoard(GameState state);
 
