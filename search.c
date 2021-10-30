@@ -100,8 +100,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	if (found == 0)
 	{
-		int offset = 6 * pos->turn;
-		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
 		if (isInCheck(pos))
 		{
 			int mateDepth = (info->depth - depth + 1) / 2;
