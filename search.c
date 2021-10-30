@@ -28,11 +28,10 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	// Stop at qsearch
 	if (depth == (info->depth * 2))
-		return score;
+		return alpha;
 	
 	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
-	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	for (i = 0; i < size; i++)
 	{
