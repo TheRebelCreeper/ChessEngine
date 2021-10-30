@@ -56,25 +56,6 @@ char *squareNames[65] = {
 	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "-"
 };
 
-// Algorithm from Brian Kernighan
-int countBits(U64 board)
-{
-	return __builtin_popcountll(board);
-	/*int count = 0;
-	while (board)
-	{
-		count++;
-		board &= board - 1;
-	}
-	return count;
-	*/
-}
-
-int getFirstBitSquare(U64 board)
-{
-	return __builtin_ffsll(board) - 1;
-}
-
 U64 occupancyFromIndex(int index, U64 board)
 {
 	int i, square;

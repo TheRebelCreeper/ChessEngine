@@ -78,8 +78,8 @@ U64 getBishopAttacks(int square, U64 blockers);
 U64 getRookAttacks(int square, U64 blockers);
 U64 getQueenAttacks(int square, U64 blockers);
 
-int countBits(U64 board);
-int getFirstBitSquare(U64 board);
+#define countBits(board) (__builtin_popcountll((board)))
+#define getFirstBitSquare(board) (__builtin_ffsll((board)) - 1)
 
 void initLeapers();
 void initSliders();
