@@ -6,8 +6,6 @@
 #include "movegen.h"
 #include "list.h"
 
-//TODO Could possibly speed up by using a fixed size array instead of linked list
-
 void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
