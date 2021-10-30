@@ -26,7 +26,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 	
 	// Stop at qsearch
-	if (depth == (info->depth * 2 + 1))
+	if (depth >= (info->depth * 2 + 1) && !(isInCheck(pos)))
 		return alpha;
 	
 	memset(moveScores, 0, 256 * sizeof(int));

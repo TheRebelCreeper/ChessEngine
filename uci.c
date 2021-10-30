@@ -131,6 +131,10 @@ void parseGo(char *line, GameState *pos)
 		info.depth = atoi(temp + 6);
     }
 	
+	// Cheese the engine into playing e4 lol
+	if (pos->fullMove == 1 && !pos->turn && info.depth == 6)
+		info.depth += 1;
+	
 	bestMove = search(info.depth, pos, &info);
 	int mated = 0;
 	if (info.bestScore > MAX_PLY_CHECKMATE)
