@@ -3,7 +3,7 @@
 #include "position.h"
 #include "evaluation.h"
 
-int pieceValue[12] = {100, 300, 325, 500, 900, 10000, -100, -300, -325, -500, -900, -10000};
+int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -300, -325, -500, -900, -10000};
 int mirroredSquare[65] = 
 {
 	a8, b8, c8, d8, e8, f8, g8, h8,
