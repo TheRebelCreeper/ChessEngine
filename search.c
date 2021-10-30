@@ -16,7 +16,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	int score = evaluation(pos);
 	
-	//printf("turn: %d, score: %d, alpha: %d, beta: %d eyyyy\n", pos->turn, score, alpha, beta);
 	if (score >= beta)
 	{
 		return beta;
@@ -27,7 +26,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 	
 	// Stop at qsearch
-	if (depth == (info->depth * 2))
+	if (depth == (info->depth * 2 + 1))
 		return alpha;
 	
 	memset(moveScores, 0, 256 * sizeof(int));
@@ -103,7 +102,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		int offset = 6 * pos->turn;
 		int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
-		if (isSquareAttacked(pos, kingLocation, (pos->turn == WHITE) ? BLACK : WHITE))
+		if (isInCheck(pos))
 		{
 			int mateDepth = (info->depth - depth + 1) / 2;
 			return -CHECKMATE + mateDepth;
