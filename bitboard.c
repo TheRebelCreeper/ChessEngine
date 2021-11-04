@@ -409,11 +409,6 @@ void initSliders()
 {
 	int square;
 	
-	#ifdef DEBUG
-	double start, finish;
-	start = omp_get_wtime();
-	#endif
-	
 	for (square = 0; square < 64; square++)
 	{
 		bishopOccupancy[square] = calculateBishopOccupancy(square);
@@ -440,21 +435,11 @@ void initSliders()
 			rookAttacks[square][mIndex] = generateRookAttacks(square, occupancy);
 		}
 	}
-	
-	#ifdef DEBUG
-	finish = omp_get_wtime();
-	printf("Generated sliders in %f\n", finish - start);
-	#endif
 }
 
 void initLeapers()
 {
 	int square;
-	
-	#ifdef DEBUG
-	double start, finish;
-	start = omp_get_wtime();
-	#endif
 	
 	//#pragma omp parallel for private(square) shared(KnightAttacks, KingAttacks, PawnAttacks)
 	for (square = 0; square < 64; square++)
@@ -464,11 +449,6 @@ void initLeapers()
 		pawnAttacks[0][square] = calculatePawnAttacks(0, square);
 		pawnAttacks[1][square] = calculatePawnAttacks(1, square);
 	}
-	
-	#ifdef DEBUG
-	finish = omp_get_wtime();
-	printf("Generated leapers in %f\n", finish - start);
-	#endif
 }
 
 void initAttacks()
