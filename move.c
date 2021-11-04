@@ -9,11 +9,11 @@ int compareMoves(const void * a, const void * b)
 	Move *m1 = (Move*)a;
 	Move *m2 = (Move*)b;
 	
-	if (m1->prop > m2->prop)
+	if (m1->score > m2->score)
 	{
 		return -1;
 	}
-	else if (m1->prop < m2->prop)
+	else if (m1->score < m2->score)
 	{
 		return 1;
 	}
@@ -37,6 +37,7 @@ Move createMove(int piece, int src, int dst, int special, int epSquare)
 	newMove.special = special;
 	newMove.epSquare = epSquare;
 	newMove.prop = 0;
+	newMove.score = 0;
 	return newMove;
 }
 

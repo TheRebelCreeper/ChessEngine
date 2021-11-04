@@ -26,6 +26,7 @@ typedef struct move
 	int special;
 	int epSquare;
 	int prop;
+	int score;
 } Move;
 
 int compareMoves(const void * a, const void * b);

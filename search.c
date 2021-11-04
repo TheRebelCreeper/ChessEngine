@@ -12,24 +12,22 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal;
-	int moveScores[256];
 	
-	int score = evaluation(pos);
+	int eval = evaluation(pos);
 	
-	if (score >= beta)
+	if (eval >= beta)
 	{
 		return beta;
 	}				
-	if (score > alpha)
+	if (eval > alpha)
 	{
-		alpha = score;
+		alpha = eval;
 	}
 	
 	// Stop at qsearch
 	if (depth >= (info->depth * 2 + 1) && !(isInCheck(pos)))
 		return alpha;
 	
-	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
 	
 	for (i = 0; i < size; i++)
@@ -44,14 +42,14 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		{
 			#pragma omp atomic
 			info->nodes++;
-			moveScores[i] = -quiescence(-beta, -alpha, depth + 1, &newState, info);
-			if (moveScores[i] >= beta)
+			eval = -quiescence(-beta, -alpha, depth + 1, &newState, info);
+			if (eval >= beta)
 			{
 				return beta;
 			}				
-			if (moveScores[i] > alpha)
+			if (eval > alpha)
 			{
-				alpha = moveScores[i];
+				alpha = eval;
 			}
 		}
 	}
@@ -69,31 +67,32 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal, found = 0;
-	int moveScores[256];
+	int eval;
 	
-	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
+	scoreMoves(&moveList, pos);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	for (i = 0; i < size; i++)
 	{
+		// TODO get current using list.pickMove, this will avoid requiring qsort
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
 			found = 1;
-			if (depth == 0)
+			if (depth <= 0)
 				break;
 			#pragma omp atomic
 			info->nodes++;
-			moveScores[i] = -negaMax(-beta, -alpha, depth - 1, &newState, info);
-			if (moveScores[i] >= beta)
+			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+			if (eval >= beta)
 			{
 				return beta;
 			}				
-			if (moveScores[i] > alpha)
+			if (eval > alpha)
 			{
-				alpha = moveScores[i];
+				alpha = eval;
 			}
 		}
 	}
@@ -114,7 +113,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return 0;
 	}
 	
-	if (depth == 0)
+	if (depth <= 0)
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
@@ -127,13 +126,13 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	MoveList moveList;
 	int size, i;
 	int bestScore, bestIndex;
-	int moveScores[256];
+	int eval;
 	double start, finish;
 	start = omp_get_wtime();
 	info->nodes = 0ULL;
 	
-	memset(moveScores, 0, 256 * sizeof(int));
 	moveList = generateMoves(pos, &size);
+	scoreMoves(&moveList, pos);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
@@ -148,13 +147,13 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 		{
 			#pragma omp atomic
 			info->nodes++;
-			moveScores[i] = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, info);
-			if (moveScores[i] > bestScore)
+			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, info);
+			if (eval > bestScore)
 			{
 				#pragma omp critical
 				bestIndex = i;
 				#pragma omp critical
-				bestScore = moveScores[i];
+				bestScore = eval;
 			}
 		}
 	}
