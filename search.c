@@ -29,9 +29,11 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return alpha;
 	
 	moveList = generateMoves(pos, &size);
+	scoreMoves(&moveList, pos);
 	
 	for (i = 0; i < size; i++)
 	{
+		pickMove(&moveList, i);
 		Move current = moveList.list[i];
 		if ((current.prop & (IS_CAPTURE | IS_PROMOTION)) == 0)
 		{
@@ -71,11 +73,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos);
-	qsort(moveList.list, size, sizeof(Move), compareMoves);
+	//qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	for (i = 0; i < size; i++)
 	{
 		// TODO get current using list.pickMove, this will avoid requiring qsort
+		pickMove(&moveList, i);
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
@@ -141,6 +144,9 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	for (i = 0; i < size; i++)
 	{
 		int legal;
+		// Not sure how to sychronize this with OMP, probably barrier?
+		//pickMove(&moveList, i);
+		
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
