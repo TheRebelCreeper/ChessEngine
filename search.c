@@ -25,8 +25,8 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 	
 	// Stop at qsearch
-	if (depth >= (info->depth * 2 + 1) && !(isInCheck(pos)))
-		return alpha;
+	//if (depth >= (info->depth * 2 + 1) && !(isInCheck(pos)))
+		//return alpha;
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos);
