@@ -23,7 +23,22 @@ void scoreMoves(MoveList *moves, GameState *pos)
 		}
 		else
 		{
-			moves->list[i].score = moves->list.prop;
+			moves->list[i].score = moves->list[i].prop;
 		}
 	}
+}
+
+void pickMove(MoveList *moves, int startIndex)
+{
+	int bestIndex = startIndex;
+	int i;
+	for (i = startIndex; i < moves->nextOpen; i++)
+	{
+		if (moves->list[i].score > moves->list[bestIndex].score)
+			bestIndex = i;
+	}
+	
+	Move temp = moves->list[startIndex];
+	moves->list[startIndex] = moves->list[bestIndex];
+	moves->list[bestIndex] = temp;
 }

@@ -23,5 +23,6 @@ typedef struct movelist {
 } MoveList;
 
 void scoreMoves(MoveList *moves, GameState *pos);
+void pickMove(MoveList *moves, int startIndex);
 
 #endif
