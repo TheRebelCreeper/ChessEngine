@@ -31,9 +31,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		}
 		// Score quiet moves
 		else
-		{
-			Move m1 = moves->list[i];
-			
+		{	
 			// Check First Killer Move
 			if (moveEquality(moves->list[i], info->killerMoves[0][depth]))
 			{
