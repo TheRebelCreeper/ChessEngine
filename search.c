@@ -8,6 +8,65 @@
 
 int NUM_THREADS = 12;
 
+void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
+{
+	int i;
+	for (i = 0; i < moves->nextOpen; i++)
+	{
+		// Score captures
+		if (moves->list[i].prop & IS_CAPTURE)
+		{
+			int offset = 6 * (pos->turn ^ 1);
+			int victem = P;
+			for (int j = P + offset; j <=K + offset; j++)
+			{
+				if (get_square(pos->pieceBitboards[j], moves->list[i].dst))
+				{
+					victem = j - offset;
+					break;
+				}
+			}
+			offset = 6 * pos->turn;
+			moves->list[i].score = MVV_LVA_TABLE[moves->list[i].piece - offset][victem] + 1000;
+		}
+		// Score quiet moves
+		else
+		{
+			Move m1 = moves->list[i];
+			
+			// Check First Killer Move
+			if (moveEquality(moves->list[i], info->killerMoves[0][depth]))
+			{
+				moves->list[i].score = 900;
+			}
+			// Check Second Killer Move
+			else if (moveEquality(moves->list[i], info->killerMoves[1][depth]))
+			{
+				moves->list[i].score = 800;
+			}
+			else
+			{
+				moves->list[i].score = moves->list[i].prop;
+			}
+		}
+	}
+}
+
+void pickMove(MoveList *moves, int startIndex)
+{
+	int bestIndex = startIndex;
+	int i;
+	for (i = startIndex; i < moves->nextOpen; i++)
+	{
+		if (moves->list[i].score > moves->list[bestIndex].score)
+			bestIndex = i;
+	}
+	
+	Move temp = moves->list[startIndex];
+	moves->list[startIndex] = moves->list[bestIndex];
+	moves->list[bestIndex] = temp;
+}
+
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
@@ -29,7 +88,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		//return alpha;
 	
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos);
+	scoreMoves(&moveList, pos, depth, info);
 	
 	for (i = 0; i < size; i++)
 	{
@@ -72,12 +131,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	int eval;
 	
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos);
-	//qsort(moveList.list, size, sizeof(Move), compareMoves);
+	scoreMoves(&moveList, pos, depth, info);
 	
 	for (i = 0; i < size; i++)
 	{
-		// TODO get current using list.pickMove, this will avoid requiring qsort
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
@@ -86,11 +143,28 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			found = 1;
 			if (depth <= 0)
 				break;
+			
+			// TODO check extentions result in displaying wrong mate eval
+			// TODO check extentions can cause infinite loop when threefold repetition possible
+			// k7/pp6/8/2r5/8/8/1K2R3/8 w - - 0 1
+			//if (isInCheck(pos))
+			//	depth++;
+			
 			#pragma omp atomic
 			info->nodes++;
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (eval >= beta)
 			{
+				// There is a sychronization problem here because different threads are sharing killerMoves
+				// It results in some branches being evaluated due to poor move ordering, but will not miss correct line
+				#pragma omp critical
+				{
+				if (!moveEquality(current, info->killerMoves[0][depth]))
+				{
+					info->killerMoves[1][depth] = info->killerMoves[0][depth];
+					info->killerMoves[0][depth] = current;
+				}
+				}
 				return beta;
 			}				
 			if (eval > alpha)
@@ -133,9 +207,10 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	double start, finish;
 	start = omp_get_wtime();
 	info->nodes = 0ULL;
+	memset(info->killerMoves, 0, sizeof(info->killerMoves));
 	
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos);
+	scoreMoves(&moveList, pos, depth, info);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
