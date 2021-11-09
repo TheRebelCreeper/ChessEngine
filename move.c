@@ -4,6 +4,16 @@
 #include "position.h"
 #include "bitboard.h"
 
+int moveEquality(Move m1, Move m2)
+{
+	return ((m1.src == m2.src) &&
+	       (m1.dst == m2.dst) &&
+	       (m1.piece == m2.piece) &&
+	       (m1.special == m2.special) &&
+	       (m1.epSquare == m2.epSquare) &&
+	       (m1.prop == m2.prop));
+}
+
 int compareMoves(const void * a, const void * b)
 {
 	Move *m1 = (Move*)a;
@@ -19,7 +29,7 @@ int compareMoves(const void * a, const void * b)
 	}
 	else
 	{
-		return (m1->piece - m2->piece);
+		return 0;
 	}
 }
 
