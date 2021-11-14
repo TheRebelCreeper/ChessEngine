@@ -83,7 +83,10 @@ int nnue_eval(GameState *pos)
 int evaluation(GameState *pos)
 {
 	int score = 0;
-	score += nnue_eval(pos);
+	if (FOUND_NETWORK)
+		score = nnue_eval(pos);
+	else
+		score += materialCount(pos);
 	return score;
 }
 

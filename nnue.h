@@ -101,7 +101,7 @@ int nnue_evaluate_pos(Position* pos);
 /**
 * Load NNUE file
 */
-void nnue_init(
+int nnue_init(
   const char * evalFile             /** Path to NNUE file */
 );
 

@@ -1,9 +1,11 @@
 #include "nnue.h"
 #include "wrapper.h"
 
+int FOUND_NETWORK;
+
 void initNNUE(char *file)
 {
-    nnue_init(file);
+    FOUND_NETWORK = nnue_init(file);
 }
 
 int evaluateNNUE(int turn, int *pieces, int *squares)

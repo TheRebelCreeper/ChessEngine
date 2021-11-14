@@ -892,7 +892,7 @@ alignas(64) static int16_t ft_weights [kHalfDimensions * FtInDims];
 #endif
 
 // Calculate cumulative value without using difference calculation
-INLINE void refresh_accumulator(Position *pos)
+INLINE static void refresh_accumulator(Position *pos)
 {
   Accumulator *accumulator = &(pos->nnue[0]->accumulator);
 
@@ -940,7 +940,7 @@ INLINE void refresh_accumulator(Position *pos)
 }
 
 // Calculate cumulative value using difference calculation if possible
-INLINE bool update_accumulator(Position *pos)
+INLINE static bool update_accumulator(Position *pos)
 {
   Accumulator *accumulator = &(pos->nnue[0]->accumulator);
   if (accumulator->computedAccumulation)
@@ -1031,7 +1031,7 @@ INLINE bool update_accumulator(Position *pos)
 }
 
 // Convert input features
-INLINE void transform(Position *pos, clipped_t *output, mask_t *outMask)
+INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
 {
   if (!update_accumulator(pos))
     refresh_accumulator(pos);
@@ -1265,7 +1265,7 @@ static bool load_eval_file(const char *evalFile)
 /*
 Interfaces
 */
-void nnue_init(const char* evalFile)
+int nnue_init(const char* evalFile)
 {
   printf("Loading NNUE : %s\n", evalFile);
   fflush(stdout);
@@ -1273,11 +1273,12 @@ void nnue_init(const char* evalFile)
   if (load_eval_file(evalFile)) {
     printf("NNUE loaded !\n");
     fflush(stdout);
-    return;
+    return 1;
   }
 
   printf("NNUE file not found!\n");
   fflush(stdout);
+  return 0;
 }
 
 int nnue_evaluate(

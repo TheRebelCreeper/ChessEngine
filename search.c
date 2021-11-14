@@ -209,7 +209,6 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
-	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
@@ -218,7 +217,8 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	{
 		int legal;
 		// Not sure how to sychronize this with OMP, probably barrier?
-		//pickMove(&moveList, i);
+		#pragma omp critical
+		pickMove(&moveList, i);
 		
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
