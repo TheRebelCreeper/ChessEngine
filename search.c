@@ -44,7 +44,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 			}
 			else
 			{
-				moves->list[i].score = moves->list[i].prop;
+				moves->list[i].score = info->history[pos->turn][moves->list[i].src][moves->list[i].dst];
 			}
 		}
 	}
@@ -155,13 +155,18 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			{
 				// There is a sychronization problem here because different threads are sharing killerMoves
 				// It results in some branches being evaluated due to poor move ordering, but will not miss correct line
-				#pragma omp critical
+				if (!(current.prop & IS_CAPTURE))
 				{
-				if (!moveEquality(current, info->killerMoves[0][depth]))
-				{
-					info->killerMoves[1][depth] = info->killerMoves[0][depth];
-					info->killerMoves[0][depth] = current;
-				}
+					#pragma omp critical
+					{
+						if (!moveEquality(current, info->killerMoves[0][depth]))
+						{
+							info->killerMoves[1][depth] = info->killerMoves[0][depth];
+							info->killerMoves[0][depth] = current;
+						}
+						info->history[newState.turn][current.src][current.dst] += ((info->depth - depth) * (info->depth - depth));
+					}
+					
 				}
 				return beta;
 			}				
@@ -206,6 +211,7 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	start = omp_get_wtime();
 	info->nodes = 0ULL;
 	memset(info->killerMoves, 0, sizeof(info->killerMoves));
+	memset(info->history, 0, sizeof(info->history));
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);

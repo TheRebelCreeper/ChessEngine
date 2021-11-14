@@ -17,6 +17,7 @@ typedef struct info
 	int bestScore;
 	U64 nodes;
 	Move killerMoves[2][MAX_PLY];
+	int history[2][64][64];
 } SearchInfo;
 
 static const int MVV_LVA_TABLE[6][6] = 
