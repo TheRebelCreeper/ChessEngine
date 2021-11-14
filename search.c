@@ -6,7 +6,7 @@
 #include "move.h"
 #include "search.h"
 
-int NUM_THREADS = 12;
+int NUM_THREADS = 1;
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
@@ -18,11 +18,11 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		{
 			int offset = 6 * (pos->turn ^ 1);
 			int victem = P;
-			for (int j = P + offset; j <=K + offset; j++)
+			for (int j = P; j <= K; j++)
 			{
-				if (get_square(pos->pieceBitboards[j], moves->list[i].dst))
+				if (get_square(pos->pieceBitboards[j + offset], moves->list[i].dst))
 				{
-					victem = j - offset;
+					victem = j;
 					break;
 				}
 			}
