@@ -19,7 +19,8 @@
 
 int main(int argc, char *argv[])
 {
-	initNNUE("nn-13406b1dcbe0.nnue");
+	initNNUE("nn-eba324f53044.nnue");
+	printf("%d\n", evaluateFromFen(STARTING_FEN));
 	initAttacks();
 	
 	#ifdef VALIDATE
