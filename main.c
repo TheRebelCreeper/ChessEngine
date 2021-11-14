@@ -7,6 +7,7 @@
 #include "search.h"
 #include "uci.h"
 #include "perft.h"
+#include "wrapper.h"
 
 //#define VALIDATE
 
@@ -18,6 +19,7 @@
 
 int main(int argc, char *argv[])
 {
+	initNNUE("nn-13406b1dcbe0.nnue");
 	initAttacks();
 	
 	#ifdef VALIDATE
