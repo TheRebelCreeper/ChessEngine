@@ -1,6 +1,7 @@
 #ifndef NNUE_H
 #define NNUE_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifndef __cplusplus
@@ -100,7 +101,7 @@ int nnue_evaluate_pos(Position* pos);
 /**
 * Load NNUE file
 */
-DLLExport void _CDECL nnue_init(
+void nnue_init(
   const char * evalFile             /** Path to NNUE file */
 );
 
@@ -109,7 +110,7 @@ DLLExport void _CDECL nnue_init(
 * Returns
 *   Score relative to side to move in approximate centi-pawns
 */
-DLLExport int _CDECL nnue_evaluate_fen(
+int nnue_evaluate_fen(
   const char* fen                   /** FEN string to probe evaluation for */
 );
 
@@ -131,7 +132,7 @@ DLLExport int _CDECL nnue_evaluate_fen(
 * Returns
 *   Score relative to side to move in approximate centi-pawns
 */
-DLLExport int _CDECL nnue_evaluate(
+int nnue_evaluate(
   int player,                       /** Side to move: white=0 black=1 */
   int* pieces,                      /** Array of pieces */
   int* squares                      /** Corresponding array of squares each piece stands on */
@@ -147,7 +148,7 @@ DLLExport int _CDECL nnue_evaluate(
 *    nnue_data[1] is pointer to NNUEdata for ply - 1
 *    nnue_data[2] is pointer to NNUEdata for ply - 2
 */
-DLLExport int _CDECL nnue_evaluate_incremental(
+int nnue_evaluate_incremental(
   int player,                       /** Side to move: white=0 black=1 */
   int* pieces,                      /** Array of pieces */
   int* squares,                     /** Corresponding array of squares each piece stands on */

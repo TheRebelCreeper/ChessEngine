@@ -280,16 +280,16 @@ static void append_changed_indices(const Position *pos, IndexList removed[2],
 // 32 x clipped_t -> 1 x int32_t
 
 #if !defined(USE_AVX512)
-static weight_t hidden1_weights alignas(64) [32 * 512];
-static weight_t hidden2_weights alignas(64) [32 * 32];
+alignas(64) static weight_t hidden1_weights [32 * 512];
+alignas(64) static weight_t hidden2_weights [32 * 32];
 #else
-static weight_t hidden1_weights alignas(64) [64 * 512];
-static weight_t hidden2_weights alignas(64) [64 * 32];
+alignas(64) static weight_t hidden1_weights [64 * 512];
+alignas(64) static weight_t hidden2_weights [64 * 32];
 #endif
-static weight_t output_weights alignas(64) [1 * 32];
+alignas(64) static weight_t output_weights [1 * 32];
 
-static int32_t hidden1_biases alignas(64) [32];
-static int32_t hidden2_biases alignas(64) [32];
+alignas(64) static int32_t hidden1_biases [32];
+alignas(64) static int32_t hidden2_biases [32];
 static int32_t output_biases[1];
 
 INLINE int32_t affine_propagate(clipped_t *input, int32_t *biases,
@@ -884,8 +884,8 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 #endif
 
 // Input feature converter
-static int16_t ft_biases alignas(64) [kHalfDimensions];
-static int16_t ft_weights alignas(64) [kHalfDimensions * FtInDims];
+alignas(64) static int16_t ft_biases [kHalfDimensions];
+alignas(64) static int16_t ft_weights [kHalfDimensions * FtInDims];
 
 #ifdef VECTOR
 #define TILE_HEIGHT (NUM_REGS * SIMD_WIDTH / 16)
@@ -1265,7 +1265,7 @@ static bool load_eval_file(const char *evalFile)
 /*
 Interfaces
 */
-DLLExport void _CDECL nnue_init(const char* evalFile)
+void nnue_init(const char* evalFile)
 {
   printf("Loading NNUE : %s\n", evalFile);
   fflush(stdout);
@@ -1280,7 +1280,7 @@ DLLExport void _CDECL nnue_init(const char* evalFile)
   fflush(stdout);
 }
 
-DLLExport int _CDECL nnue_evaluate(
+int nnue_evaluate(
   int player, int* pieces, int* squares)
 {
   NNUEdata nnue;
@@ -1296,7 +1296,7 @@ DLLExport int _CDECL nnue_evaluate(
   return nnue_evaluate_pos(&pos);
 }
 
-DLLExport int _CDECL nnue_evaluate_incremental(
+int nnue_evaluate_incremental(
   int player, int* pieces, int* squares, NNUEdata** nnue)
 {
   assert(nnue[0] && (uint64_t)(&nnue[0]->accumulator) % 64 == 0);
@@ -1311,7 +1311,7 @@ DLLExport int _CDECL nnue_evaluate_incremental(
   return nnue_evaluate_pos(&pos);
 }
 
-DLLExport int _CDECL nnue_evaluate_fen(const char* fen)
+int nnue_evaluate_fen(const char* fen)
 {
   int pieces[33],squares[33],player,castle,fifty,move_number;
   decode_fen((char*)fen,&player,&castle,&fifty,&move_number,pieces,squares);;
