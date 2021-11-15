@@ -17,17 +17,17 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		if (moves->list[i].prop & IS_CAPTURE)
 		{
 			int offset = 6 * (pos->turn ^ 1);
-			int victem = P;
+			int victim = P;
 			for (int j = P; j <= K; j++)
 			{
 				if (get_square(pos->pieceBitboards[j + offset], moves->list[i].dst))
 				{
-					victem = j;
+					victim = j;
 					break;
 				}
 			}
 			offset = 6 * pos->turn;
-			moves->list[i].score = MVV_LVA_TABLE[moves->list[i].piece - offset][victem] + 1000;
+			moves->list[i].score = MVV_LVA_TABLE[moves->list[i].piece - offset][victim] + 1000;
 		}
 		// Score quiet moves
 		else
