@@ -6,7 +6,7 @@
 #include "move.h"
 #include "search.h"
 
-int NUM_THREADS = 1;
+int NUM_THREADS = 4;
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
@@ -211,6 +211,7 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
+	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
@@ -219,8 +220,8 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	{
 		int legal;
 		// Not sure how to sychronize this with OMP, probably barrier?
-		#pragma omp critical
-		pickMove(&moveList, i);
+		//#pragma omp critical
+		//pickMove(&moveList, i);
 		
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
