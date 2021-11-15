@@ -1,7 +1,7 @@
 #include "nnue.h"
 #include "wrapper.h"
 
-int FOUND_NETWORK;
+int FOUND_NETWORK = 0;
 
 void initNNUE(char *file)
 {
