@@ -196,3 +196,8 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	
 	return newPos;
 }
+
+void printMove(Move *m)
+{
+	printf("%s%s%s", squareNames[m->src], squareNames[m->dst], (m->prop & IS_PROMOTION) ? pieceNotation[m->special] : "");
+}

@@ -33,5 +33,6 @@ int moveEquality(Move m1, Move m2);
 int compareMoves(const void * a, const void * b);
 Move createMove(int piece, int src, int dst, int special, int epSquare);
 GameState playMove(GameState *pos, Move move, int *isLegal);
+void printMove(Move *m);
 
 #endif
