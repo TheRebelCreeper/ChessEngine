@@ -256,7 +256,7 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, &info);
 			
 			// Keep track of nodes searched and add to rootInfo
-			//#pragma omp critical
+			#pragma omp critical
 			rootInfo->nodes += info.nodes;
 			
 			// If best move so far, keep track of the score and index of said move
