@@ -18,6 +18,8 @@ typedef struct info
 	U64 nodes;
 	Move killerMoves[2][MAX_PLY];
 	int history[2][64][64];
+	int pvTableLength[MAX_PLY];
+	Move pvTable[MAX_PLY][MAX_PLY];
 } SearchInfo;
 
 static const int MVV_LVA_TABLE[6][6] = 

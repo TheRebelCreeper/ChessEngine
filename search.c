@@ -123,6 +123,13 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	MoveList moveList;
 	int size, i, legal, found = 0;
 	int eval;
+	int ply = info->depth - depth;
+	info->pvTableLength[ply] = depth;
+	
+	if (depth <= 0)
+	{
+		return quiescence(alpha, beta, info->depth, pos, info);
+	}
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
@@ -135,8 +142,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		if (legal == 1)
 		{
 			found = 1;
-			if (depth <= 0)
-				break;
 			
 			// TODO check extentions result in displaying wrong mate eval
 			// TODO check extentions can cause infinite loop when threefold repetition possible
@@ -149,8 +154,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (eval >= beta)
 			{
-				// There is a sychronization problem here because different threads are sharing killerMoves
-				// It results in some branches being evaluated due to poor move ordering, but will not miss correct line
 				if (!(current.prop & IS_CAPTURE))
 				{
 					#pragma omp critical
@@ -160,7 +163,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 							info->killerMoves[1][depth] = info->killerMoves[0][depth];
 							info->killerMoves[0][depth] = current;
 						}
-						info->history[newState.turn][current.src][current.dst] += ((info->depth - depth) * (info->depth - depth));
+						info->history[newState.turn][current.src][current.dst] += (ply * ply);
 					}
 					
 				}
@@ -168,6 +171,13 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			}				
 			if (eval > alpha)
 			{
+				info->pvTable[ply][ply] = current;
+				if (depth > 1)
+				{
+					// Crazy memcpy which copies PV from lower depth to current depth
+					memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1, info->pvTableLength[ply + 1] * sizeof(Move));
+					info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
+				}
 				alpha = eval;
 			}
 		}
@@ -175,6 +185,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	if (found == 0)
 	{
+		// When no more legal moves, the pv does not exist
+		info->pvTableLength[ply] = 0;
 		if (isInCheck(pos))
 		{
 			int mateDepth = (info->depth - depth + 1) / 2;
@@ -189,11 +201,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return 0;
 	}
 	
-	if (depth <= 0)
-	{
-		return quiescence(alpha, beta, info->depth, pos, info);
-	}
-	
 	return alpha;
 }
 
@@ -201,7 +208,7 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 {
 	MoveList moveList;
 	int size, i;
-	int bestScore, bestIndex;
+	int bestScore;
 	int eval;
 	double start, finish;
 	start = omp_get_wtime();
@@ -217,9 +224,8 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 	scoreMoves(&moveList, pos, depth, rootInfo);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
-	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList, rootInfo)
+	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestScore, moveList, rootInfo)
 	for (i = 0; i < size; i++)
 	{
 		int legal;
@@ -232,8 +238,9 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 		// Clear killer move and history tables
 		memset(info.killerMoves, 0, sizeof(info.killerMoves));
 		memset(info.history, 0, sizeof(info.history));
+		memset(info.pvTable, 0, sizeof(info.pvTable));
 		
-		// Not sure how to sychronize this with OMP, probably barrier?
+		// Not sure how to sychronize this with OMP
 		//#pragma omp critical
 		//pickMove(&moveList, i);
 		
@@ -245,19 +252,25 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 		if (legal == 1)
 		{
 			info.nodes++;
+			
 			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, &info);
 			
 			// Keep track of nodes searched and add to rootInfo
-			#pragma omp critical
+			//#pragma omp critical
 			rootInfo->nodes += info.nodes;
 			
 			// If best move so far, keep track of the score and index of said move
 			if (eval > bestScore)
 			{
+				info.pvTable[0][0] = current;
+				memcpy((info.pvTable[0]) + 1, (info.pvTable[1]) + 1, info.pvTableLength[1] * sizeof(Move));
+				
 				#pragma omp critical
-				bestIndex = i;
-				#pragma omp critical
-				bestScore = eval;
+				{
+					memcpy(rootInfo->pvTable, info.pvTable, sizeof(info.pvTable));
+					rootInfo->pvTableLength[0] = info.pvTableLength[1] + 1;
+					bestScore = eval;
+				}
 			}
 		}
 	}
@@ -268,5 +281,5 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 	rootInfo->nps = (unsigned int)(rootInfo->nodes / (finish - start));
 	rootInfo->bestScore = bestScore;
 	
-	return moveList.list[bestIndex];
+	return rootInfo->pvTable[0][0];
 }
