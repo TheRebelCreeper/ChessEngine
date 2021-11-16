@@ -197,7 +197,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-Move search(int depth, GameState *pos, SearchInfo *info)
+Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 {
 	MoveList moveList;
 	int size, i;
@@ -205,31 +205,53 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 	int eval;
 	double start, finish;
 	start = omp_get_wtime();
-	info->nodes = 0ULL;
-	memset(info->killerMoves, 0, sizeof(info->killerMoves));
-	memset(info->history, 0, sizeof(info->history));
 	
+	// Clear information for rootInfo. Will have to do this for ID upon each depth
+	rootInfo->nodes = 0ULL;
+	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
+	memset(rootInfo->history, 0, sizeof(rootInfo->history));
+	
+	// Generate all legal moves for position, then score and sort them using quicksort.
+	// Move list is at most 256 elements so sort will be fast
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, depth, info);
+	scoreMoves(&moveList, pos, depth, rootInfo);
 	qsort(moveList.list, size, sizeof(Move), compareMoves);
 	
 	bestIndex = 0;
 	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList)
+	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestIndex, bestScore, moveList, rootInfo)
 	for (i = 0; i < size; i++)
 	{
 		int legal;
+		
+		// Use a different SearchInfo for each move then add all important information after to avoid race conditions
+		SearchInfo info;
+		info.depth = rootInfo->depth;
+		info.nodes = 0ULL;
+		
+		// Clear killer move and history tables
+		memset(info.killerMoves, 0, sizeof(info.killerMoves));
+		memset(info.history, 0, sizeof(info.history));
+		
 		// Not sure how to sychronize this with OMP, probably barrier?
 		//#pragma omp critical
 		//pickMove(&moveList, i);
 		
+		// Pick the next best move and then make said move
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
+		
+		// If the move was legal, run negaMax on the resulting position
 		if (legal == 1)
 		{
-			#pragma omp atomic
-			info->nodes++;
-			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, info);
+			info.nodes++;
+			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, &info);
+			
+			// Keep track of nodes searched and add to rootInfo
+			#pragma omp critical
+			rootInfo->nodes += info.nodes;
+			
+			// If best move so far, keep track of the score and index of said move
 			if (eval > bestScore)
 			{
 				#pragma omp critical
@@ -239,10 +261,12 @@ Move search(int depth, GameState *pos, SearchInfo *info)
 			}
 		}
 	}
+	
+	// After searching all possible moves, compile stats
 	finish = omp_get_wtime() + 0.0001;
-	info->ms = (unsigned int)((finish - start) * 1000);
-	info->nps = (unsigned int)(info->nodes / (finish - start));
-	info->bestScore = bestScore;
+	rootInfo->ms = (unsigned int)((finish - start) * 1000);
+	rootInfo->nps = (unsigned int)(rootInfo->nodes / (finish - start));
+	rootInfo->bestScore = bestScore;
 	
 	return moveList.list[bestIndex];
 }
