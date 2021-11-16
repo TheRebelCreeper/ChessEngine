@@ -48,14 +48,7 @@ U64 perftDivide(int depth, GameState *pos)
 		{
 			U64 res = perft(depth - 1, &newState);
 			sum += res;
-			if (current.special == NO_SPECIAL || current.special == EN_PASSANT_SPECIAL || current.piece == K || current.piece == k)
-			{
-				printf("%s%s", squareNames[current.src], squareNames[current.dst]);
-			}
-			else
-			{
-				printf("%s%s=%s", squareNames[current.src], squareNames[current.dst], pieceNotation[current.special]);
-			}
+			printMove(&current);
 			printf(": %llu\n", res);
 		}
 	}
