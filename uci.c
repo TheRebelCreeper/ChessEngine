@@ -149,8 +149,17 @@ void parseGo(char *line, GameState *pos)
 	printf("time %u ", info.ms);
 	printf("nodes %llu ", info.nodes);
 	printf("nps %u ", info.nps);
-	printf("pv %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
-	printf("bestmove %s%s%s\n", squareNames[bestMove.src], squareNames[bestMove.dst], (bestMove.prop & IS_PROMOTION) ? pieceNotation[bestMove.special] : "");
+	printf("pv");
+	for (int i = 0; i < info.pvTableLength[0]; i++)
+	{
+		printf(" ");
+		printMove(&(info.pvTable[0][i]));
+	}
+	printf("\n");
+	
+	printf("bestmove ");
+	printMove(&bestMove);
+	printf("\n");
 }
 
 void uciLoop()
