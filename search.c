@@ -39,20 +39,10 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		}
 		
 		// Score captures
-		 if (moves->list[i] & IS_CAPTURE)
+		if (moves->list[i] & IS_CAPTURE)
 		{
-			int offset = 6 * (pos->turn ^ 1);
-			int victim = P;
-			for (int j = P; j <= K; j++)
-			{
-				if (get_square(pos->pieceBitboards[j + offset], GET_MOVE_DST(moves->list[i])))
-				{
-					victim = j;
-					break;
-				}
-			}
-			offset = 6 * pos->turn;
-			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][victim] + 1000;
+			int offset = 6 * pos->turn;
+			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i]) - 1] + 1000;
 		}
 		// Score quiet moves
 		else
