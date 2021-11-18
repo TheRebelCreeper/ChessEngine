@@ -18,15 +18,11 @@ int parseMove(char *inputString, MoveList *moveList)
 
 	for (int i = 0; i < moveList->nextOpen; i++)
 	{
-		promotionPiece = 0;
-		Move move = moveList->list[i];
 		
-		if (move.prop & IS_PROMOTION)
-		{
-			promotionPiece = move.special;
-		}
+		Move move = moveList->list[i];
+		promotionPiece = GET_MOVE_PROMOTION(move);
 
-		if (move.src == src && move.dst == dst)
+		if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst)
 		{
 			if (promotionPiece)
 			{
