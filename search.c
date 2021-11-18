@@ -6,15 +6,40 @@
 #include "move.h"
 #include "search.h"
 
-int NUM_THREADS = 4;
+int NUM_THREADS = 1;
+int followingPV = 0;
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
-	int i;
+	int i, scorePV = 0;
+	int ply = info->depth - depth;
+	
+	// Only give PV node a score if actually following PV line
+	if (followingPV)
+	{
+		followingPV = 0;
+		for (int i = 0; i < moves->nextOpen; i++)
+		{
+			if (moveEquality(moves->list[i], info->pvTable[0][ply]))
+			{
+				followingPV = 1;
+				scorePV = 1;
+			}
+		}
+	}
+	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
+		// Score PV move
+		if (followingPV && scorePV && moveEquality(moves->list[i], info->pvTable[0][ply]))
+		{
+			moves->list[i].score = 100000;
+			scorePV = 0;
+			continue;
+		}
+		
 		// Score captures
-		if (moves->list[i].prop & IS_CAPTURE)
+		 if (moves->list[i].prop & IS_CAPTURE)
 		{
 			int offset = 6 * (pos->turn ^ 1);
 			int victim = P;
@@ -33,12 +58,12 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		else
 		{	
 			// Check First Killer Move
-			if (moveEquality(moves->list[i], info->killerMoves[0][depth]))
+			if (moveEquality(moves->list[i], info->killerMoves[0][ply]))
 			{
 				moves->list[i].score = 900;
 			}
 			// Check Second Killer Move
-			else if (moveEquality(moves->list[i], info->killerMoves[1][depth]))
+			else if (moveEquality(moves->list[i], info->killerMoves[1][ply]))
 			{
 				moves->list[i].score = 800;
 			}
@@ -95,7 +120,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
-			#pragma omp atomic
 			info->nodes++;
 			eval = -quiescence(-beta, -alpha, depth + 1, &newState, info);
 			if (eval >= beta)
@@ -126,7 +150,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	int ply = info->depth - depth;
 	info->pvTableLength[ply] = depth;
 	
-	if (depth <= 0)
+	if (depth <= 0 || ply >= MAX_PLY)
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
@@ -149,23 +173,18 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//if (isInCheck(pos))
 			//	depth++;
 			
-			#pragma omp atomic
 			info->nodes++;
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (eval >= beta)
 			{
 				if (!(current.prop & IS_CAPTURE))
 				{
-					#pragma omp critical
+					if (!moveEquality(current, info->killerMoves[0][ply]))
 					{
-						if (!moveEquality(current, info->killerMoves[0][depth]))
-						{
-							info->killerMoves[1][depth] = info->killerMoves[0][depth];
-							info->killerMoves[0][depth] = current;
-						}
-						info->history[newState.turn][current.src][current.dst] += (ply * ply);
+						info->killerMoves[1][ply] = info->killerMoves[0][ply];
+						info->killerMoves[0][ply] = current;
 					}
-					
+					info->history[newState.turn][current.src][current.dst] += (ply * ply);
 				}
 				return beta;
 			}				
@@ -204,82 +223,61 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-Move search(int depth, GameState *pos, SearchInfo *rootInfo)
+void search(int depth, GameState *pos, SearchInfo *rootInfo)
 {
-	MoveList moveList;
-	int size, i;
 	int bestScore;
-	int eval;
 	double start, finish;
-	start = omp_get_wtime();
+	
 	
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
 	rootInfo->nodes = 0ULL;
 	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
 	memset(rootInfo->history, 0, sizeof(rootInfo->history));
+	memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
+	memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
 	
-	// Generate all legal moves for position, then score and sort them using quicksort.
-	// Move list is at most 256 elements so sort will be fast
-	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, depth, rootInfo);
-	qsort(moveList.list, size, sizeof(Move), compareMoves);
-	
-	bestScore = -CHECKMATE;
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(bestScore, moveList, rootInfo)
-	for (i = 0; i < size; i++)
+	for (int ID = 1; ID <= depth; ID++)
 	{
-		int legal;
+		start = omp_get_wtime();
+		rootInfo->nodes = 0ULL;
+		rootInfo->depth = ID;
+		followingPV = 1;
+		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
 		
-		// Use a different SearchInfo for each move then add all important information after to avoid race conditions
-		SearchInfo info;
-		info.depth = rootInfo->depth;
-		info.nodes = 0ULL;
+		// After searching all possible moves, compile stats
+		finish = omp_get_wtime() + 0.0001;
+		rootInfo->ms = (unsigned int)((finish - start) * 1000);
+		rootInfo->nps = (unsigned int)(rootInfo->nodes / (finish - start));
+		rootInfo->bestScore = bestScore;
 		
-		// Clear killer move and history tables
-		memset(info.killerMoves, 0, sizeof(info.killerMoves));
-		memset(info.history, 0, sizeof(info.history));
-		memset(info.pvTable, 0, sizeof(info.pvTable));
-		
-		// Not sure how to sychronize this with OMP
-		//#pragma omp critical
-		//pickMove(&moveList, i);
-		
-		// Pick the next best move and then make said move
-		Move current = moveList.list[i];
-		GameState newState = playMove(pos, current, &legal);
-		
-		// If the move was legal, run negaMax on the resulting position
-		if (legal == 1)
+		int mated = 0;
+		if (rootInfo->bestScore > MAX_PLY_CHECKMATE)
 		{
-			info.nodes++;
-			
-			eval = -negaMax(-CHECKMATE, CHECKMATE, depth - 1, &newState, &info);
-			
-			// Keep track of nodes searched and add to rootInfo
-			#pragma omp critical
-			rootInfo->nodes += info.nodes;
-			
-			// If best move so far, keep track of the score and index of said move
-			if (eval > bestScore)
-			{
-				info.pvTable[0][0] = current;
-				memcpy((info.pvTable[0]) + 1, (info.pvTable[1]) + 1, info.pvTableLength[1] * sizeof(Move));
-				
-				#pragma omp critical
-				{
-					memcpy(rootInfo->pvTable, info.pvTable, sizeof(info.pvTable));
-					rootInfo->pvTableLength[0] = info.pvTableLength[1] + 1;
-					bestScore = eval;
-				}
-			}
+			rootInfo->bestScore = CHECKMATE - rootInfo->bestScore;
+			mated = 1;
 		}
+		else if (rootInfo->bestScore < -MAX_PLY_CHECKMATE)
+		{
+			rootInfo->bestScore = -CHECKMATE - rootInfo->bestScore;
+			mated = 1;
+		}
+		
+		printf("info depth %d ", ID);
+		printf("score %s %d ", (mated) ? "mate" : "cp", rootInfo->bestScore);
+		printf("time %u ", rootInfo->ms);
+		printf("nodes %llu ", rootInfo->nodes);
+		printf("nps %u ", rootInfo->nps);
+		printf("pv");
+		for (int i = 0; i < rootInfo->pvTableLength[0]; i++)
+		{
+			printf(" ");
+			printMove(&(rootInfo->pvTable[0][i]));
+		}
+		printf("\n");
+	
 	}
-	
-	// After searching all possible moves, compile stats
-	finish = omp_get_wtime() + 0.0001;
-	rootInfo->ms = (unsigned int)((finish - start) * 1000);
-	rootInfo->nps = (unsigned int)(rootInfo->nodes / (finish - start));
-	rootInfo->bestScore = bestScore;
-	
-	return rootInfo->pvTable[0][0];
+	// Print the best move
+	printf("bestmove ");
+	printMove(&(rootInfo->pvTable[0][0]));
+	printf("\n");
 }

@@ -74,6 +74,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			{
 				dst = pos->enpassantSquare;
 				moveList->list[i] = createMove(P + offset, src, dst, NO_SPECIAL, none);
+				moveList->list[i].prop |= IS_CAPTURE;
 				moveList->list[i++].prop |= IS_EN_PASSANT;
 			}
 		}

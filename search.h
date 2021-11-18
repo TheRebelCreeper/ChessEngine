@@ -5,7 +5,7 @@
 #include "move.h"
 #include "evaluation.h"
 
-#define MAX_PLY 16
+#define MAX_PLY 64
 
 extern int NUM_THREADS;
 
@@ -32,6 +32,6 @@ static const int MVV_LVA_TABLE[6][6] =
 	{100, 200, 300, 400, 500, 600}
 };
 
-Move search(int depth, GameState *pos, SearchInfo *info);
+void search(int depth, GameState *pos, SearchInfo *info);
 
 #endif
