@@ -21,12 +21,12 @@ int parseMove(char *inputString, MoveList *moveList)
 		promotionPiece = 0;
 		Move move = moveList->list[i];
 		
-		if (move.prop & IS_PROMOTION)
+		if (move & IS_PROMOTION)
 		{
-			promotionPiece = move.special;
+			promotionPiece = GET_MOVE_SPECIAL(move);
 		}
 
-		if (move.src == src && move.dst == dst)
+		if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst)
 		{
 			if (promotionPiece)
 			{

@@ -9,7 +9,7 @@
 #include "perft.h"
 #include "wrapper.h"
 
-//#define VALIDATE
+#define VALIDATE
 
 #define TEST_POSITION_DRAW_50 "k7/5R2/1K6/8/8/8/8/8 b - - 99 1"
 #define TEST_POSITION_KPENDGAME "4k3/8/3K4/3P4/8/8/8/8 w - - 1 2"

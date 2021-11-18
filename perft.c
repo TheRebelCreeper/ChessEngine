@@ -48,7 +48,7 @@ U64 perftDivide(int depth, GameState *pos)
 		{
 			U64 res = perft(depth - 1, &newState);
 			sum += res;
-			printMove(&current);
+			printMove(current);
 			printf(": %llu\n", res);
 		}
 	}
