@@ -136,6 +136,11 @@ void parseGo(char *line, GameState *pos)
 void uciLoop()
 {
 	GameState pos;
+	
+	// Needed to correctly output to GUI program, not sure why
+	setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+	
 	char buf[2048];
 	parsePosition("position startpos", &pos);
 	while (1)
