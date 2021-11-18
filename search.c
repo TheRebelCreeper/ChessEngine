@@ -6,7 +6,7 @@
 #include "move.h"
 #include "search.h"
 
-int NUM_THREADS = 4;
+int NUM_THREADS = 1;
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
@@ -211,12 +211,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-Move search(int depth, GameState *pos, SearchInfo *rootInfo)
+void search(int depth, GameState *pos, SearchInfo *rootInfo)
 {
-	MoveList moveList;
-	int size, i;
+	int size;
 	int bestScore;
-	int eval;
 	double start, finish;
 	
 	
@@ -232,81 +230,7 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 		start = omp_get_wtime();
 		rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
-		eval = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
-		bestScore = eval;
-		/*
-		// Generate all legal moves for position, then score and sort them using quicksort.
-		// Move list is at most 256 elements so sort will be fast
-		moveList = generateMoves(pos, &size);
-		scoreMoves(&moveList, pos, depth, rootInfo);
-		qsort(moveList.list, size, sizeof(Move), compareMoves);
-		
-		bestScore = -CHECKMATE;
-		#pragma omp parallel for num_threads(NUM_THREADS) shared(bestScore, moveList, rootInfo)
-		for (i = 0; i < size; i++)
-		{
-			int legal;
-			
-			// Use a different SearchInfo for each move then add all important information after to avoid race conditions
-			SearchInfo info;
-			
-			
-			info.depth = ID;
-			info.nodes = 0ULL;
-			
-			// Clear killer move and history tables
-			
-			// Maybe copy from root into local?
-			//memcpy(rootInfo->killerMoves, info.killerMoves, sizeof(info.killerMoves));
-			//memcpy(rootInfo->history, info.history, sizeof(info.history));
-			//memcpy(rootInfo->pvTable, info.pvTable, sizeof(info.pvTable));
-			
-			//memset(info.killerMoves, 0, sizeof(info.killerMoves));
-			//memset(info.history, 0, sizeof(info.history));
-			memcpy(info.killerMoves, rootInfo->pvTable, sizeof(rootInfo->pvTable));
-			memcpy(info.history, rootInfo->pvTableLength, sizeof(rootInfo->pvTableLength));
-			memcpy(info.pvTable, rootInfo->pvTable, sizeof(rootInfo->pvTable));
-			memcpy(info.pvTableLength, rootInfo->pvTableLength, sizeof(rootInfo->pvTableLength));
-			//memset(info.pvTable, 0, sizeof(info.pvTable));
-			//memset(info.pvTableLength, 0, sizeof(info.pvTableLength));
-			
-			// Not sure how to sychronize this with OMP
-			//#pragma omp critical
-			//pickMove(&moveList, i);
-			
-			// Pick the next best move and then make said move
-			Move current = moveList.list[i];
-			GameState newState = playMove(pos, current, &legal);
-			
-			// If the move was legal, run negaMax on the resulting position
-			if (legal == 1)
-			{
-				info.nodes++;
-				
-				eval = -negaMax(-CHECKMATE, CHECKMATE, ID - 1, &newState, &info);
-				
-				// Keep track of nodes searched and add to rootInfo
-				#pragma omp critical
-				rootInfo->nodes += info.nodes;
-				
-				// If best move so far, keep track of the score and index of said move
-				if (eval > bestScore)
-				{
-					#pragma omp critical
-					{
-						info.pvTable[0][0] = current;
-						memcpy((info.pvTable[0]) + 1, (info.pvTable[1]) + 1, info.pvTableLength[1] * sizeof(Move));
-					
-					
-						memcpy(rootInfo->killerMoves, info.killerMoves, sizeof(info.killerMoves));
-						memcpy(rootInfo->history, info.history, sizeof(info.history));
-						memcpy(rootInfo->pvTable, info.pvTable, sizeof(info.pvTable));
-						rootInfo->pvTableLength[0] = info.pvTableLength[1] + 1;
-						bestScore = eval;
-					}
-				}
-			}
-		} */
+		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
 		
 		// After searching all possible moves, compile stats
 		finish = omp_get_wtime() + 0.0001;
@@ -340,6 +264,8 @@ Move search(int depth, GameState *pos, SearchInfo *rootInfo)
 		printf("\n");
 	
 	}
-	
-	return rootInfo->pvTable[0][0];
+	// Print the best move
+	printf("bestmove ");
+	printMove(&(rootInfo->pvTable[0][0]));
+	printf("\n");
 }

@@ -112,7 +112,6 @@ void parseGo(char *line, GameState *pos)
 {
 	SearchInfo info;
 	info.depth = 6;
-	Move bestMove;
 	char *temp;
 	
     line += 3;                     // Start the line after the word "go"
@@ -131,11 +130,7 @@ void parseGo(char *line, GameState *pos)
 		info.depth = atoi(temp + 6);
     }
 	
-	bestMove = search(info.depth, pos, &info);
-	
-	printf("bestmove ");
-	printMove(&bestMove);
-	printf("\n");
+	search(info.depth, pos, &info);
 }
 
 void uciLoop()
