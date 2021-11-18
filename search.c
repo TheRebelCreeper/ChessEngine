@@ -7,21 +7,39 @@
 #include "search.h"
 
 int NUM_THREADS = 1;
+int followingPV = 0;
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
-	int i;
+	int i, scorePV = 0;
 	int ply = info->depth - depth;
+	
+	// Only give PV node a score if actually following PV line
+	if (followingPV)
+	{
+		followingPV = 0;
+		for (int i = 0; i < moves->nextOpen; i++)
+		{
+			if (moveEquality(moves->list[i], info->pvTable[0][ply]))
+			{
+				followingPV = 1;
+				scorePV = 1;
+			}
+		}
+	}
+	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
 		// Score PV move
-		if (moveEquality(moves->list[i], info->pvTable[0][ply]))
+		if (followingPV && scorePV && moveEquality(moves->list[i], info->pvTable[0][ply]))
 		{
 			moves->list[i].score = 100000;
+			scorePV = 0;
+			continue;
 		}
 		
 		// Score captures
-		else if (moves->list[i].prop & IS_CAPTURE)
+		 if (moves->list[i].prop & IS_CAPTURE)
 		{
 			int offset = 6 * (pos->turn ^ 1);
 			int victim = P;
@@ -102,7 +120,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
-			#pragma omp atomic
 			info->nodes++;
 			eval = -quiescence(-beta, -alpha, depth + 1, &newState, info);
 			if (eval >= beta)
@@ -156,23 +173,18 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//if (isInCheck(pos))
 			//	depth++;
 			
-			#pragma omp atomic
 			info->nodes++;
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (eval >= beta)
 			{
 				if (!(current.prop & IS_CAPTURE))
 				{
-					#pragma omp critical
+					if (!moveEquality(current, info->killerMoves[0][ply]))
 					{
-						if (!moveEquality(current, info->killerMoves[0][ply]))
-						{
-							info->killerMoves[1][ply] = info->killerMoves[0][ply];
-							info->killerMoves[0][ply] = current;
-						}
-						info->history[newState.turn][current.src][current.dst] += (ply * ply);
+						info->killerMoves[1][ply] = info->killerMoves[0][ply];
+						info->killerMoves[0][ply] = current;
 					}
-					
+					info->history[newState.turn][current.src][current.dst] += (ply * ply);
 				}
 				return beta;
 			}				
@@ -229,6 +241,7 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 		start = omp_get_wtime();
 		rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
+		followingPV = 1;
 		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
 		
 		// After searching all possible moves, compile stats
