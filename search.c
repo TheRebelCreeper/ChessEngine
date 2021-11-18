@@ -141,6 +141,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	int size, i, legal, found = 0;
 	int eval;
 	int ply = info->depth - depth;
+	int enablePVSearch = 0;
 	info->pvTableLength[ply] = depth;
 	
 	if (depth <= 0 || ply >= MAX_PLY)
@@ -167,7 +168,18 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//	depth++;
 			
 			info->nodes++;
-			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+			if (enablePVSearch)
+			{
+				eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info);
+				if ((eval > alpha) && (eval < beta))
+				{
+					eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+				}
+			}
+			else
+			{
+				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+			}
 			if (eval >= beta)
 			{
 				if ((current & IS_CAPTURE) == 0)
@@ -183,6 +195,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			}				
 			if (eval > alpha)
 			{
+				enablePVSearch = 1;
 				info->pvTable[ply][ply] = current;
 				if (depth > 1)
 				{
