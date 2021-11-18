@@ -4,19 +4,6 @@
 #include "position.h"
 #include "bitboard.h"
 
-int moveEquality(Move m1, Move m2)
-{
-	return m1 == m2;
-}
-
-int compareMoves(const void * a, const void * b)
-{
-	Move *m1 = (Move*)a;
-	Move *m2 = (Move*)b;
-	
-	return *m2 - *m1;
-}
-
 /*
 	There are special moves for kings and pawns only
 	For kings, 1 = O-O, 2 = O-O-O
@@ -63,19 +50,21 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 {	
 	GameState newPos;
 	memcpy(&newPos, pos, sizeof(GameState));
+	int turn = pos->turn;
 	int piece = GET_MOVE_PIECE(move);
 	int src = GET_MOVE_SRC(move);
 	int dst = GET_MOVE_DST(move);
-	int offset = 6 * pos->turn;
+	int promotion = GET_MOVE_PROMOTION(move);
+	int offset = 6 * turn;
 	
 	// Clear Source
 	clear_square(newPos.pieceBitboards[piece], src);
-	clear_square(newPos.occupancies[pos->turn], src);
+	clear_square(newPos.occupancies[turn], src);
 	
 	// En Passant Moves
-	if ((piece == P || piece == p) && move & IS_EN_PASSANT)
+	if ((piece == P || piece == p) && IS_MOVE_EP(move))
 	{
-		if (pos->turn == WHITE)
+		if (turn == WHITE)
 		{
 			clear_square(newPos.pieceBitboards[p], dst - 8);
 			clear_square(newPos.occupancies[BLACK], dst - 8);
@@ -88,7 +77,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	}
 	
 	// Clear Destination
-	if (pos->turn == WHITE)
+	if (turn == WHITE)
 	{
 		clear_square(newPos.occupancies[BLACK], dst);
 		for (int i = p; i <=k; i++)
@@ -112,10 +101,10 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	
 	// Set destination
 	// If pawn promotion
-	set_square(newPos.occupancies[pos->turn], dst);
-	if (piece == (P + offset) && move & IS_PROMOTION)
+	set_square(newPos.occupancies[turn], dst);
+	if (piece == (P + offset) && promotion)
 	{
-		set_square(newPos.pieceBitboards[GET_MOVE_SPECIAL(move) + offset], dst);
+		set_square(newPos.pieceBitboards[promotion + offset], dst);
 	}
 	else
 	{
@@ -123,22 +112,25 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	}
 	
 	// Castling
-	if (piece == (K + offset) && GET_MOVE_SPECIAL(move) != NO_SPECIAL)
+	if (piece == (K + offset) && IS_MOVE_CASTLES(move))
 	{
 		set_square(newPos.pieceBitboards[piece], dst);
-		if (GET_MOVE_SPECIAL(move) == OO_SPECIAL)
+		
+		//Short Castling
+		if (src < dst)
 		{
 			clear_square(newPos.pieceBitboards[R + offset], dst + 1);
-			clear_square(newPos.occupancies[pos->turn], dst + 1);
+			clear_square(newPos.occupancies[turn], dst + 1);
 			set_square(newPos.pieceBitboards[R + offset], dst - 1);
-			set_square(newPos.occupancies[pos->turn], dst - 1);
+			set_square(newPos.occupancies[turn], dst - 1);
 		}
-		else if (GET_MOVE_SPECIAL(move) == OOO_SPECIAL)
+		// Long Castling
+		else if (src > dst)
 		{
 			clear_square(newPos.pieceBitboards[R + offset], dst - 2);
-			clear_square(newPos.occupancies[pos->turn], dst - 2);
+			clear_square(newPos.occupancies[turn], dst - 2);
 			set_square(newPos.pieceBitboards[R + offset], dst + 1);
-			set_square(newPos.occupancies[pos->turn], dst + 1);
+			set_square(newPos.occupancies[turn], dst + 1);
 		}
 	}
 	
@@ -146,7 +138,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	newPos.castlingRights = (pos->castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
 	
 	// Reset 50 move counter if capture or pawn push
-	if ((move & IS_CAPTURE) || piece == P || piece == p)
+	if (GET_MOVE_CAPTURED(move) || piece == P || piece == p)
 	{
 		newPos.halfMoveClock = 0;
 	}
@@ -154,7 +146,13 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	{
 		newPos.halfMoveClock += 1;
 	}
-	newPos.enpassantSquare = GET_MOVE_EP_SQUARE(move);
+	
+	newPos.enpassantSquare = none;
+	// Might be wrong turn here if perft fails
+	if (IS_MOVE_DPP(move))
+	{
+		newPos.enpassantSquare = src + 8 - (16 * turn);
+	}
 	
 	// Legality Check
 	int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
@@ -172,5 +170,6 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 
 void printMove(Move m)
 {
-	printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m & IS_PROMOTION) ? pieceNotation[GET_MOVE_SPECIAL(m)] : "");
+	int promotion = GET_MOVE_PROMOTION(m);
+	printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
 }

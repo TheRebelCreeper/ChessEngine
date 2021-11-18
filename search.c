@@ -20,7 +20,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		followingPV = 0;
 		for (int i = 0; i < moves->nextOpen; i++)
 		{
-			if (moveEquality(moves->list[i], info->pvTable[0][ply]))
+			if (moves->list[i] == info->pvTable[0][ply])
 			{
 				followingPV = 1;
 				scorePV = 1;
@@ -31,7 +31,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 	for (i = 0; i < moves->nextOpen; i++)
 	{
 		// Score PV move
-		if (followingPV && scorePV && moveEquality(moves->list[i], info->pvTable[0][ply]))
+		if (followingPV && scorePV && moves->list[i] == info->pvTable[0][ply])
 		{
 			moves->score[i] = 100000;
 			scorePV = 0;
@@ -58,12 +58,12 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		else
 		{	
 			// Check First Killer Move
-			if (moveEquality(moves->list[i], info->killerMoves[0][ply]))
+			if (moves->list[i] == info->killerMoves[0][ply])
 			{
 				moves->score[i] = 900;
 			}
 			// Check Second Killer Move
-			else if (moveEquality(moves->list[i], info->killerMoves[1][ply]))
+			else if (moves->list[i] == info->killerMoves[1][ply])
 			{
 				moves->score[i] = 800;
 			}
@@ -116,7 +116,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
-		if ((current & (IS_CAPTURE | IS_PROMOTION)) == 0)
+		if ((GET_MOVE_CAPTURED(current) | GET_MOVE_PROMOTION(current)) == 0)
 		{
 			continue;
 		}
@@ -180,9 +180,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			if (eval >= beta)
 			{
-				if (!(current & IS_CAPTURE))
+				if ((current & IS_CAPTURE) == 0)
 				{
-					if (!moveEquality(current, info->killerMoves[0][ply]))
+					if (current != info->killerMoves[0][ply])
 					{
 						info->killerMoves[1][ply] = info->killerMoves[0][ply];
 						info->killerMoves[0][ply] = current;
