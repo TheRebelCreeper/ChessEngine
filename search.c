@@ -33,7 +33,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		// Score PV move
 		if (followingPV && scorePV && moveEquality(moves->list[i], info->pvTable[0][ply]))
 		{
-			//moves->list[i].score = 100000;
+			moves->score[i] = 100000;
 			scorePV = 0;
 			continue;
 		}
@@ -52,7 +52,7 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 				}
 			}
 			offset = 6 * pos->turn;
-			//moves->list[i].score = MVV_LVA_TABLE[moves->list[i].piece - offset][victim] + 1000;
+			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][victim] + 1000;
 		}
 		// Score quiet moves
 		else
@@ -60,16 +60,16 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 			// Check First Killer Move
 			if (moveEquality(moves->list[i], info->killerMoves[0][ply]))
 			{
-				//moves->list[i].score = 900;
+				moves->score[i] = 900;
 			}
 			// Check Second Killer Move
 			else if (moveEquality(moves->list[i], info->killerMoves[1][ply]))
 			{
-				//moves->list[i].score = 800;
+				moves->score[i] = 800;
 			}
 			else
 			{
-				//moves->list[i].score = info->history[pos->turn][moves->list[i].src][moves->list[i].dst];
+				moves->score[i] = info->history[pos->turn][GET_MOVE_SRC(moves->list[i])][GET_MOVE_DST(moves->list[i])];
 			}
 		}
 	}
@@ -81,13 +81,16 @@ void pickMove(MoveList *moves, int startIndex)
 	int i;
 	for (i = startIndex; i < moves->nextOpen; i++)
 	{
-		//if (moves->list[i].score > moves->list[bestIndex].score)
-		//	bestIndex = i;
+		if (moves->score[i] > moves->score[bestIndex])
+			bestIndex = i;
 	}
 	
-	//Move temp = moves->list[startIndex];
-	//moves->list[startIndex] = moves->list[bestIndex];
-	//moves->list[bestIndex] = temp;
+	Move temp = moves->list[startIndex];
+	int tempScore = moves->score[startIndex];
+	moves->list[startIndex] = moves->list[bestIndex];
+	moves->score[startIndex] = moves->score[bestIndex];
+	moves->list[bestIndex] = temp;
+	moves->score[bestIndex] = tempScore;
 }
 
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)

@@ -10,6 +10,7 @@
 typedef struct movelist {
 	int nextOpen;
 	Move list[MAX_MOVES];
+	int score[MAX_MOVES];
 } MoveList;
 
 void printMoveList(MoveList *list);
