@@ -132,30 +132,6 @@ void parseGo(char *line, GameState *pos)
     }
 	
 	bestMove = search(info.depth, pos, &info);
-	int mated = 0;
-	if (info.bestScore > MAX_PLY_CHECKMATE)
-	{
-		info.bestScore = CHECKMATE - info.bestScore;
-		mated = 1;
-	}
-	else if (info.bestScore < -MAX_PLY_CHECKMATE)
-	{
-		info.bestScore = -CHECKMATE - info.bestScore;
-		mated = 1;
-	}
-	
-	printf("info depth %d ", info.depth);
-	printf("score %s %d ", (mated) ? "mate" : "cp", info.bestScore);
-	printf("time %u ", info.ms);
-	printf("nodes %llu ", info.nodes);
-	printf("nps %u ", info.nps);
-	printf("pv");
-	for (int i = 0; i < info.pvTableLength[0]; i++)
-	{
-		printf(" ");
-		printMove(&(info.pvTable[0][i]));
-	}
-	printf("\n");
 	
 	printf("bestmove ");
 	printMove(&bestMove);

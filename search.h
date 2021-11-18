@@ -5,7 +5,7 @@
 #include "move.h"
 #include "evaluation.h"
 
-#define MAX_PLY 16
+#define MAX_PLY 64
 
 extern int NUM_THREADS;
 
