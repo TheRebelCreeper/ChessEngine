@@ -213,7 +213,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 void search(int depth, GameState *pos, SearchInfo *rootInfo)
 {
-	int size;
 	int bestScore;
 	double start, finish;
 	
