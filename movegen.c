@@ -9,7 +9,7 @@
 void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {
 	int i = moveList->nextOpen;
-	int src, dst, enpassantSquare, piece = P + offset;
+	int src, dst, piece = P + offset;
 	U64 pieceBB, pieceAttacks, enemyPieces, occupancy;
 	U64 singlePushTarget, doublePushTarget;
 	occupancy = pos->occupancies[BOTH];
