@@ -174,6 +174,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//	depth++;
 			
 			info->nodes++;
+			
+			// LMR psuedocode comes from https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html
+			// via Tord Romstad
 			if (movesSearched != 0)
 			{
 				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, pos, &newState))
