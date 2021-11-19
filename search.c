@@ -83,6 +83,11 @@ void pickMove(MoveList *moves, int startIndex)
 	moves->score[bestIndex] = tempScore;
 }
 
+inline int okToReduce(Move move, GameState *parent, GameState *child)
+{
+	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && isInCheck(parent) == 0 && isInCheck(child) == 0);
+}
+
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
@@ -142,6 +147,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	int eval;
 	int ply = info->depth - depth;
 	int enablePVSearch = 0;
+	int movesSearched = 0;
 	info->pvTableLength[ply] = depth;
 	
 	if (depth <= 0 || ply >= MAX_PLY)
@@ -168,18 +174,33 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//	depth++;
 			
 			info->nodes++;
-			if (enablePVSearch)
+			if (movesSearched != 0)
 			{
-				eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info);
-				if ((eval > alpha) && (eval < beta))
+				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, pos, &newState))
+					
 				{
-					eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 2, &newState, info);
+				}
+				else
+				{
+					eval = alpha + 1;
+				}
+				
+				if (eval > alpha)
+				{
+					eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info);
+					if ((eval > alpha) && (eval < beta))
+					{
+						eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+					}
 				}
 			}
-			else
+			else if (movesSearched == 0)
 			{
 				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
 			}
+			
+			movesSearched++;
 			if (eval >= beta)
 			{
 				if ((current & IS_CAPTURE) == 0)
