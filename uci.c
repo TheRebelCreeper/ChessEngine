@@ -107,7 +107,7 @@ void parsePosition(char *line, GameState *pos)
 void parseGo(char *line, GameState *pos)
 {
 	SearchInfo info;
-	info.depth = 6;
+	info.depth = 7;
 	char *temp;
 	
     line += 3;                     // Start the line after the word "go"
