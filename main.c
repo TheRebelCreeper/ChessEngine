@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 	initAttacks();
 	
 	#ifdef VALIDATE
+	NUM_THREADS = 12;
 	moveGeneratorValidator();
 	#else
 	uciLoop();
