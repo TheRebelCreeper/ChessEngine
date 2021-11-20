@@ -140,7 +140,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal, found = 0;
@@ -155,6 +155,22 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
 	
+	// Null move pruning. Something isn't working right
+	/*if (nullMove && isInCheck(pos) == 0 && depth >= 3)
+	{
+		GameState newPos;
+		memcpy(&newPos, pos, sizeof(GameState));
+		// Make null move by switching side
+		newPos.turn ^= 1;
+
+		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
+
+	    if (eval >= beta)
+	    {
+	        return beta;
+	    }
+	}*/
+
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
 	
@@ -182,7 +198,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, pos, &newState))
 					
 				{
-					eval = -negaMax(-alpha - 1, -alpha, depth - 2, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 1, &newState, info);
 				}
 				else
 				{
@@ -191,16 +207,16 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 				
 				if (eval > alpha)
 				{
-					eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 1, 1, &newState, info);
 					if ((eval > alpha) && (eval < beta))
 					{
-						eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+						eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 					}
 				}
 			}
 			else if (movesSearched == 0)
 			{
-				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
 			
 			movesSearched++;
@@ -272,7 +288,7 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 		rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
 		followingPV = 1;
-		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
+		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
 		
 		// After searching all possible moves, compile stats
 		finish = omp_get_wtime() + 0.0001;
