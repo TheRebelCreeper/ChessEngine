@@ -146,7 +146,6 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	int size, i, legal, found = 0;
 	int eval;
 	int ply = info->depth - depth;
-	int enablePVSearch = 0;
 	int movesSearched = 0;
 	info->pvTableLength[ply] = depth;
 	
@@ -156,12 +155,13 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 	
 	// Null move pruning. Something isn't working right
-	/*if (nullMove && isInCheck(pos) == 0 && depth >= 3)
+	if (nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
 		// Make null move by switching side
 		newPos.turn ^= 1;
+		newPos.enpassantSquare = none;
 
 		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
 
@@ -169,7 +169,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	    {
 	        return beta;
 	    }
-	}*/
+	}
 
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
@@ -235,7 +235,6 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			}				
 			if (eval > alpha)
 			{
-				enablePVSearch = 1;
 				info->pvTable[ply][ply] = current;
 				if (depth > 1)
 				{
@@ -276,6 +275,7 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	
 	
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
+	start = omp_get_wtime();
 	rootInfo->nodes = 0ULL;
 	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
 	memset(rootInfo->history, 0, sizeof(rootInfo->history));
@@ -284,8 +284,8 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	
 	for (int ID = 1; ID <= depth; ID++)
 	{
-		start = omp_get_wtime();
-		rootInfo->nodes = 0ULL;
+		
+		//rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
 		followingPV = 1;
 		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
