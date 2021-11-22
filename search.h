@@ -7,6 +7,9 @@
 
 #define MAX_PLY 64
 
+#define FULL_DEPTH_MOVES 4
+#define REDUCTION_LIMIT 3
+
 extern int NUM_THREADS;
 
 typedef struct info

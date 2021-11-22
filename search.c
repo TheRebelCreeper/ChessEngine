@@ -83,6 +83,11 @@ void pickMove(MoveList *moves, int startIndex)
 	moves->score[bestIndex] = tempScore;
 }
 
+inline int okToReduce(Move move, GameState *parent, GameState *child)
+{
+	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && isInCheck(parent) == 0 && isInCheck(child) == 0);
+}
+
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
@@ -135,13 +140,13 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal, found = 0;
 	int eval;
 	int ply = info->depth - depth;
-	int enablePVSearch = 0;
+	int movesSearched = 0;
 	info->pvTableLength[ply] = depth;
 	
 	if (depth <= 0 || ply >= MAX_PLY)
@@ -149,6 +154,23 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
 	
+	// Null move pruning. Something isn't working right
+	if (nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
+	{
+		GameState newPos;
+		memcpy(&newPos, pos, sizeof(GameState));
+		// Make null move by switching side
+		newPos.turn ^= 1;
+		newPos.enpassantSquare = none;
+
+		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
+
+	    if (eval >= beta)
+	    {
+	        return beta;
+	    }
+	}
+
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
 	
@@ -168,18 +190,36 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			//	depth++;
 			
 			info->nodes++;
-			if (enablePVSearch)
+			
+			// LMR psuedocode comes from https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html
+			// via Tord Romstad
+			if (movesSearched != 0)
 			{
-				eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info);
-				if ((eval > alpha) && (eval < beta))
+				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, pos, &newState))
+					
 				{
-					eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 1, &newState, info);
+				}
+				else
+				{
+					eval = alpha + 1;
+				}
+				
+				if (eval > alpha)
+				{
+					eval = -negaMax(-alpha - 1, -alpha, depth - 1, 1, &newState, info);
+					if ((eval > alpha) && (eval < beta))
+					{
+						eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
+					}
 				}
 			}
-			else
+			else if (movesSearched == 0)
 			{
-				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info);
+				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
+			
+			movesSearched++;
 			if (eval >= beta)
 			{
 				if ((current & IS_CAPTURE) == 0)
@@ -195,7 +235,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			}				
 			if (eval > alpha)
 			{
-				enablePVSearch = 1;
 				info->pvTable[ply][ply] = current;
 				if (depth > 1)
 				{
@@ -236,6 +275,7 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	
 	
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
+	start = omp_get_wtime();
 	rootInfo->nodes = 0ULL;
 	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
 	memset(rootInfo->history, 0, sizeof(rootInfo->history));
@@ -244,11 +284,11 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	
 	for (int ID = 1; ID <= depth; ID++)
 	{
-		start = omp_get_wtime();
-		rootInfo->nodes = 0ULL;
+		
+		//rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
 		followingPV = 1;
-		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, pos, rootInfo);
+		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
 		
 		// After searching all possible moves, compile stats
 		finish = omp_get_wtime() + 0.0001;
