@@ -40,11 +40,11 @@
 * use this format.
 */
 enum colors {
-    white,black
+	white,black
 };
 enum pieces {
-    blank=0,wking,wqueen,wrook,wbishop,wknight,wpawn,
-            bking,bqueen,brook,bbishop,bknight,bpawn
+	blank=0,wking,wqueen,wrook,wbishop,wknight,wpawn,
+			bking,bqueen,brook,bbishop,bknight,bpawn
 };
 
 /**
