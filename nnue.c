@@ -1161,8 +1161,8 @@ static const char *read_hidden_weights(weight_t *w, unsigned dims,
 		for (unsigned c = 0; c < dims; c++)
 			w[wt_idx(r, c, dims)] = *d++;
 
-		return d;
-	}
+	return d;
+}
 
 #ifdef USE_AVX2
 	static void permute_biases(int32_t *biases)
