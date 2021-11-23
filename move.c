@@ -86,13 +86,22 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	if (turn == WHITE)
 	{
 		clear_square(newPos.occupancies[BLACK], dst);
+		
+
+		// This causes race condition somehow
+		/*int victim = GET_MOVE_CAPTURED(move);
+		if (victim != 0)
+		{
+			clear_square(newPos.pieceBitboards[victim + 5], dst);
+			hashKey ^= pieceKeys[victim + 5][dst];
+		}*/
+
 		for (int i = p; i <=k; i++)
 		{
 			clear_square(newPos.pieceBitboards[i], dst);
 			if (get_square(newPos.pieceBitboards[i], dst))
 			{
 				hashKey ^= pieceKeys[i][dst];
-				clear_square(newPos.pieceBitboards[i], dst);
 			}
 			
 		}
@@ -109,7 +118,6 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 			if (get_square(newPos.pieceBitboards[i], dst))
 			{
 				hashKey ^= pieceKeys[i][dst];
-				clear_square(newPos.pieceBitboards[i], dst);
 			}
 		}
 		
