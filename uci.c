@@ -55,78 +55,150 @@ int parseMove(char *inputString, MoveList *moveList)
 void parsePosition(char *line, GameState *pos)
 {
 	char *temp;
-	
-    line += 9;                     // Start the line after the word "position"
-    temp = line;
-    
-    if (strncmp(line, "startpos", 8) == 0)
+
+	line += 9;                     // Start the line after the word "position"
+	temp = line;
+
+	if (strncmp(line, "startpos", 8) == 0)
 	{
-        loadFEN(pos, STARTING_FEN);
+		loadFEN(pos, STARTING_FEN);
 	}
-    else if (strncmp(line, "fen", 3) == 0)
-    {
+	else if (strncmp(line, "fen", 3) == 0)
+	{
 		temp += 4;                 // Start temp after the word "fen"
 		loadFEN(pos, temp);
-    }
+	}
 	else
 	{
 		loadFEN(pos, STARTING_FEN);
 	}
-    
-    temp = strstr(line, "moves");
-    if (temp != NULL)
-    {
+
+	temp = strstr(line, "moves");
+	if (temp != NULL)
+	{
 		int size, legal;
 		MoveList moveList;
-        temp += 6;                 // Length of "moves "
-        
-        while(*temp)
-        {
+		temp += 6;                 // Length of "moves "
+
+		while(*temp)
+		{
 			moveList = generateMoves(pos, &size);
-            int idx = parseMove(temp, &moveList);
-            
-            if (idx == -1)
+			int idx = parseMove(temp, &moveList);
+
+			if (idx == -1)
 			{
-                break;
+				break;
 			}
-            
+
 			GameState tempState = playMove(pos, moveList.list[idx], &legal);
 			if (!legal)
 				break;
 			*pos = tempState;
 			// Increment temp till the next move
-            while (*temp && *temp != ' ')
+			while (*temp && *temp != ' ')
 			{
 				temp++;
 			}
-            temp++;
-        }
-    }
+			temp++;
+		}
+	}
 }
 
 void parseGo(char *line, GameState *pos)
 {
+	int depth = -1, movestogo = 30,movetime = -1;
+	int time = -1, inc = 0;
+
 	SearchInfo info;
-	info.depth = 9;
+	info.stopped = 0;
+	info.timeset = 0;
 	char *temp;
 	
-    line += 3;                     // Start the line after the word "go"
-    temp = line;
-    
+	line += 3;                     // Start the line after the word "go"
+	temp = line;
+
 	if (strncmp(line, "perft", 5) == 0)
 	{
 		info.depth = atoi(temp + 6);
-        runPerft(info.depth, pos);
+		runPerft(info.depth, pos);
 		return;
 	}
-	
+
+	temp = strstr(line, "infinite");
+	if (temp != NULL)
+	{
+		;
+	}
+
+	temp = strstr(line, "winc");
+	if (temp != NULL && pos->turn == WHITE)
+	{
+		inc = atoi(temp + 5);
+	}
+
+	temp = strstr(line, "binc");
+	if (temp != NULL && pos->turn == BLACK)
+	{
+		inc = atoi(temp + 5);
+	}
+
+
+	temp = strstr(line, "wtime");
+	if (temp != NULL && pos->turn == WHITE)
+	{
+		time = atoi(temp + 6);
+	}
+
+	temp = strstr(line, "btime");
+	if (temp != NULL && pos->turn == BLACK)
+	{
+		time = atoi(temp + 6);
+	}
+
+	temp = strstr(line, "movestogo"); 
+	if (temp != NULL)
+	{
+		movestogo = atoi(temp + 10);
+	} 
+
+	temp = strstr(line, "movetime");
+	if (temp != NULL)
+	{
+		movetime = atoi(temp + 9);
+	}
+
 	temp = strstr(line, "depth");
-    if (temp != NULL)
-    {
-		info.depth = atoi(temp + 6);
-    }
+	if (temp != NULL)
+	{
+		depth = atoi(temp + 6);
+	}
+
+	if(movetime != -1)
+	{
+		time = movetime;
+		movestogo = 1;
+	}
 	
-	search(info.depth, pos, &info);
+	info.starttime = GetTimeMs();
+	
+	if(time != -1)
+	{
+		info.timeset = 1;
+		time /= movestogo;
+		time -= 25;		
+		info.stoptime = info.starttime + time + inc;
+	} 
+	
+	if(depth == -1)
+	{
+		info.depth = MAX_PLY;
+	}
+	else
+	{
+		info.depth = depth;
+	}
+	
+	search(pos, &info);
 }
 
 void uciLoop()
@@ -135,7 +207,7 @@ void uciLoop()
 	
 	// Needed to correctly output to GUI program, not sure why
 	setbuf(stdin, NULL);
-    setbuf(stdout, NULL);
+	setbuf(stdout, NULL);
 	
 	char buf[2048];
 	parsePosition("position startpos", &pos);

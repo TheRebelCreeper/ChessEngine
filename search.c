@@ -2,12 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <omp.h>
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#include <sys/select.h>
+#include <unistd.h>
+#endif
+
 #include "movegen.h"
 #include "move.h"
 #include "search.h"
 
 int NUM_THREADS = 1;
 int followingPV = 0;
+
+void checkTimeLeft(SearchInfo *info) {
+	// .. check if time up, or interrupt from GUI
+	if(info->timeset == 1 && GetTimeMs() > info->stoptime)
+	{
+		info->stopped = 1;
+	}
+		
+	ReadInput(info);
+}
 
 void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 {
@@ -93,6 +112,11 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	MoveList moveList;
 	int size, i, legal;
 	
+	if(( info->nodes & 2047 ) == 0)
+	{
+		checkTimeLeft(info);
+	}
+
 	int eval = evaluation(pos);
 	
 	if (eval >= beta)
@@ -120,6 +144,10 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		{
 			info->nodes++;
 			eval = -quiescence(-beta, -alpha, depth + 1, &newState, info);
+
+			if (info->stopped)
+				return 0;
+
 			if (eval >= beta)
 			{
 				return beta;
@@ -153,9 +181,14 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
+
+	if(( info->nodes & 2047 ) == 0)
+	{
+		checkTimeLeft(info);
+	}
 	
 	// Null move pruning. Something isn't working right
-	if (nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
+	/*if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -165,11 +198,11 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 
 		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
 
-	    if (eval >= beta)
-	    {
-	        return beta;
-	    }
-	}
+		if (eval >= beta)
+		{
+			return beta;
+		}
+	}*/
 
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
@@ -219,6 +252,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
 			
+			if (info->stopped)
+				return 0;
+
 			movesSearched++;
 			if (eval >= beta)
 			{
@@ -268,9 +304,11 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	return alpha;
 }
 
-void search(int depth, GameState *pos, SearchInfo *rootInfo)
+void search(GameState *pos, SearchInfo *rootInfo)
 {
 	int bestScore;
+	int bestMove = 0;
+	int searchDepth = rootInfo->depth;
 	double start, finish;
 	
 	
@@ -282,7 +320,7 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
 	memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
 	
-	for (int ID = 1; ID <= depth; ID++)
+	for (int ID = 1; ID <= searchDepth; ID++)
 	{
 		
 		//rootInfo->nodes = 0ULL;
@@ -290,6 +328,11 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 		followingPV = 1;
 		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
 		
+		if (rootInfo->stopped == 1)
+			break;
+
+		bestMove = rootInfo->pvTable[0][0];
+
 		// After searching all possible moves, compile stats
 		finish = omp_get_wtime() + 0.0001;
 		rootInfo->ms = (unsigned int)((finish - start) * 1000);
@@ -324,6 +367,78 @@ void search(int depth, GameState *pos, SearchInfo *rootInfo)
 	}
 	// Print the best move
 	printf("bestmove ");
-	printMove((rootInfo->pvTable[0][0]));
+	printMove(bestMove);
 	printf("\n");
+}
+
+int GetTimeMs()
+{ 
+#ifdef WIN32
+  return GetTickCount();
+#else
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  return t.tv_sec*1000 + t.tv_usec/1000;
+#endif
+}
+
+
+// http://home.arcor.de/dreamlike/chess/
+int InputWaiting()
+{
+#ifndef WIN32
+  fd_set readfds;
+  struct timeval tv;
+  FD_ZERO (&readfds);
+  FD_SET (fileno(stdin), &readfds);
+  tv.tv_sec=0; tv.tv_usec=0;
+  select(16, &readfds, 0, 0, &tv);
+
+  return (FD_ISSET(fileno(stdin), &readfds));
+#else
+   static int init = 0, pipe;
+   static HANDLE inh;
+   DWORD dw;
+
+   if (!init) {
+     init = 1;
+     inh = GetStdHandle(STD_INPUT_HANDLE);
+     pipe = !GetConsoleMode(inh, &dw);
+     if (!pipe) {
+        SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT|ENABLE_WINDOW_INPUT));
+        FlushConsoleInputBuffer(inh);
+      }
+    }
+    if (pipe) {
+      if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) return 1;
+      return dw;
+    } else {
+      GetNumberOfConsoleInputEvents(inh, &dw);
+      return dw <= 1 ? 0 : dw;
+	}
+#endif
+}
+
+void ReadInput(SearchInfo *info)
+{
+	int bytes;
+	char input[256] = "", *endc;
+
+	if (InputWaiting())
+	{
+		info->stopped = 1;
+		do {
+		  bytes=read(fileno(stdin),input,256);
+		} while (bytes<0);
+		endc = strchr(input,'\n');
+		if (endc) *endc=0;
+
+		if (strlen(input) > 0) {
+			if (!strncmp(input, "quit", 4))
+			{
+				exit(0);
+			}
+		}
+		return;
+	}
 }
