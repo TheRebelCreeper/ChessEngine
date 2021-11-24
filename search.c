@@ -204,7 +204,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 	
 	// Null move pruning
-	if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
+	if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3 && countBits(pos->occupancies[BOTH]) > 16)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
