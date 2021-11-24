@@ -183,8 +183,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	MoveList moveList;
 	int size, i, legal, found = 0;
 	int eval;
-	int ply = info->depth - depth;
 	int movesSearched = 0;
+	int ply = info->ply;
+	int inCheck = isInCheck(pos);
 	info->pvTableLength[ply] = depth;
 	
 	// Repetition only possible if halfmove is > 4
@@ -193,27 +194,36 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		return 0;
 	}
 
-	if (depth <= 0 || ply >= MAX_PLY)
+	// Enter quiescence if not in check
+	if (depth <= 0 && !inCheck)
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
+	}
+
+	if (ply >= MAX_PLY)
+	{
+		return evaluation(pos);
 	}
 
 	if(( info->nodes & 2047 ) == 0)
 	{
 		checkTimeLeft(info);
 	}
+
+	// if (inCheck)
+		//depth++;
 	
 	// Null move pruning
-	if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3 && countBits(pos->occupancies[BOTH]) > 16)
+	if (info->stopped == 0 && nullMove && ply && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
 		// Make null move by switching side
 		newPos.turn ^= 1;
 		newPos.enpassantSquare = none;
-
+		info->ply++;
 		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
-
+		info->ply--;
 		if (eval >= beta)
 		{
 			return beta;
@@ -230,18 +240,14 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		GameState newState = playMove(pos, current, &legal);
 
 		// Increment history index to next depth
-		historyIndex++;
+		
 		if (legal == 1)
 		{
 			// Save the current move into history
+			historyIndex++;
+			info->ply++;
 			posHistory[historyIndex] = newState.key;
 			found = 1;
-			
-			// TODO check extentions result in displaying wrong mate eval
-			// TODO check extentions can cause infinite loop when threefold repetition possible
-			// k7/pp6/8/2r5/8/8/1K2R3/8 w - - 0 1
-			//if (isInCheck(pos))
-			//	depth++;
 			
 			info->nodes++;
 			
@@ -274,7 +280,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			}
 			
 			// Unmake move by removing current move from history
+			info->ply--;
 			historyIndex--;
+			
 
 			if (info->stopped)
 				return 0;
@@ -304,10 +312,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				}
 				alpha = eval;
 			}
-		}
-		else
-		{
-			historyIndex--;
+			
 		}
 	}
 	
@@ -315,10 +320,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	{
 		// When no more legal moves, the pv does not exist
 		info->pvTableLength[ply] = 0;
-		if (isInCheck(pos))
+		if (inCheck)
 		{
-			int mateDepth = (info->depth - depth + 1) / 2;
-			return -CHECKMATE + mateDepth;
+			return -CHECKMATE + ply;
 		}
 		return 0;
 	}
@@ -343,6 +347,7 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
 	start = omp_get_wtime();
 	rootInfo->nodes = 0ULL;
+	rootInfo->ply = 0;
 	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
 	memset(rootInfo->history, 0, sizeof(rootInfo->history));
 	memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
@@ -350,12 +355,10 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	
 	for (int ID = 1; ID <= searchDepth; ID++)
 	{
-		
-		//rootInfo->nodes = 0ULL;
 		rootInfo->depth = ID;
 		followingPV = 1;
 		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
-		
+
 		if (rootInfo->stopped == 1)
 			break;
 
@@ -370,12 +373,12 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		int mated = 0;
 		if (rootInfo->bestScore > MAX_PLY_CHECKMATE)
 		{
-			rootInfo->bestScore = CHECKMATE - rootInfo->bestScore;
+			rootInfo->bestScore = (CHECKMATE - rootInfo->bestScore) / 2 + 1;
 			mated = 1;
 		}
 		else if (rootInfo->bestScore < -MAX_PLY_CHECKMATE)
 		{
-			rootInfo->bestScore = -CHECKMATE - rootInfo->bestScore;
+			rootInfo->bestScore = (-CHECKMATE - rootInfo->bestScore) / 2;
 			mated = 1;
 		}
 		

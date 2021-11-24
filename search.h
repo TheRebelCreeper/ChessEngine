@@ -24,6 +24,7 @@ typedef struct info
 	unsigned int ms;
 	unsigned int nps;
 	int bestScore;
+	int ply;
 	U64 nodes;
 	Move killerMoves[2][MAX_PLY];
 	int history[2][64][64];
