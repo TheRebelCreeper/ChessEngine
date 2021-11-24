@@ -30,10 +30,8 @@ enum
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
-extern GameState state;
 extern int historyIndex;
 extern char *pieceNotation[12];
-
 
 U64 posHistory[101];
 U64 pieceKeys[12][64];
@@ -45,7 +43,6 @@ U64 generatePosKey(GameState *pos);
 int getSquareFromNotation(char *str);
 void loadFEN(GameState *state, char *fen);
 void initKeys();
-void initStartingPosition();
 
 inline void setOccupancies(GameState *pos)
 {

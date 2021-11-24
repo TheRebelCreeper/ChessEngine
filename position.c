@@ -7,7 +7,6 @@
 
 int flip = 0;
 
-GameState state;
 int historyIndex = 0;
 
 #ifndef _WIN32
@@ -239,11 +238,6 @@ void loadFEN(GameState *state, char *fen)
 	state->key = generatePosKey(state);
 	
 	free(str);
-}
-
-void initStartingPosition()
-{
-	loadFEN(&state, STARTING_FEN);
 }
 
 void printBoard(GameState state)
