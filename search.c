@@ -195,7 +195,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 
 	// Enter quiescence if not in check
-	if (depth <= 0) // && !inCheck)
+	if (depth <= 0 && !inCheck)
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
