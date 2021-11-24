@@ -104,6 +104,7 @@ void parsePosition(char *line, GameState *pos)
 				historyIndex = 0;
 			}
 
+			// Add the legal move to history
 			posHistory[historyIndex] = tempState.key;
 			historyIndex++;
 

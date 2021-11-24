@@ -187,9 +187,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	int movesSearched = 0;
 	info->pvTableLength[ply] = depth;
 	
+	// Repetition only possible if halfmove is > 4
 	if (ply && pos->halfMoveClock > 4 && is_repetition(pos))
 	{
-		//printf("TEST\n");
 		return 0;
 	}
 
@@ -203,7 +203,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		checkTimeLeft(info);
 	}
 	
-	// Null move pruning. Something isn't working right
+	// Null move pruning
 	if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
 	{
 		GameState newPos;
@@ -225,12 +225,15 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	
 	for (i = 0; i < size; i++)
 	{
-		historyIndex++;
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
+
+		// Increment history index to next depth
+		historyIndex++;
 		if (legal == 1)
 		{
+			// Save the current move into history
 			posHistory[historyIndex] = newState.key;
 			found = 1;
 			
@@ -270,6 +273,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
 			
+			// Unmake move by removing current move from history
 			historyIndex--;
 
 			if (info->stopped)
