@@ -59,6 +59,7 @@ void parsePosition(char *line, GameState *pos)
 	line += 9;                     // Start the line after the word "position"
 	temp = line;
 	historyIndex = 0;
+	memset(posHistory, 0, sizeof(posHistory));
 
 	if (strncmp(line, "startpos", 8) == 0)
 	{
