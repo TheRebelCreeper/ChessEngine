@@ -89,21 +89,11 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 		
 
 		// This causes race condition somehow
-		/*int victim = GET_MOVE_CAPTURED(move);
+		int victim = GET_MOVE_CAPTURED(move);
 		if (victim != 0)
 		{
 			clear_square(newPos.pieceBitboards[victim + 5], dst);
 			hashKey ^= pieceKeys[victim + 5][dst];
-		}*/
-
-		for (int i = p; i <=k; i++)
-		{
-			clear_square(newPos.pieceBitboards[i], dst);
-			if (get_square(newPos.pieceBitboards[i], dst))
-			{
-				hashKey ^= pieceKeys[i][dst];
-			}
-			
 		}
 		
 		newPos.turn = BLACK;
@@ -112,13 +102,11 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	{
 		
 		clear_square(newPos.occupancies[WHITE], dst);
-		for (int i = P; i <=K; i++)
+		int victim = GET_MOVE_CAPTURED(move);
+		if (victim != 0)
 		{
-			clear_square(newPos.pieceBitboards[i], dst);
-			if (get_square(newPos.pieceBitboards[i], dst))
-			{
-				hashKey ^= pieceKeys[i][dst];
-			}
+			clear_square(newPos.pieceBitboards[victim -1], dst);
+			hashKey ^= pieceKeys[victim -1][dst];
 		}
 		
 		newPos.turn = WHITE;
@@ -142,8 +130,6 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	// Castling
 	if (piece == (K + offset) && IS_MOVE_CASTLES(move))
 	{
-		// Line not needed?
-		set_square(newPos.pieceBitboards[piece], dst);
 		
 		//Short Castling
 		if (src < dst)
