@@ -102,6 +102,16 @@ void pickMove(MoveList *moves, int startIndex)
 	moves->score[bestIndex] = tempScore;
 }
 
+inline int is_repetition(GameState *pos)
+{
+	for (int i = 0; i < historyIndex; i++)
+	{
+		if (posHistory[i] == pos->key)
+			return 1;
+	}
+	return 0;
+}
+
 inline int okToReduce(Move move, GameState *parent, GameState *child)
 {
 	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && isInCheck(parent) == 0 && isInCheck(child) == 0);
@@ -177,6 +187,12 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	int movesSearched = 0;
 	info->pvTableLength[ply] = depth;
 	
+	if (ply && pos->halfMoveClock > 4 && is_repetition(pos))
+	{
+		//printf("TEST\n");
+		return 0;
+	}
+
 	if (depth <= 0 || ply >= MAX_PLY)
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
@@ -188,7 +204,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 	
 	// Null move pruning. Something isn't working right
-	/*if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
+	if (info->stopped == 0 && nullMove && ply && isInCheck(pos) == 0 && depth >= 3)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -202,18 +218,20 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		{
 			return beta;
 		}
-	}*/
+	}
 
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, depth, info);
 	
 	for (i = 0; i < size; i++)
 	{
+		historyIndex++;
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
+			posHistory[historyIndex] = newState.key;
 			found = 1;
 			
 			// TODO check extentions result in displaying wrong mate eval
@@ -252,6 +270,8 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
 			
+			historyIndex--;
+
 			if (info->stopped)
 				return 0;
 
@@ -280,6 +300,10 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				}
 				alpha = eval;
 			}
+		}
+		else
+		{
+			historyIndex--;
 		}
 	}
 	

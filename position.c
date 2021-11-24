@@ -8,6 +8,7 @@
 int flip = 0;
 
 GameState state;
+int historyIndex = 0;
 
 #ifndef _WIN32
 char *pieceChars[13] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚", " "};

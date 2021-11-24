@@ -58,6 +58,7 @@ void parsePosition(char *line, GameState *pos)
 
 	line += 9;                     // Start the line after the word "position"
 	temp = line;
+	historyIndex = 0;
 
 	if (strncmp(line, "startpos", 8) == 0)
 	{
@@ -84,6 +85,7 @@ void parsePosition(char *line, GameState *pos)
 		{
 			moveList = generateMoves(pos, &size);
 			int idx = parseMove(temp, &moveList);
+			int piece = GET_MOVE_PIECE(moveList.list[idx]);
 
 			if (idx == -1)
 			{
@@ -92,7 +94,19 @@ void parsePosition(char *line, GameState *pos)
 
 			GameState tempState = playMove(pos, moveList.list[idx], &legal);
 			if (!legal)
+			{
 				break;
+			}
+
+			// If the move is a pawn push or capture, reset history list
+			if (GET_MOVE_CAPTURED(moveList.list[idx]) || piece == P || piece == p)
+			{
+				historyIndex = 0;
+			}
+
+			posHistory[historyIndex] = tempState.key;
+			historyIndex++;
+
 			*pos = tempState;
 			// Increment temp till the next move
 			while (*temp && *temp != ' ')
