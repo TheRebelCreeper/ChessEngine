@@ -10,6 +10,9 @@
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 
+//#define CHECK_EXTENTIONS
+//#define ASPIRATION_WINDOW
+
 extern int NUM_THREADS;
 
 typedef struct info

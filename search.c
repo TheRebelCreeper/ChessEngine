@@ -211,8 +211,10 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 
 	// Disabled for now. Might be good after TT
-	//if (inCheck)
-		//depth++;
+	#ifdef CHECK_EXTENTIONS
+	if (inCheck)
+		depth++;
+	#endif
 	
 	// Null move pruning
 	if (info->stopped == 0 && nullMove && ply && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
@@ -340,6 +342,8 @@ void search(GameState *pos, SearchInfo *rootInfo)
 {
 	int bestScore;
 	int bestMove = 0;
+	int alpha = -CHECKMATE;
+	int beta = CHECKMATE;
 	int searchDepth = rootInfo->depth;
 	double start, finish;
 	
@@ -356,10 +360,23 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	{
 		rootInfo->depth = ID;
 		followingPV = 1;
-		bestScore = negaMax(-CHECKMATE, CHECKMATE, ID, 1, pos, rootInfo);
+		bestScore = negaMax(alpha, beta, ID, 1, pos, rootInfo);
 
 		if (rootInfo->stopped == 1)
 			break;
+
+		#ifdef ASPIRATION_WINDOW
+		if (bestScore <= alpha || bestScore >= beta)
+		{
+			alpha = -CHECKMATE;
+			beta = CHECKMATE;
+			ID--;
+			continue;
+		}
+		
+		alpha = bestScore - 50;
+		beta = bestScore + 50;
+		#endif
 
 		bestMove = rootInfo->pvTable[0][0];
 
