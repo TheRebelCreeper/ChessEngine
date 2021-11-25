@@ -1,7 +1,6 @@
 *.o
+.log
 *.out
-output
-output2
 *.exe
 *.gch
 engine
