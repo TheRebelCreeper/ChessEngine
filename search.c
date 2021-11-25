@@ -343,7 +343,6 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	int searchDepth = rootInfo->depth;
 	double start, finish;
 	
-	
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
 	start = omp_get_wtime();
 	rootInfo->nodes = 0ULL;
