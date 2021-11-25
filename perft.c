@@ -39,7 +39,7 @@ U64 perftDivide(int depth, GameState *pos)
 	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
 
-	#pragma omp parallel for num_threads(NUM_THREADS) shared(moveList) reduction(+:sum)
+	//#pragma omp parallel for num_threads(NUM_THREADS) shared(moveList) reduction(+:sum)
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
