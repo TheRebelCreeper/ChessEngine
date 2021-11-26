@@ -116,8 +116,8 @@ inline int is_repetition(GameState *pos)
 		if (posHistory[idx] == pos->key)
 			reps++;
 	}
-	// return reps >= 2; This handles true threefold instead of single rep
-	return reps != 0;
+	return reps >= 2; //This handles true threefold instead of single rep
+	//return reps != 0; // Detects a single rep
 }
 
 inline int okToReduce(Move move, GameState *parent, GameState *child)
