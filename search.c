@@ -102,14 +102,22 @@ void pickMove(MoveList *moves, int startIndex)
 	moves->score[bestIndex] = tempScore;
 }
 
+// This isn't perfect solution. Has issues if approachin 50 move rule with overflow.
+// Giving each position a copy of posHistory and historyIndex should fix because
+// The history index could be reset on captures, or making array longer
 inline int is_repetition(GameState *pos)
 {
-	for (int i = 0; i < historyIndex; i++)
+	int reps = 0;
+	for (int i = 1; i < pos->halfMoveClock; i++)
 	{
-		if (posHistory[i] == pos->key)
-			return 1;
+		int idx = historyIndex - i;
+		if (idx < 0)
+			break;
+		if (posHistory[idx] == pos->key)
+			reps++;
 	}
-	return 0;
+	// return reps >= 2; This handles true threefold instead of single rep
+	return reps != 0;
 }
 
 inline int okToReduce(Move move, GameState *parent, GameState *child)
