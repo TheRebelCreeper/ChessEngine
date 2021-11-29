@@ -140,7 +140,13 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	if (eval >= beta)
 	{
 		return beta;
-	}				
+	}
+
+	// Delta pruning while not in check
+	int BIG_DELTA = 900;
+	if (eval < alpha - BIG_DELTA && !isInCheck(pos))
+		return alpha;
+
 	if (eval > alpha)
 	{
 		alpha = eval;
@@ -153,10 +159,11 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
-		if ((GET_MOVE_CAPTURED(current) | GET_MOVE_PROMOTION(current)) == 0)
+		if (GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
 		{
 			continue;
 		}
+
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
