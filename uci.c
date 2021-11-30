@@ -123,7 +123,7 @@ void parsePosition(char *line, GameState *pos)
 void parseGo(char *line, GameState *pos)
 {
 	int depth = -1, movestogo = 30,movetime = -1;
-	int time = -1, inc = 0;
+	int wtime = -1, btime = -1, time = -1, inc = 0;
 
 	SearchInfo info;
 	info.stopped = 0;
@@ -162,13 +162,15 @@ void parseGo(char *line, GameState *pos)
 	temp = strstr(line, "wtime");
 	if (temp != NULL && pos->turn == WHITE)
 	{
-		time = atoi(temp + 6);
+		wtime = atoi(temp + 6);
+		time = wtime;
 	}
 
 	temp = strstr(line, "btime");
 	if (temp != NULL && pos->turn == BLACK)
 	{
-		time = atoi(temp + 6);
+		btime = atoi(temp + 6);
+		time = btime;
 	}
 
 	temp = strstr(line, "movestogo"); 
@@ -200,8 +202,18 @@ void parseGo(char *line, GameState *pos)
 	if(time != -1)
 	{
 		info.timeset = 1;
+		if (time < inc)
+			inc = 0;
 		time /= movestogo;
 		time -= 50;
+		if (pos->turn == WHITE && time - 10000 > btime)
+		{
+			time += (time - btime / 4);
+		}
+		else if (pos->turn == BLACK && time - 10000 > wtime)
+		{
+			time += (time - wtime / 4);
+		}
 		if (time < 0)
 			time = 0;
 		info.stoptime = info.starttime + time + inc + 1;
