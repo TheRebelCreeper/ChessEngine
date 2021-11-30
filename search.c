@@ -142,10 +142,12 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		return beta;
 	}
 
+	#ifdef DELTA_PRUNING
 	// Delta pruning while not in check
 	int BIG_DELTA = 900;
 	if (eval < alpha - BIG_DELTA && !isInCheck(pos))
 		return alpha;
+	#endif
 
 	if (eval > alpha)
 	{

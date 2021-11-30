@@ -12,6 +12,7 @@
 
 //#define CHECK_EXTENTIONS
 #define ASPIRATION_WINDOW
+//#define DELTA_PRUNING
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
