@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <omp.h>
 
 #ifdef WIN32
 #include <windows.h>
-#include <unistd.h>
 #else
 #include <sys/time.h>
 #include <sys/select.h>
-#include <unistd.h>
 #endif
 
 #include "movegen.h"
