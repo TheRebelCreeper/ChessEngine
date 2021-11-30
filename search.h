@@ -10,14 +10,28 @@
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 
+//#define CHECK_EXTENTIONS
+#define ASPIRATION_WINDOW
+//#define DELTA_PRUNING
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 extern int NUM_THREADS;
 
 typedef struct info
 {
+	int starttime;
+	int stoptime;
 	int depth;
+	int timeset;
+	int movestogo;
+
+	int stopped;
 	unsigned int ms;
 	unsigned int nps;
 	int bestScore;
+	int ply;
 	U64 nodes;
 	Move killerMoves[2][MAX_PLY];
 	int history[2][64][64];
@@ -35,6 +49,8 @@ static const int MVV_LVA_TABLE[6][6] =
 	{100, 200, 300, 400, 500, 600}
 };
 
-void search(int depth, GameState *pos, SearchInfo *info);
+void search(GameState *pos, SearchInfo *info);
+int GetTimeMs();
+void ReadInput(SearchInfo *info);
 
 #endif

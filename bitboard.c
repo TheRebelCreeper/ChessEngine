@@ -61,13 +61,13 @@ U64 occupancyFromIndex(int index, U64 board)
 	int i, square;
 	U64 occupancy = 0ULL;
 	int bits = countBits(board);
-   
+	
 	// Cannot be easily parallelized since order matters regarding 1st least significant bit
 	for (i = 0; i < bits; i++)
 	{
 		square = getFirstBitSquare(board);
 		clear_square(board, square);
-      
+		
 		// Check if the ith bit is marked in the index
 		if (index & (1 << i))
 		{
@@ -101,7 +101,7 @@ U64 calculateKingAttacks(int square)
 	U64 pieceLocation = 0ULL;
 	U64 attacks = 0ULL;
 	set_square(pieceLocation, square);
-		
+	
 	attacks |= (pieceLocation << 1 & ~FileA);    // Left
 	attacks |= (pieceLocation << 7 & ~FileH);    // Top right
 	attacks |= (pieceLocation << 8);             // Top 

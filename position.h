@@ -17,6 +17,7 @@ typedef struct gameState
 {
 	U64 pieceBitboards[12];
 	U64 occupancies[3];
+	U64 key;
 	int turn;
 	int castlingRights;
 	int enpassantSquare;
@@ -24,18 +25,24 @@ typedef struct gameState
 	int fullMove;
 } GameState;
 
-extern GameState state;
-
-extern char *pieceNotation[12];
-
 enum
 {
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
+extern int historyIndex;
+extern char *pieceNotation[12];
+
+U64 posHistory[101];
+U64 pieceKeys[12][64];
+U64 castleKeys[16];
+U64 epKey[8];
+U64 sideKey;
+
+U64 generatePosKey(GameState *pos);
 int getSquareFromNotation(char *str);
 void loadFEN(GameState *state, char *fen);
-void initStartingPosition();
+void initKeys();
 
 inline void setOccupancies(GameState *pos)
 {

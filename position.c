@@ -3,10 +3,11 @@
 #include <string.h>
 #include <ctype.h>
 #include "position.h"
+#include "magic.h"
 
 int flip = 0;
 
-GameState state;
+int historyIndex = 0;
 
 #ifndef _WIN32
 char *pieceChars[13] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚", " "};
@@ -95,6 +96,62 @@ int getPieceAtSquare(GameState state, int square)
 	return NO_PIECE;
 }
 
+void initKeys()
+{
+	sideKey = random_u64();
+	for (int i = 0; i < 12; i++)
+	{
+		for (int j = 0; j < 64; j++)
+		{
+			pieceKeys[i][j] = random_u64();
+		}
+	}
+
+	for (int i = 0; i < 16; i++)
+	{
+		castleKeys[i] = random_u64();
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		epKey[i] = random_u64();
+	}
+}
+
+U64 generatePosKey(GameState *pos)
+{
+
+	int src;
+	int i;
+	U64 finalKey = 0ULL, pieceBB;
+	
+	for (i = P; i <= k; i++)
+	{
+		// Generate Knight Moves
+		pieceBB = pos->pieceBitboards[i];
+		while (pieceBB)
+		{
+			src = getFirstBitSquare(pieceBB);
+			finalKey ^= pieceKeys[i][src];
+			clear_lsb(pieceBB);
+		}
+	}
+	
+	if(pos->turn == BLACK)
+	{
+		finalKey ^= sideKey;
+	}
+		
+	if(pos->enpassantSquare != none)
+	{
+		finalKey ^= epKey[pos->enpassantSquare & 7];
+	}
+	
+	finalKey ^= castleKeys[pos->castlingRights];
+	
+	return finalKey;
+}
+
 void loadFEN(GameState *state, char *fen)
 {
 	int rank, file, square, piece, index, length;
@@ -177,13 +234,10 @@ void loadFEN(GameState *state, char *fen)
 	state->fullMove = atoi(token);
 	
 	setOccupancies(state);
+
+	state->key = generatePosKey(state);
 	
 	free(str);
-}
-
-void initStartingPosition()
-{
-	loadFEN(&state, STARTING_FEN);
 }
 
 void printBoard(GameState state)
@@ -239,6 +293,7 @@ void printBoard(GameState state)
 	printf("\n");
 	printf("En Passant Square: %s\n", squareNames[state.enpassantSquare]);
 	printf("Halfmove Clock: %d\n", state.halfMoveClock);
-	printf("Move: %d\n\n", state.fullMove);
+	printf("Move: %d\n", state.fullMove);
+	printf("Hash Key: %llx\n", state.key);
 }
 

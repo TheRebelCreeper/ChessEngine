@@ -55,78 +55,180 @@ int parseMove(char *inputString, MoveList *moveList)
 void parsePosition(char *line, GameState *pos)
 {
 	char *temp;
-	
-    line += 9;                     // Start the line after the word "position"
-    temp = line;
-    
-    if (strncmp(line, "startpos", 8) == 0)
+
+	line += 9;                     // Start the line after the word "position"
+	temp = line;
+	historyIndex = 0;
+	memset(posHistory, 0, sizeof(posHistory));
+
+	if (strncmp(line, "startpos", 8) == 0)
 	{
-        loadFEN(pos, STARTING_FEN);
+		loadFEN(pos, STARTING_FEN);
 	}
-    else if (strncmp(line, "fen", 3) == 0)
-    {
+	else if (strncmp(line, "fen", 3) == 0)
+	{
 		temp += 4;                 // Start temp after the word "fen"
 		loadFEN(pos, temp);
-    }
+	}
 	else
 	{
 		loadFEN(pos, STARTING_FEN);
 	}
-    
-    temp = strstr(line, "moves");
-    if (temp != NULL)
-    {
+
+	temp = strstr(line, "moves");
+	if (temp != NULL)
+	{
 		int size, legal;
 		MoveList moveList;
-        temp += 6;                 // Length of "moves "
-        
-        while(*temp)
-        {
+		temp += 6;                 // Length of "moves "
+
+		while(*temp)
+		{
 			moveList = generateMoves(pos, &size);
-            int idx = parseMove(temp, &moveList);
-            
-            if (idx == -1)
+			int idx = parseMove(temp, &moveList);
+			int piece = GET_MOVE_PIECE(moveList.list[idx]);
+
+			if (idx == -1)
 			{
-                break;
+				break;
 			}
-            
+
 			GameState tempState = playMove(pos, moveList.list[idx], &legal);
 			if (!legal)
+			{
 				break;
+			}
+
+			// If the move is a pawn push or capture, reset history list
+			if (GET_MOVE_CAPTURED(moveList.list[idx]) || piece == P || piece == p)
+			{
+				historyIndex = 0;
+			}
+
+			// Add the legal move to history
+			posHistory[historyIndex] = tempState.key;
+			historyIndex++;
+
 			*pos = tempState;
 			// Increment temp till the next move
-            while (*temp && *temp != ' ')
+			while (*temp && *temp != ' ')
 			{
 				temp++;
 			}
-            temp++;
-        }
-    }
+			temp++;
+		}
+	}
 }
 
 void parseGo(char *line, GameState *pos)
 {
+	int depth = -1, movestogo = 30,movetime = -1;
+	int wtime = -1, btime = -1, time = -1, inc = 0;
+
 	SearchInfo info;
-	info.depth = 9;
+	info.stopped = 0;
+	info.timeset = 0;
 	char *temp;
 	
-    line += 3;                     // Start the line after the word "go"
-    temp = line;
-    
+	line += 3;                     // Start the line after the word "go"
+	temp = line;
+
 	if (strncmp(line, "perft", 5) == 0)
 	{
 		info.depth = atoi(temp + 6);
-        runPerft(info.depth, pos);
+		runPerft(info.depth, pos);
 		return;
 	}
-	
+
+	temp = strstr(line, "infinite");
+	if (temp != NULL)
+	{
+		;
+	}
+
+	temp = strstr(line, "winc");
+	if (temp != NULL && pos->turn == WHITE)
+	{
+		inc = atoi(temp + 5);
+	}
+
+	temp = strstr(line, "binc");
+	if (temp != NULL && pos->turn == BLACK)
+	{
+		inc = atoi(temp + 5);
+	}
+
+
+	temp = strstr(line, "wtime");
+	if (temp != NULL && pos->turn == WHITE)
+	{
+		wtime = atoi(temp + 6);
+		time = wtime;
+	}
+
+	temp = strstr(line, "btime");
+	if (temp != NULL && pos->turn == BLACK)
+	{
+		btime = atoi(temp + 6);
+		time = btime;
+	}
+
+	temp = strstr(line, "movestogo"); 
+	if (temp != NULL)
+	{
+		movestogo = atoi(temp + 10);
+	} 
+
+	temp = strstr(line, "movetime");
+	if (temp != NULL)
+	{
+		movetime = atoi(temp + 9);
+	}
+
 	temp = strstr(line, "depth");
-    if (temp != NULL)
-    {
-		info.depth = atoi(temp + 6);
-    }
+	if (temp != NULL)
+	{
+		depth = atoi(temp + 6);
+	}
+
+	if(movetime != -1)
+	{
+		time = movetime;
+		movestogo = 1;
+	}
 	
-	search(info.depth, pos, &info);
+	info.starttime = GetTimeMs();
+	
+	if(time != -1)
+	{
+		info.timeset = 1;
+		if (time < inc)
+			inc = 0;
+		time /= movestogo;
+		time -= 50;
+		if (pos->turn == WHITE && time - 10000 > btime)
+		{
+			time += (time - btime / 4);
+		}
+		else if (pos->turn == BLACK && time - 10000 > wtime)
+		{
+			time += (time - wtime / 4);
+		}
+		if (time < 0)
+			time = 0;
+		info.stoptime = info.starttime + time + inc + 1;
+	} 
+	
+	if(depth == -1)
+	{
+		info.depth = MAX_PLY;
+	}
+	else
+	{
+		info.depth = depth;
+	}
+	
+	search(pos, &info);
 }
 
 void uciLoop()
@@ -135,7 +237,7 @@ void uciLoop()
 	
 	// Needed to correctly output to GUI program, not sure why
 	setbuf(stdin, NULL);
-    setbuf(stdout, NULL);
+	setbuf(stdout, NULL);
 	
 	char buf[2048];
 	parsePosition("position startpos", &pos);

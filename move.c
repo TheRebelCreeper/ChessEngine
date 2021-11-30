@@ -56,21 +56,27 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	int dst = GET_MOVE_DST(move);
 	int promotion = GET_MOVE_PROMOTION(move);
 	int offset = 6 * turn;
+	U64 hashKey = pos->key;
 	
 	// Clear Source
+	hashKey ^= sideKey;
+	hashKey ^= pieceKeys[piece][src];
 	clear_square(newPos.pieceBitboards[piece], src);
 	clear_square(newPos.occupancies[turn], src);
 	
 	// En Passant Moves
 	if ((piece == P || piece == p) && IS_MOVE_EP(move))
 	{
+		hashKey ^= epKey[pos->enpassantSquare & 7];
 		if (turn == WHITE)
 		{
+			hashKey ^= pieceKeys[p][dst - 8];
 			clear_square(newPos.pieceBitboards[p], dst - 8);
 			clear_square(newPos.occupancies[BLACK], dst - 8);
 		}
 		else
 		{
+			hashKey ^= pieceKeys[P][dst + 8];
 			clear_square(newPos.pieceBitboards[P], dst + 8);
 			clear_square(newPos.occupancies[WHITE], dst + 8);
 		}
@@ -80,19 +86,27 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	if (turn == WHITE)
 	{
 		clear_square(newPos.occupancies[BLACK], dst);
-		for (int i = p; i <=k; i++)
+		
+
+		// This causes race condition somehow
+		int victim = GET_MOVE_CAPTURED(move);
+		if (victim != 0)
 		{
-			clear_square(newPos.pieceBitboards[i], dst);
+			clear_square(newPos.pieceBitboards[victim + 5], dst);
+			hashKey ^= pieceKeys[victim + 5][dst];
 		}
 		
 		newPos.turn = BLACK;
 	}
 	else
 	{
+		
 		clear_square(newPos.occupancies[WHITE], dst);
-		for (int i = P; i <=K; i++)
+		int victim = GET_MOVE_CAPTURED(move);
+		if (victim != 0)
 		{
-			clear_square(newPos.pieceBitboards[i], dst);
+			clear_square(newPos.pieceBitboards[victim -1], dst);
+			hashKey ^= pieceKeys[victim -1][dst];
 		}
 		
 		newPos.turn = WHITE;
@@ -104,38 +118,47 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	set_square(newPos.occupancies[turn], dst);
 	if (piece == (P + offset) && promotion)
 	{
+		hashKey ^= pieceKeys[promotion + offset][dst];
 		set_square(newPos.pieceBitboards[promotion + offset], dst);
 	}
 	else
 	{
+		hashKey ^= pieceKeys[piece][dst];
 		set_square(newPos.pieceBitboards[piece], dst);
 	}
 	
 	// Castling
 	if (piece == (K + offset) && IS_MOVE_CASTLES(move))
 	{
-		set_square(newPos.pieceBitboards[piece], dst);
 		
 		//Short Castling
 		if (src < dst)
 		{
+			hashKey ^= pieceKeys[R + offset][dst + 1];
 			clear_square(newPos.pieceBitboards[R + offset], dst + 1);
 			clear_square(newPos.occupancies[turn], dst + 1);
+
+			hashKey ^= pieceKeys[R + offset][dst - 1];
 			set_square(newPos.pieceBitboards[R + offset], dst - 1);
 			set_square(newPos.occupancies[turn], dst - 1);
 		}
 		// Long Castling
 		else if (src > dst)
 		{
+			hashKey ^= pieceKeys[R + offset][dst - 2];
 			clear_square(newPos.pieceBitboards[R + offset], dst - 2);
 			clear_square(newPos.occupancies[turn], dst - 2);
+
+			hashKey ^= pieceKeys[R + offset][dst + 1];
 			set_square(newPos.pieceBitboards[R + offset], dst + 1);
 			set_square(newPos.occupancies[turn], dst + 1);
 		}
 	}
 	
+	hashKey ^= castleKeys[newPos.castlingRights];
 	newPos.occupancies[BOTH] = newPos.occupancies[WHITE] | newPos.occupancies[BLACK];
 	newPos.castlingRights = (pos->castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
+	hashKey ^= castleKeys[newPos.castlingRights];
 	
 	// Reset 50 move counter if capture or pawn push
 	if (GET_MOVE_CAPTURED(move) || piece == P || piece == p)
@@ -152,6 +175,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	if (IS_MOVE_DPP(move))
 	{
 		newPos.enpassantSquare = src + 8 - (16 * turn);
+		hashKey ^= epKey[newPos.enpassantSquare & 7];
 	}
 	
 	// Legality Check
@@ -165,11 +189,18 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 		*isLegal = 1;
 	}
 	
+	// TODO incremental update of hash key
+	newPos.key = hashKey;
+	//newPos.key = generatePosKey(&newPos);
+
 	return newPos;
 }
 
 void printMove(Move m)
 {
 	int promotion = GET_MOVE_PROMOTION(m);
-	printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
+	if(m)
+	{
+		printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
+	}
 }

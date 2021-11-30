@@ -19,7 +19,8 @@
 
 int main(int argc, char *argv[])
 {
-	initNNUE("nn-eba324f53044.nnue");
+	initNNUE("nn-62ef826d1a6d.nnue");
+	initKeys();
 	initAttacks();
 	
 	#ifdef VALIDATE
