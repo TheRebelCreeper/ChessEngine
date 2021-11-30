@@ -16,12 +16,12 @@ DEFINES += -DUSE_SSE3 -msse3
 DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
-LAB = engine
+NAME = Saxton
 
-all: clean $(LAB)
+all: clean $(NAME)
 
 $(LAB):$(OBJECTS)
-	$(CC) $(CFLAGS) -o $(LAB) $(OBJECTS) $(LIBS) $(DEFINES)
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJECTS) $(LIBS) $(DEFINES)
 
 $(OBJECTS):$(SOURCES) $(INCLUDES)
 	$(CC) $(CFLAGS) -c $(SOURCES) $(DEFINES)
