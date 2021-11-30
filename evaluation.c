@@ -42,6 +42,21 @@ int materialCount(GameState *pos)
 	return (pos->turn == WHITE) ? score : -score;
 }
 
+int nonPawnMaterial(GameState *pos)
+{
+	int mat = 0;
+	mat += countBits(pos->pieceBitboards[N]) * pieceValue[N];
+	mat += countBits(pos->pieceBitboards[B]) * pieceValue[B];
+	mat += countBits(pos->pieceBitboards[R]) * pieceValue[R];
+	mat += countBits(pos->pieceBitboards[Q]) * pieceValue[Q];
+	
+	mat += countBits(pos->pieceBitboards[n]) * pieceValue[n];
+	mat += countBits(pos->pieceBitboards[b]) * pieceValue[b];
+	mat += countBits(pos->pieceBitboards[r]) * pieceValue[r];
+	mat += countBits(pos->pieceBitboards[q]) * pieceValue[q];
+	return mat;
+}
+
 int nnue_eval(GameState *pos)
 {
 	int i, idx = 2;
@@ -83,11 +98,13 @@ int nnue_eval(GameState *pos)
 int evaluation(GameState *pos)
 {
 	int score = 0;
+	int matPawns = countBits(pos->pieceBitboards[P]) + countBits(pos->pieceBitboards[p]);
+	int mat =  nonPawnMaterial(pos) + matPawns * pieceValue[P];
 	if (FOUND_NETWORK)
-		score = nnue_eval(pos);
+		score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
 	else
-		score += materialCount(pos);
-	return score;
+		score += mat;
+	return score * (100 - pos->halfMoveClock) / 100;
 }
 
 void printEvaluation(int score)

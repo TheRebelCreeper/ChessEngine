@@ -201,8 +201,10 @@ void parseGo(char *line, GameState *pos)
 	{
 		info.timeset = 1;
 		time /= movestogo;
-		time -= 25;		
-		info.stoptime = info.starttime + time + inc;
+		time -= 50;
+		if (time < 0)
+			time = 0;
+		info.stoptime = info.starttime + time + inc + 1;
 	} 
 	
 	if(depth == -1)
