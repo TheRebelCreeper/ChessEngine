@@ -199,5 +199,8 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 void printMove(Move m)
 {
 	int promotion = GET_MOVE_PROMOTION(m);
-	printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
+	if(m)
+	{
+		printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
+	}
 }
