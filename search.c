@@ -5,6 +5,7 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include <unistd.h>
 #else
 #include <sys/time.h>
 #include <sys/select.h>
@@ -120,9 +121,9 @@ inline int is_repetition(GameState *pos)
 	return reps != 0; // Detects a single rep
 }
 
-inline int okToReduce(Move move, GameState *parent, GameState *child)
+inline int okToReduce(Move move, int inCheck, int givesCheck)
 {
-	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && isInCheck(parent) == 0 && isInCheck(child) == 0);
+	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && inCheck == 0 && givesCheck == 0);
 }
 
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
@@ -265,6 +266,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			historyIndex++;
 			info->ply++;
 			posHistory[historyIndex] = newState.key;
+			int givesCheck = isInCheck(&newState);
 			found = 1;
 			
 			info->nodes++;
@@ -273,7 +275,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			// via Tord Romstad
 			if (movesSearched != 0)
 			{
-				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, pos, &newState))
+				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck))
 					
 				{
 					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 1, &newState, info);
@@ -381,16 +383,31 @@ void search(GameState *pos, SearchInfo *rootInfo)
 			break;
 
 		#ifdef ASPIRATION_WINDOW
-		if (bestScore <= alpha || bestScore >= beta)
+		
+		if (bestScore <= alpha)
 		{
-			alpha = -CHECKMATE;
-			beta = CHECKMATE;
+			beta = (alpha + beta) / 2;
+			alpha = MAX(bestScore - 50, -CHECKMATE);
+			ID--;
+			continue;
+		}
+		else if (bestScore >= beta)
+		{
+			beta = MIN(bestScore + 50, CHECKMATE);
 			ID--;
 			continue;
 		}
 		
-		alpha = bestScore - 50;
-		beta = bestScore + 50;
+		//if (bestScore <= alpha || bestScore >= beta)
+		//{
+		//	alpha = -CHECKMATE;
+		//	beta = CHECKMATE;
+		//	ID--;
+		//	continue;
+		//}
+		
+		alpha = MAX(bestScore - 50, -CHECKMATE);
+		beta  = MIN(bestScore + 50,  CHECKMATE);
 		#endif
 
 		bestMove = rootInfo->pvTable[0][0];

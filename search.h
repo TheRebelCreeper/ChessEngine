@@ -13,6 +13,9 @@
 //#define CHECK_EXTENTIONS
 #define ASPIRATION_WINDOW
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 extern int NUM_THREADS;
 
 typedef struct info
