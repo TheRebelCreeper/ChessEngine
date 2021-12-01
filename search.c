@@ -138,7 +138,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 	int eval = evaluation(pos);
 	
-	if (ply >= MAX_PLY)
+	if (info->ply >= MAX_PLY)
 	{
 		return evaluation(pos);
 	}
@@ -180,13 +180,13 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 			if (info->stopped)
 				return 0;
-
-			if (eval >= beta)
-			{
-				return beta;
-			}				
+		
 			if (eval > alpha)
 			{
+				if (eval >= beta)
+				{
+					return beta;
+				}	
 				alpha = eval;
 			}
 		}
@@ -326,23 +326,24 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				return 0;
 
 			movesSearched++;
-			if (eval >= beta)
-			{
-				saveTT(pos, current, beta, TT_CUT, depth, ply);
-				if ((current & IS_CAPTURE) == 0)
-				{
-					if (current != info->killerMoves[0][ply])
-					{
-						info->killerMoves[1][ply] = info->killerMoves[0][ply];
-						info->killerMoves[0][ply] = current;
-					}
-					info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
-				}
-				return beta;
-			}	
 			
 			if (eval > alpha)
 			{
+				if (eval >= beta)
+				{
+					saveTT(pos, current, beta, TT_CUT, depth, ply);
+					if ((current & IS_CAPTURE) == 0)
+					{
+						if (current != info->killerMoves[0][ply])
+						{
+							info->killerMoves[1][ply] = info->killerMoves[0][ply];
+							info->killerMoves[0][ply] = current;
+						}
+						info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+					}
+					return beta;
+				}	
+				
 				nodeBound = TT_PV;
 				info->pvTable[ply][ply] = current;
 				if (depth > 1)
