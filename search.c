@@ -223,8 +223,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	MoveList moveList;
 	Move bestMove = 0;
 	
-	info->nodes++;
 	info->pvTableLength[ply] = depth;
+	info->nodes++;
 	
 	// Search has exceeded max depth, return static eval
 	if (ply >= MAX_PLY)
@@ -259,14 +259,14 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	if (!isRoot && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
 	{
 		// Cut the pv line if this is a draw
-		info->pvTableLength[ply] = 0;
+		//info->pvTableLength[ply] = 0;
 		return 0;
 	}
 
 	// Check hash table for best move
 	Move ttMove = 0;
 	int eval = probeTT(pos, &ttMove, alpha, beta, depth, ply);
-	if (eval != INVALID_SCORE && !isRoot)
+	if (eval != INVALID_SCORE && !isRoot && !isPVNode)
 	{
 		return eval;
 	}
@@ -282,6 +282,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		newPos.key ^= sideKey;
 		if (pos->enpassantSquare != none)
 			newPos.key ^= epKey[pos->enpassantSquare & 7];
+		
 		info->ply++;
 		
 		// Search resulting position with reduced depth
@@ -491,6 +492,8 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		printf("pv");
 		for (int i = 0; i < rootInfo->pvTableLength[0]; i++)
 		{
+			if (i >= ID || rootInfo->pvTable[0][i] == 0)
+				break;
 			printf(" ");
 			printMove((rootInfo->pvTable[0][i]));
 		}
