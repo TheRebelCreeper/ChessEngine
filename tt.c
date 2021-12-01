@@ -45,13 +45,6 @@ void clearTT(TT *table)
 int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int depth, int ply)
 {
 	int index = pos->key % GLOBAL_TT.numEntries;
-	assert(index >= 0 && index <= GLOBAL_TT.numEntries - 1);
-    assert(depth>=1&&depth<64);
-    assert(alpha<beta);
-    assert(alpha>=-CHECKMATE&&alpha<=CHECKMATE);
-    assert(beta>=-CHECKMATE&&beta<=CHECKMATE);
-    assert(ply>=0&&ply<64);
-	
 	TTEntry entry = GLOBAL_TT.hashTable[index];
 	
 	if(entry.key == pos->key)
@@ -61,7 +54,6 @@ int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int dep
 		{
 			GLOBAL_TT.hit++;
 			
-			assert(entry.depth>=1&&entry.depth<64);
             assert(entry.bound>=TT_CUT&&entry.bound<=TT_PV);
 			
 			*score = entry.score;
@@ -82,7 +74,7 @@ int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int dep
                 case TT_PV:
                     return 1;
                     break;
-                default: assert(0); break;
+                default: break;
             }
 		}
 	}
@@ -91,13 +83,7 @@ int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int dep
 
 void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
 {
-
 	int index = pos->key % GLOBAL_TT.numEntries;
-	
-	assert(index >= 0 && index <= GLOBAL_TT.numEntries - 1);
-	assert(depth>=1&&depth<64);
-    assert(score>=-CHECKMATE&&score<=CHECKMATE);
-    assert(ply>=0&&ply<64);
 	
 	if( GLOBAL_TT.hashTable[index].key == 0) {
 		GLOBAL_TT.newWrite++;
