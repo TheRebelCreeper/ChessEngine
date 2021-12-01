@@ -211,7 +211,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	return alpha;
 }
 
-int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, SearchInfo *info)
+int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
 {
 	int size, i, legal, legalMoves = 0;
 	int ply = info->ply;
@@ -272,7 +272,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 	
 	// Null move pruning
-	if (nullMove && !isRoot && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
+	if (pruneNull && !isRoot && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -286,7 +286,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			newPos.key ^= epKey[pos->enpassantSquare & 7];
 		
 		info->ply++;
-		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
+		eval = -negaMax(-beta, -beta + 1, depth - 3, &newPos, info, 0);
 		info->ply--;
 		
 		// Ran out of time
@@ -328,7 +328,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
 				{
 					// Reduced search without null moves
-					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 0, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 2, &newState, info, 1);
 				}
 				else
 				{
@@ -337,17 +337,17 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				
 				if (eval > alpha)
 				{
-					eval = -negaMax(-alpha - 1, -alpha, depth - 1, 1, &newState, info);
+					eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
 					if ((eval > alpha) && (eval < beta))
 					{
-						eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
+						eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
 					}
 				}
 			}
 			// Do a full depth search on PV
 			else if (legalMoves == 0)
 			{
-				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
+				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
 			}
 			
 			// Unmake move by removing current move from history
@@ -429,7 +429,7 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		rootInfo->depth = ID;
 		followingPV = 1;
 		
-		bestScore = negaMax(alpha, beta, ID, 1, pos, rootInfo);
+		bestScore = negaMax(alpha, beta, ID, pos, rootInfo, 1);
 
 		if (rootInfo->stopped == 1)
 			break;
