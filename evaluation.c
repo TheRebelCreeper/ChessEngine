@@ -103,7 +103,7 @@ int evaluation(GameState *pos)
 	if (FOUND_NETWORK)
 		score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
 	else
-		score += mat;
+		score += materialCount(pos);
 	return score * (100 - pos->halfMoveClock) / 100;
 }
 

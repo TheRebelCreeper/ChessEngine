@@ -14,6 +14,7 @@
 #include "movegen.h"
 #include "move.h"
 #include "search.h"
+#include "tt.h"
 
 int NUM_THREADS = 1;
 int followingPV = 0;
@@ -137,6 +138,11 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 	int eval = evaluation(pos);
 	
+	if (ply >= MAX_PLY)
+	{
+		return evaluation(pos);
+	}
+	
 	if (eval >= beta)
 	{
 		return beta;
@@ -170,7 +176,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		if (legal == 1)
 		{
 			info->nodes++;
-			eval = -quiescence(-beta, -alpha, depth + 1, &newState, info);
+			eval = -quiescence(-beta, -alpha, depth, &newState, info);
 
 			if (info->stopped)
 				return 0;
@@ -198,15 +204,17 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
+	Move bestMove = 0;
 	int size, i, legal, found = 0;
-	int eval;
+	int eval = -CHECKMATE;
 	int movesSearched = 0;
 	int ply = info->ply;
 	int inCheck = isInCheck(pos);
+	char nodeBound = TT_ALL;
 	info->pvTableLength[ply] = depth;
 	
 	// Repetition only possible if halfmove is > 4
-	if (ply && pos->halfMoveClock > 4 && is_repetition(pos))
+	if (ply && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
 	{
 		return 0;
 	}
@@ -222,16 +230,22 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		return evaluation(pos);
 	}
 
-	if(( info->nodes & 2047 ) == 0)
-	{
-		checkTimeLeft(info);
-	}
-
 	// Disabled for now. Might be good after TT
 	#ifdef CHECK_EXTENTIONS
 	if (inCheck)
 		depth++;
 	#endif
+	
+	int pv_node = (beta-alpha>1);
+	if (ply && probeTT(pos, &eval, alpha, beta, depth, ply) == 1 && !pv_node)
+	{
+		return eval;
+	}
+
+	if(( info->nodes & 2047 ) == 0)
+	{
+		checkTimeLeft(info);
+	}
 	
 	// Null move pruning
 	if (info->stopped == 0 && nullMove && ply && !followingPV && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
@@ -240,6 +254,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		memcpy(&newPos, pos, sizeof(GameState));
 		// Make null move by switching side
 		newPos.turn ^= 1;
+		newPos.key ^= sideKey;
+		if (pos->enpassantSquare != none)
+			newPos.key ^= epKey[pos->enpassantSquare & 7];
 		newPos.enpassantSquare = none;
 		info->ply++;
 		eval = -negaMax(-beta, -beta + 1, depth - 3, 0, &newPos, info);
@@ -311,6 +328,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			movesSearched++;
 			if (eval >= beta)
 			{
+				saveTT(pos, current, beta, TT_CUT, depth, ply);
 				if ((current & IS_CAPTURE) == 0)
 				{
 					if (current != info->killerMoves[0][ply])
@@ -321,9 +339,11 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 					info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
 				}
 				return beta;
-			}				
+			}	
+			
 			if (eval > alpha)
 			{
+				nodeBound = TT_PV;
 				info->pvTable[ply][ply] = current;
 				if (depth > 1)
 				{
@@ -332,6 +352,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 					info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
 				}
 				alpha = eval;
+				bestMove = current;
 			}
 		}
 	}
@@ -347,12 +368,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		return 0;
 	}
 	
-	// Draw by 50 move rule
-	if (pos->halfMoveClock == 100)
-	{
-		return 0;
-	}
-	
+	saveTT(pos, bestMove, alpha, nodeBound, depth, ply);
 	return alpha;
 }
 
