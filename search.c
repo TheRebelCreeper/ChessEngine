@@ -214,7 +214,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	MoveList moveList;
 	Move bestMove = 0;
 	int size, i, legal, legalMoves = 0;
-	int eval = -CHECKMATE;
+	int eval = -INF;
 	int movesSearched = 0;
 	int ply = info->ply;
 	int inCheck = isInCheck(pos);
@@ -392,7 +392,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		info->pvTableLength[ply] = 0;
 		if (inCheck)
 		{
-			return -CHECKMATE + ply;
+			return -INF + ply;
 		}
 		return 0;
 	}
@@ -405,8 +405,8 @@ void search(GameState *pos, SearchInfo *rootInfo)
 {
 	int bestScore;
 	int bestMove = 0;
-	int alpha = -CHECKMATE;
-	int beta = CHECKMATE;
+	int alpha = -INF;
+	int beta = INF;
 	int searchDepth = rootInfo->depth;
 	double start, finish;
 	
@@ -434,27 +434,27 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		/*if (bestScore <= alpha)
 		{
 			beta = (alpha + beta) / 2;
-			alpha = MAX(bestScore - 50, -CHECKMATE);
+			alpha = MAX(bestScore - 50, -INF);
 			ID--;
 			continue;
 		}
 		else if (bestScore >= beta)
 		{
-			beta = MIN(bestScore + 50, CHECKMATE);
+			beta = MIN(bestScore + 50, INF);
 			ID--;
 			continue;
 		}*/
 		
 		if (bestScore <= alpha || bestScore >= beta)
 		{
-			alpha = -CHECKMATE;
-			beta = CHECKMATE;
+			alpha = -INF;
+			beta = INF;
 			ID--;
 			continue;
 		}
 		
-		alpha = MAX(bestScore - 50, -CHECKMATE);
-		beta  = MIN(bestScore + 50,  CHECKMATE);
+		alpha = MAX(bestScore - 50, -INF);
+		beta  = MIN(bestScore + 50,  INF);
 		#endif
 
 		bestMove = rootInfo->pvTable[0][0];
@@ -466,14 +466,14 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		rootInfo->bestScore = bestScore;
 		
 		int mated = 0;
-		if (rootInfo->bestScore > MAX_PLY_CHECKMATE)
+		if (rootInfo->bestScore > CHECKMATE)
 		{
-			rootInfo->bestScore = (CHECKMATE - rootInfo->bestScore) / 2 + 1;
+			rootInfo->bestScore = (INF - rootInfo->bestScore) / 2 + 1;
 			mated = 1;
 		}
-		else if (rootInfo->bestScore < -MAX_PLY_CHECKMATE)
+		else if (rootInfo->bestScore < -CHECKMATE)
 		{
-			rootInfo->bestScore = (-CHECKMATE - rootInfo->bestScore) / 2;
+			rootInfo->bestScore = (-INF - rootInfo->bestScore) / 2;
 			mated = 1;
 		}
 		

@@ -3,9 +3,12 @@
 
 #include <stdint.h>
 #include "move.h"
+#include "evaluation.h"
 
 // 16 Megabytes
 #define TT_SIZE ((1 << 20) * 32)
+
+#define INVALID_SCORE (INF + 100)
 
 #define TT_PV  0x4
 #define TT_ALL 0x2

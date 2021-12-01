@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "tt.h"
-#include "evaluation.h"
+
 
 TT GLOBAL_TT;
 
@@ -42,8 +42,10 @@ void clearTT(TT *table)
 	table->newWrite=0;
 }
 
+// Should return a score
 int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int depth, int ply)
 {
+	int hashScore = INVALID_SCORE;
 	int index = pos->key % GLOBAL_TT.numEntries;
 	TTEntry entry = GLOBAL_TT.hashTable[index];
 	
@@ -54,28 +56,26 @@ int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int dep
 		{
 			GLOBAL_TT.hit++;
 			
-            assert(entry.bound>=TT_CUT&&entry.bound<=TT_PV);
-			
 			*score = entry.score;
-			if(*score > MAX_PLY_CHECKMATE) *score -= ply;
-            else if(*score < -MAX_PLY_CHECKMATE) *score += ply;
+			if(*score > CHECKMATE)
+				*score -= ply;
+            else if(*score < -CHECKMATE)
+				*score += ply;
 			
-			switch(entry.bound) {
-                case TT_ALL: if(*score<=alpha) {
-                    *score=alpha;
-                    return 1;
-                    }
-                    break;
-                case TT_CUT: if(*score>=beta) {
-                    *score=beta;
-                    return 1;
-                    }
-                    break;
-                case TT_PV:
-                    return 1;
-                    break;
-                default: break;
-            }
+			if (entry.bound == TT_ALL && *score <= alpha)
+			{
+				*score = alpha;
+				return 1;
+			}
+			else if (entry.bound == TT_CUT && *score >= beta)
+			{
+				*score = beta;
+				return 1;
+			}
+			else if (entry.bound == TT_PV)
+			{
+				return 1;
+			}
 		}
 	}
 	return 0;
@@ -85,14 +85,21 @@ void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
 {
 	int index = pos->key % GLOBAL_TT.numEntries;
 	
-	if( GLOBAL_TT.hashTable[index].key == 0) {
+	/*
+	// Debug stats
+	if( GLOBAL_TT.hashTable[index].key == 0)
+	{
 		GLOBAL_TT.newWrite++;
-	} else {
-		GLOBAL_TT.overWrite++;
 	}
+	else
+	{
+		GLOBAL_TT.overWrite++;
+	}*/
 	
-	if(score > MAX_PLY_CHECKMATE) score += ply;
-    else if(score < -MAX_PLY_CHECKMATE) score -= ply;
+	if(score > CHECKMATE)
+		score += ply;
+    else if(score < -CHECKMATE)
+		score -= ply;
 	
 	GLOBAL_TT.hashTable[index].move = move;
     GLOBAL_TT.hashTable[index].key = pos->key;

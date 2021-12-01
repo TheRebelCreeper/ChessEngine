@@ -110,14 +110,14 @@ int evaluation(GameState *pos)
 void printEvaluation(int score)
 {
 	int mated = 0;
-	if (score > MAX_PLY_CHECKMATE)
+	if (score > CHECKMATE)
 	{
-		score = CHECKMATE - score;
+		score = INF - score;
 		mated = 1;
 	}
-	else if (score < -MAX_PLY_CHECKMATE)
+	else if (score < -CHECKMATE)
 	{
-		score = -CHECKMATE - score;
+		score = -INF - score;
 		mated = 1;
 	}
 	printf("Eval: %s%d\n", (mated) ? "#" : "", score);
