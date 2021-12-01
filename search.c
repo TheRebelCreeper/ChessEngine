@@ -29,10 +29,10 @@ void checkTimeLeft(SearchInfo *info) {
 	ReadInput(info);
 }
 
-void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
+void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 {
 	int i, scorePV = 0;
-	int ply = info->depth - depth;
+	int ply = info->ply;
 	
 	// Only give PV node a score if actually following PV line
 	if (followingPV)
@@ -55,6 +55,13 @@ void scoreMoves(MoveList *moves, GameState *pos, int depth, SearchInfo *info)
 		{
 			moves->score[i] = 100000;
 			scorePV = 0;
+			continue;
+		}
+		
+		// Score TT hits
+		if (moves->list[i] == ttMove)
+		{
+			moves->score[i] = 90000;
 			continue;
 		}
 		
@@ -121,7 +128,7 @@ inline int is_repetition(GameState *pos)
 	return reps != 0; // Detects a single rep
 }
 
-inline int okToReduce(Move move, int inCheck, int givesCheck)
+inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 {
 	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && inCheck == 0 && givesCheck == 0);
 }
@@ -161,7 +168,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 	
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, depth, info);
+	scoreMoves(&moveList, pos, 0, info);
 	
 	for (i = 0; i < size; i++)
 	{
@@ -212,6 +219,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	int inCheck = isInCheck(pos);
 	char nodeBound = TT_ALL;
 	info->pvTableLength[ply] = depth;
+	int pv_node = (beta-alpha>1);
 	
 	// Repetition only possible if halfmove is > 4
 	if (ply && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
@@ -236,8 +244,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		depth++;
 	#endif
 	
-	int pv_node = (beta-alpha>1);
-	if (ply && probeTT(pos, &eval, alpha, beta, depth, ply) == 1 && !pv_node)
+	Move ttMove;
+	
+	if (ply && probeTT(pos, &eval, &ttMove, alpha, beta, depth, ply) && !pv_node)
 	{
 		return eval;
 	}
@@ -248,7 +257,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 	
 	// Null move pruning
-	if (info->stopped == 0 && nullMove && ply && !followingPV && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
+	if (info->stopped == 0 && nullMove && ply && !pv_node && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -268,7 +277,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	}
 
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, depth, info);
+	scoreMoves(&moveList, pos, ttMove, info);
 	
 	for (i = 0; i < size; i++)
 	{
@@ -293,8 +302,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			// via Tord Romstad
 			if (movesSearched != 0)
 			{
-				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck))
-					
+				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, pv_node))
 				{
 					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 1, &newState, info);
 				}

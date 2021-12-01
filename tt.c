@@ -42,7 +42,7 @@ void clearTT(TT *table)
 	table->newWrite=0;
 }
 
-int probeTT(GameState *pos, int *score, int alpha, int beta, int depth, int ply)
+int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int depth, int ply)
 {
 	int index = pos->key % GLOBAL_TT.numEntries;
 	assert(index >= 0 && index <= GLOBAL_TT.numEntries - 1);
@@ -56,7 +56,9 @@ int probeTT(GameState *pos, int *score, int alpha, int beta, int depth, int ply)
 	
 	if(entry.key == pos->key)
 	{
-		if(entry.depth >= depth){
+		*move = entry.move;
+		if(entry.depth >= depth)
+		{
 			GLOBAL_TT.hit++;
 			
 			assert(entry.depth>=1&&entry.depth<64);
@@ -87,7 +89,7 @@ int probeTT(GameState *pos, int *score, int alpha, int beta, int depth, int ply)
 	return 0;
 }
 
-void saveTT(GameState *pos, int move, int score, int bound, int depth, int ply)
+void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
 {
 
 	int index = pos->key % GLOBAL_TT.numEntries;
