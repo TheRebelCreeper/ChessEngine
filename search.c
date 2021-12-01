@@ -219,7 +219,6 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	int ply = info->ply;
 	int inCheck = isInCheck(pos);
 	char nodeBound = TT_ALL;
-	info->pvTableLength[ply] = depth;
 	int pv_node = beta - alpha > 1;
 	
 	info->nodes++;
@@ -227,6 +226,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	// Repetition only possible if halfmove is > 4
 	if (ply && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
 	{
+		info->pvTableLength[ply] = 0;
 		return 0;
 	}
 
@@ -246,6 +246,8 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 	{
 		return quiescence(alpha, beta, info->depth, pos, info);
 	}
+
+	info->pvTableLength[ply] = depth;
 
 	// Check hash table for best move
 	Move ttMove = 0;
