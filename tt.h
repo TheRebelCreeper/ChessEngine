@@ -40,7 +40,7 @@ extern TT GLOBAL_TT;
 TTEntry createTTEntry(U64 key, Move move, int score, int depth, char pv, char bound);
 void initTT(TT *table);
 void clearTT(TT *table);
-int probeTT(GameState *pos, int *score, Move *move, int alpha, int beta, int depth, int ply);
+int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply);
 void saveTT(GameState *pos, Move move, int score, int bounds, int depth, int ply);
 
 #endif

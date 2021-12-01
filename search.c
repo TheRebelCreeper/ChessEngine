@@ -34,6 +34,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 	int i, scorePV = 0;
 	int ply = info->ply;
 	
+	/*
 	// Only give PV node a score if actually following PV line
 	if (followingPV)
 	{
@@ -46,22 +47,23 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 				scorePV = 1;
 			}
 		}
-	}
+	}*/
 	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
+		/*
 		// Score PV move
 		if (followingPV && scorePV && moves->list[i] == info->pvTable[0][ply])
 		{
 			moves->score[i] = 100000;
 			scorePV = 0;
 			continue;
-		}
+		}*/
 		
 		// Score TT hits
 		if (moves->list[i] == ttMove)
 		{
-			moves->score[i] = 90000;
+			moves->score[i] = 100000;
 			continue;
 		}
 		
@@ -211,51 +213,25 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, SearchInfo *info)
 {
+	int size, i, legal, legalMoves = 0;
+	int ply = info->ply;
+	char nodeBound = TT_ALL;
+	int inCheck = isInCheck(pos);
+	int isPVNode = beta - alpha > 1;
+	int isRoot = (ply == 0);
+	
 	MoveList moveList;
 	Move bestMove = 0;
-	int size, i, legal, legalMoves = 0;
-	int eval = -INF;
-	int movesSearched = 0;
-	int ply = info->ply;
-	int inCheck = isInCheck(pos);
-	char nodeBound = TT_ALL;
-	int pv_node = beta - alpha > 1;
 	
 	info->nodes++;
+	info->pvTableLength[ply] = depth;
 	
-	// Repetition only possible if halfmove is > 4
-	if (ply && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
-	{
-		info->pvTableLength[ply] = 0;
-		return 0;
-	}
-
+	// Search has exceeded max depth, return static eval
 	if (ply >= MAX_PLY)
 	{
 		return evaluation(pos);
 	}
-
-	// Disabled for now. Might be good after TT
-	#ifdef CHECK_EXTENTIONS
-	if (inCheck)
-		depth++;
-	#endif
-
-	// Enter quiescence if not in check
-	if (depth <= 0)
-	{
-		return quiescence(alpha, beta, info->depth, pos, info);
-	}
-
-	info->pvTableLength[ply] = depth;
-
-	// Check hash table for best move
-	Move ttMove = 0;
-	if (ply && probeTT(pos, &eval, &ttMove, alpha, beta, depth, ply) && !pv_node)
-	{
-		return eval;
-	}
-
+	
 	// Update time left
 	if(( info->nodes & 2047 ) == 0)
 	{
@@ -265,8 +241,38 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			return 0;
 	}
 	
+	// Increase depth if currently in check since there are few replies
+	#ifdef CHECK_EXTENTIONS
+	if (inCheck)
+		depth++;
+	#endif
+	
+	// Enter quiescence if not in check
+	if (depth <= 0)
+	{
+		info->nodes--;
+		return quiescence(alpha, beta, depth, pos, info);
+	}
+	
+	// Search for draws and repetitions
+	// Don't need to search for repetition if halfMoveClock is low
+	if (!isRoot && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
+	{
+		// Cut the pv line if this is a draw
+		info->pvTableLength[ply] = 0;
+		return 0;
+	}
+
+	// Check hash table for best move
+	Move ttMove = 0;
+	int eval = probeTT(pos, &ttMove, alpha, beta, depth, ply);
+	if (eval != INVALID_SCORE && !isRoot)
+	{
+		return eval;
+	}
+	
 	// Null move pruning
-	if (nullMove && ply && !pv_node && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
+	if (nullMove && !isRoot && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
 	{
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -304,7 +310,6 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 		
 		if (legal == 1)
 		{
-			legalMoves++;
 			info->ply++;
 			
 			// Save the current move into history
@@ -318,9 +323,9 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			// via Tord Romstad
 			
 			// LMR on non PV node
-			if (movesSearched != 0)
+			if (legalMoves != 0)
 			{
-				if (movesSearched >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, pv_node))
+				if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
 				{
 					// Reduced search without null moves
 					eval = -negaMax(-alpha - 1, -alpha, depth - 2, 0, &newState, info);
@@ -340,7 +345,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 				}
 			}
 			// Do a full depth search on PV
-			else if (movesSearched == 0)
+			else if (legalMoves == 0)
 			{
 				eval = -negaMax(-beta, -alpha, depth - 1, 1, &newState, info);
 			}
@@ -353,7 +358,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 			if (info->stopped)
 				return 0;
 
-			movesSearched++;
+			legalMoves++;
 			
 			if (eval > alpha)
 			{		
@@ -404,7 +409,7 @@ int negaMax(int alpha, int beta, int depth, int nullMove, GameState *pos, Search
 void search(GameState *pos, SearchInfo *rootInfo)
 {
 	int bestScore;
-	int bestMove = 0;
+	Move bestMove = 0;
 	int alpha = -INF;
 	int beta = INF;
 	int searchDepth = rootInfo->depth;
