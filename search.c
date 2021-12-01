@@ -272,21 +272,22 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 	
 	// Null move pruning
-	if (pruneNull && !isRoot && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
+	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
 	{
+		// Make the null move
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
-		// Make null move by switching side
 		newPos.turn ^= 1;
 		newPos.enpassantSquare = none;
-		
-		// Update the hash key for the new position
 		newPos.key ^= sideKey;
 		if (pos->enpassantSquare != none)
 			newPos.key ^= epKey[pos->enpassantSquare & 7];
-		
 		info->ply++;
+		
+		// Search resulting position with reduced depth
 		eval = -negaMax(-beta, -beta + 1, depth - 3, &newPos, info, 0);
+		
+		// Unmake null move
 		info->ply--;
 		
 		// Ran out of time
