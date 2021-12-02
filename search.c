@@ -3,7 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <omp.h>
-#include <assert.h>
 
 #ifdef WIN32
 #include <windows.h>
