@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <omp.h>
+#include <assert.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -149,7 +150,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 	int eval = evaluation(pos);
 	
-	if (info->ply >= MAX_PLY)
+	if (info->ply > MAX_PLY)
 	{
 		return evaluation(pos);
 	}
@@ -186,8 +187,9 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		GameState newState = playMove(pos, current, &legal);
 		if (legal == 1)
 		{
+			info->ply++;
 			eval = -quiescence(-beta, -alpha, depth, &newState, info);
-
+			info->ply--;
 			if (info->stopped)
 				return 0;
 		
@@ -227,7 +229,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	info->nodes++;
 	
 	// Search has exceeded max depth, return static eval
-	if (ply >= MAX_PLY)
+	if (ply > MAX_PLY)
 	{
 		return evaluation(pos);
 	}
@@ -254,6 +256,20 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		return quiescence(alpha, beta, depth, pos, info);
 	}
 	
+	// Mate distance pruning
+	// Stops from searching for mate when faster mate already found
+	if (!isRoot)
+	{
+		int distance = -INF + ply;
+		
+		if (distance > alpha)
+		{
+			alpha = distance;
+			if (beta <= distance)
+				return distance;
+		}
+	}
+	
 	// Search for draws and repetitions
 	// Don't need to search for repetition if halfMoveClock is low
 	if (!isRoot && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
@@ -264,11 +280,24 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 
 	// Check hash table for best move
+	// Do not cut if pv node
 	Move ttMove = 0;
 	int eval = probeTT(pos, &ttMove, alpha, beta, depth, ply);
 	if (eval != INVALID_SCORE && !isRoot && !isPVNode)
 	{
 		return eval;
+	}
+	
+	int staticEval = evaluation(pos);
+	
+	// Static Null Move Pruning
+	// TODO Learn how this works
+	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
+	{   
+		int evalMargin = 120 * depth;
+		
+		if (staticEval - evalMargin >= beta)
+			return staticEval - evalMargin;
 	}
 	
 	// Null move pruning
