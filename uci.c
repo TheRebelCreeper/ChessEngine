@@ -221,7 +221,7 @@ void parseGo(char *line, GameState *pos)
 	
 	if(depth == -1)
 	{
-		info.depth = MAX_PLY;
+		info.depth = MAX_PLY - 1;
 	}
 	else
 	{
