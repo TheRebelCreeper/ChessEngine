@@ -66,6 +66,14 @@ inline void setOccupancies(GameState *pos)
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
+inline int onlyHasPawns(GameState *pos, int side)
+{
+	int piece = (side == WHITE) ? P : p;
+	int totalPieces = countBits(pos->occupancies[side]);
+	int totalPawns = countBits(pos->pieceBitboards[piece]);
+	return totalPieces - 1 == totalPawns;
+}
+
 inline int isSquareAttacked(GameState *pos, int square, int byColor)
 {
 	/*	Will use individual bits to indicate which pieces are attacking the square
