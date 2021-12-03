@@ -300,7 +300,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 	
 	// Null move pruning
-	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && countBits(pos->occupancies[BOTH]) > 10)
+	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
 	{
 		// Make the null move
 		GameState newPos;
