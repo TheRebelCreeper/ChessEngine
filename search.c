@@ -274,7 +274,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	if (!isRoot && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100))
 	{
 		// Cut the pv line if this is a draw
-		//info->pvTableLength[ply] = 0;
+		info->pvTableLength[ply] = 0;
 		return 0;
 	}
 
