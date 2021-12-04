@@ -34,36 +34,13 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 	int i, scorePV = 0;
 	int ply = info->ply;
 	
-	/*
-	// Only give PV node a score if actually following PV line
-	if (followingPV)
-	{
-		followingPV = 0;
-		for (int i = 0; i < moves->nextOpen; i++)
-		{
-			if (moves->list[i] == info->pvTable[0][ply])
-			{
-				followingPV = 1;
-				scorePV = 1;
-			}
-		}
-	}*/
-	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
-		/*
-		// Score PV move
-		if (followingPV && scorePV && moves->list[i] == info->pvTable[0][ply])
-		{
-			moves->score[i] = 100000;
-			scorePV = 0;
-			continue;
-		}*/
 		
 		// Score TT hits
 		if (moves->list[i] == ttMove)
 		{
-			moves->score[i] = 100000;
+			moves->score[i] = TT_HIT_SCORE;
 			continue;
 		}
 		
@@ -71,7 +48,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 		if (moves->list[i] & IS_CAPTURE)
 		{
 			int offset = 6 * pos->turn;
-			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i]) - 1] + 1000;
+			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i]) - 1] + KILLER_ONE;
 		}
 		// Score quiet moves
 		else
@@ -79,12 +56,12 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 			// Check First Killer Move
 			if (moves->list[i] == info->killerMoves[0][ply])
 			{
-				moves->score[i] = 900;
+				moves->score[i] = KILLER_ONE;
 			}
 			// Check Second Killer Move
 			else if (moves->list[i] == info->killerMoves[1][ply])
 			{
-				moves->score[i] = 800;
+				moves->score[i] = KILLER_TWO;
 			}
 			else
 			{
@@ -112,9 +89,6 @@ void pickMove(MoveList *moves, int startIndex)
 	moves->score[bestIndex] = tempScore;
 }
 
-// This isn't perfect solution. Has issues if approachin 50 move rule with overflow.
-// Giving each position a copy of posHistory and historyIndex should fix because
-// The history index could be reset on captures, or making array longer
 inline int is_repetition(GameState *pos)
 {
 	int reps = 0;
@@ -133,83 +107,6 @@ inline int is_repetition(GameState *pos)
 inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 {
 	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && inCheck == 0 && givesCheck == 0);
-}
-
-int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
-{
-	MoveList moveList;
-	int size, i, legal;
-	
-	info->nodes++;
-	
-	if(( info->nodes & 2047 ) == 0)
-	{
-		checkTimeLeft(info);
-	}
-
-	int eval = evaluation(pos);
-	
-	if (info->ply > MAX_PLY)
-	{
-		return evaluation(pos);
-	}
-	
-	if (eval >= beta)
-	{
-		return beta;
-	}
-
-	#ifdef DELTA_PRUNING
-	// Delta pruning while not in check
-	int BIG_DELTA = 900;
-	if (eval < alpha - BIG_DELTA && !isInCheck(pos))
-		return alpha;
-	#endif
-
-	if (eval > alpha)
-	{
-		alpha = eval;
-	}
-	
-	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, 0, info);
-	
-	for (i = 0; i < size; i++)
-	{
-		pickMove(&moveList, i);
-		Move current = moveList.list[i];
-		if (GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
-		{
-			continue;
-		}
-
-		GameState newState = playMove(pos, current, &legal);
-		if (legal == 1)
-		{
-			info->ply++;
-			eval = -quiescence(-beta, -alpha, depth, &newState, info);
-			info->ply--;
-			if (info->stopped)
-				return 0;
-		
-			if (eval > alpha)
-			{
-				alpha = eval;
-				if (eval >= beta)
-				{
-					return beta;
-				}	
-			}
-		}
-	}
-	
-	// Draw by 50 move rule
-	if (pos->halfMoveClock == 100)
-	{
-		return 0;
-	}
-	
-	return alpha;
 }
 
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
@@ -436,6 +333,83 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	return alpha;
 }
 
+int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+{
+	MoveList moveList;
+	int size, i, legal;
+	
+	info->nodes++;
+	
+	if(( info->nodes & 2047 ) == 0)
+	{
+		checkTimeLeft(info);
+	}
+
+	int eval = evaluation(pos);
+	
+	if (info->ply > MAX_PLY)
+	{
+		return evaluation(pos);
+	}
+	
+	if (eval >= beta)
+	{
+		return beta;
+	}
+
+	#ifdef DELTA_PRUNING
+	// Delta pruning while not in check
+	int BIG_DELTA = 900;
+	if (eval < alpha - BIG_DELTA && !isInCheck(pos))
+		return alpha;
+	#endif
+
+	if (eval > alpha)
+	{
+		alpha = eval;
+	}
+	
+	moveList = generateMoves(pos, &size);
+	scoreMoves(&moveList, pos, 0, info);
+	
+	for (i = 0; i < size; i++)
+	{
+		pickMove(&moveList, i);
+		Move current = moveList.list[i];
+		if (GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
+		{
+			continue;
+		}
+
+		GameState newState = playMove(pos, current, &legal);
+		if (legal == 1)
+		{
+			info->ply++;
+			eval = -quiescence(-beta, -alpha, depth, &newState, info);
+			info->ply--;
+			if (info->stopped)
+				return 0;
+		
+			if (eval > alpha)
+			{
+				alpha = eval;
+				if (eval >= beta)
+				{
+					return beta;
+				}	
+			}
+		}
+	}
+	
+	// Draw by 50 move rule
+	if (pos->halfMoveClock == 100)
+	{
+		return 0;
+	}
+	
+	return alpha;
+}
+
 void search(GameState *pos, SearchInfo *rootInfo)
 {
 	int bestScore;
@@ -466,7 +440,7 @@ void search(GameState *pos, SearchInfo *rootInfo)
 
 		#ifdef ASPIRATION_WINDOW
 		
-		/*if (bestScore <= alpha)
+		if (bestScore <= alpha)
 		{
 			beta = (alpha + beta) / 2;
 			alpha = MAX(bestScore - 50, -INF);
@@ -476,14 +450,6 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		else if (bestScore >= beta)
 		{
 			beta = MIN(bestScore + 50, INF);
-			ID--;
-			continue;
-		}*/
-		
-		if (bestScore <= alpha || bestScore >= beta)
-		{
-			alpha = -INF;
-			beta = INF;
 			ID--;
 			continue;
 		}

@@ -33,7 +33,7 @@ enum
 extern int historyIndex;
 extern char *pieceNotation[12];
 
-U64 posHistory[101];
+U64 posHistory[256];
 U64 pieceKeys[12][64];
 U64 castleKeys[16];
 U64 epKey[8];
