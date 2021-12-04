@@ -201,9 +201,8 @@ void parseGo(char *line, GameState *pos)
 	
 	if(time != -1)
 	{
+		int timeLeft = time + inc;
 		info.timeset = 1;
-		if (time < inc)
-			inc = 0;
 		time /= movestogo;
 		time -= 50;
 		
@@ -218,9 +217,15 @@ void parseGo(char *line, GameState *pos)
 				time += (time - wtime / 4);
 			}
 		}
-		if (time < 0)
+		
+		if (time <= 0)
+		{
 			time = 0;
-		info.stoptime = info.starttime + time + inc + 1;
+			inc -= 750;
+			if (inc < 0)
+				inc = 1;
+		}
+		info.stoptime = info.starttime + time + inc;
 	} 
 	
 	if(depth == -1)
