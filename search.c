@@ -111,9 +111,9 @@ inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
 {
+	char nodeBound = TT_ALL;
 	int size, i, legal, legalMoves = 0;
 	int ply = info->ply;
-	char nodeBound = TT_ALL;
 	int inCheck = isInCheck(pos);
 	int isPVNode = beta - alpha > 1;
 	int isRoot = (ply == 0);
@@ -184,14 +184,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		return eval;
 	}
 	
-	int staticEval = evaluation(pos);
-	
 	// Static Null Move Pruning
 	// TODO Learn how this works
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
+		int staticEval = evaluation(pos);
 		int evalMargin = 120 * depth;
-		
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
@@ -199,6 +197,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// Null move pruning
 	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
 	{
+		// Reduce by either 2 or 3 ply depending on depth
+		int r = (depth <= 6) ? 2 : 3;
+		
 		// Make the null move
 		GameState newPos;
 		memcpy(&newPos, pos, sizeof(GameState));
@@ -211,7 +212,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		info->ply++;
 		
 		// Search resulting position with reduced depth
-		eval = -negaMax(-beta, -beta + 1, depth - 3, &newPos, info, 0);
+		eval = -negaMax(-beta, -beta + 1, depth - 1 - r, &newPos, info, 0);
 		
 		// Unmake null move
 		info->ply--;
@@ -220,9 +221,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		if (info->stopped)
 			return 0;
 		
-		if (eval >= beta)
+		if (eval >= beta && abs(eval) < CHECKMATE)
 			return beta;
 	}
+
+	// Could add futility pruning check here
 
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, ttMove, info);
@@ -235,85 +238,83 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
 		// Increment history index to next depth
 		
-		if (legal == 1)
+		if (!legal)
+			continue;
+		
+		legalMoves++;
+		info->ply++;
+		
+		// Save the current move into history
+		historyIndex++;
+		posHistory[historyIndex] = newState.key;
+		
+		// Does this move give check
+		int givesCheck = isInCheck(&newState);
+		
+		// LMR psuedocode comes from https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html
+		// via Tord Romstad
+		
+		// Do a full depth search on PV
+		if (legalMoves == 1)
 		{
-			info->ply++;
-			
-			// Save the current move into history
-			historyIndex++;
-			posHistory[historyIndex] = newState.key;
-			
-			// Does this move give check
-			int givesCheck = isInCheck(&newState);
-			
-			// LMR psuedocode comes from https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html
-			// via Tord Romstad
-			
-			// LMR on non PV node
-			if (legalMoves != 0)
+			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+		}
+		// LMR on non PV node
+		else
+		{
+			if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
 			{
-				if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
-				{
-					// Reduced search without null moves
-					eval = -negaMax(-alpha - 1, -alpha, depth - 2, &newState, info, 1);
-				}
-				else
-				{
-					eval = alpha + 1;
-				}
-				
-				if (eval > alpha)
-				{
-					eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
-					if ((eval > alpha) && (eval < beta))
-					{
-						eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
-					}
-				}
+				// Reduced search without null moves
+				eval = -negaMax(-alpha - 1, -alpha, depth - 2, &newState, info, 1);
 			}
-			// Do a full depth search on PV
-			else if (legalMoves == 0)
+			else
 			{
-				eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+				eval = alpha + 1;
 			}
-			
-			// Unmake move by removing current move from history
-			info->ply--;
-			historyIndex--;
-			
-
-			if (info->stopped)
-				return 0;
-
-			legalMoves++;
 			
 			if (eval > alpha)
-			{		
-				nodeBound = TT_PV;
-				info->pvTable[ply][ply] = current;
-				if (depth > 1)
+			{
+				eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
+				if ((eval > alpha) && (eval < beta))
 				{
-					// Crazy memcpy which copies PV from lower depth to current depth
-					memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1, info->pvTableLength[ply + 1] * sizeof(Move));
-					info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
+					eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
 				}
-				alpha = eval;
-				bestMove = current;
-				
-				if (eval >= beta)
+			}
+		}
+		
+		// Unmake move by removing current move from history
+		info->ply--;
+		historyIndex--;
+
+		if (info->stopped)
+			return 0;
+		
+		if (eval > alpha)
+		{		
+			nodeBound = TT_PV;
+			info->pvTable[ply][ply] = current;
+			if (depth > 1)
+			{
+				// Crazy memcpy which copies PV from lower depth to current depth
+				memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1, info->pvTableLength[ply + 1] * sizeof(Move));
+				info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
+			}
+			alpha = eval;
+			bestMove = current;
+			
+			if (eval >= beta)
+			{
+				saveTT(pos, current, beta, TT_CUT, depth, ply);
+				if ((current & IS_CAPTURE) == 0)
 				{
-					saveTT(pos, current, beta, TT_CUT, depth, ply);
-					if ((current & IS_CAPTURE) == 0)
+					if (current != info->killerMoves[0][ply])
 					{
-						if (current != info->killerMoves[0][ply])
-						{
-							info->killerMoves[1][ply] = info->killerMoves[0][ply];
-							info->killerMoves[0][ply] = current;
-						}
-						info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+						info->killerMoves[1][ply] = info->killerMoves[0][ply];
+						info->killerMoves[0][ply] = current;
 					}
-					return beta;
+					info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
 				}
+				return beta;
 			}
 		}
 	}
@@ -382,22 +383,24 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		}
 
 		GameState newState = playMove(pos, current, &legal);
-		if (legal == 1)
-		{
-			info->ply++;
-			eval = -quiescence(-beta, -alpha, depth, &newState, info);
-			info->ply--;
-			if (info->stopped)
-				return 0;
 		
-			if (eval > alpha)
+		if (!legal)
+			continue;
+		
+		info->ply++;
+		eval = -quiescence(-beta, -alpha, depth, &newState, info);
+		info->ply--;
+		
+		if (info->stopped)
+			return 0;
+	
+		if (eval > alpha)
+		{
+			alpha = eval;
+			if (eval >= beta)
 			{
-				alpha = eval;
-				if (eval >= beta)
-				{
-					return beta;
-				}	
-			}
+				return beta;
+			}	
 		}
 	}
 	
