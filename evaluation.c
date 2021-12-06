@@ -103,21 +103,21 @@ int evaluation(GameState *pos)
 	if (FOUND_NETWORK)
 		score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
 	else
-		score += mat;
+		score += materialCount(pos);
 	return score * (100 - pos->halfMoveClock) / 100;
 }
 
 void printEvaluation(int score)
 {
 	int mated = 0;
-	if (score > MAX_PLY_CHECKMATE)
+	if (score > CHECKMATE)
 	{
-		score = CHECKMATE - score;
+		score = INF - score;
 		mated = 1;
 	}
-	else if (score < -MAX_PLY_CHECKMATE)
+	else if (score < -CHECKMATE)
 	{
-		score = -CHECKMATE - score;
+		score = -INF - score;
 		mated = 1;
 	}
 	printf("Eval: %s%d\n", (mated) ? "#" : "", score);

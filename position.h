@@ -33,7 +33,7 @@ enum
 extern int historyIndex;
 extern char *pieceNotation[12];
 
-U64 posHistory[101];
+U64 posHistory[256];
 U64 pieceKeys[12][64];
 U64 castleKeys[16];
 U64 epKey[8];
@@ -64,6 +64,14 @@ inline void setOccupancies(GameState *pos)
 	pos->occupancies[BLACK] |= pos->pieceBitboards[k];
 	
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
+}
+
+inline int onlyHasPawns(GameState *pos, int side)
+{
+	int piece = (side == WHITE) ? P : p;
+	int totalPieces = countBits(pos->occupancies[side]);
+	int totalPawns = countBits(pos->pieceBitboards[piece]);
+	return totalPieces - 1 == totalPawns;
 }
 
 inline int isSquareAttacked(GameState *pos, int square, int byColor)

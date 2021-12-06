@@ -201,27 +201,36 @@ void parseGo(char *line, GameState *pos)
 	
 	if(time != -1)
 	{
+		int timeLeft = time + inc;
 		info.timeset = 1;
-		if (time < inc)
-			inc = 0;
 		time /= movestogo;
 		time -= 50;
-		if (pos->turn == WHITE && time - 10000 > btime)
+		
+		if (wtime != -1 && btime != -1)
 		{
-			time += (time - btime / 4);
+			if (pos->turn == WHITE && time - 10000 > btime)
+			{
+				time += (time - btime / 4);
+			}
+			else if (pos->turn == BLACK && time - 10000 > wtime)
+			{
+				time += (time - wtime / 4);
+			}
 		}
-		else if (pos->turn == BLACK && time - 10000 > wtime)
+		
+		if (time <= 0)
 		{
-			time += (time - wtime / 4);
-		}
-		if (time < 0)
 			time = 0;
-		info.stoptime = info.starttime + time + inc + 1;
+			inc -= 750;
+			if (inc < 0)
+				inc = 1;
+		}
+		info.stoptime = info.starttime + time + inc;
 	} 
 	
 	if(depth == -1)
 	{
-		info.depth = MAX_PLY;
+		info.depth = MAX_PLY - 1;
 	}
 	else
 	{

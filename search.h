@@ -7,6 +7,11 @@
 
 #define MAX_PLY 64
 
+#define HISTORY_SCORE_MAX 4200
+#define KILLER_ONE 4500
+#define KILLER_TWO 4400
+#define TT_HIT_SCORE 10000
+
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 
@@ -49,6 +54,7 @@ static const int MVV_LVA_TABLE[6][6] =
 	{100, 200, 300, 400, 500, 600}
 };
 
+int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
 void search(GameState *pos, SearchInfo *info);
 int GetTimeMs();
 void ReadInput(SearchInfo *info);

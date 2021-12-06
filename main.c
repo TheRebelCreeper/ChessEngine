@@ -8,6 +8,7 @@
 #include "uci.h"
 #include "perft.h"
 #include "wrapper.h"
+#include "tt.h"
 
 //#define VALIDATE
 
@@ -22,9 +23,9 @@ int main(int argc, char *argv[])
 	initNNUE("nn-62ef826d1a6d.nnue");
 	initKeys();
 	initAttacks();
+	initTT(&GLOBAL_TT);
 	
 	#ifdef VALIDATE
-	NUM_THREADS = 12;
 	moveGeneratorValidator();
 	#else
 	uciLoop();
