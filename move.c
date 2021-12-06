@@ -203,4 +203,8 @@ void printMove(Move m)
 	{
 		printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)], (m) ? pieceNotation[promotion] : "");
 	}
+	else
+	{
+		printf("0000");
+	}
 }
