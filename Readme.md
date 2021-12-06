@@ -1,17 +1,24 @@
 ### Senior Project/CSC 480 Project
 Created by Aaron Lampert
+
 CSC 480 Professor: Dr. Rodrigo Canaan
+
 This would not have been possible with referencing both Stockfish and Chessprogramming wiki
+
 
 ### Example of Results
 Bot account: https://lichess.org/@/SaxtonEngine
+
 Nice game: https://lichess.org/J5dYSKMx
 
 
 ## Requirements
 Requires OMP to compile
+
 Requires the NNUE weights to be in same directory as executable.
+
 Only supports the file kept in the repo.
+
 
 ## Usage
 ./Saxton.exe or ./Saxton depending on whether or not running on windows
@@ -33,6 +40,7 @@ GUI to engine:
 These are all the command the engine gets from the interface.
 
 * uci
+
 	tell engine to use the uci (universal chess interface),
 	this will be sent once as a first command after program boot
 	to tell the engine to switch to uci mode.
@@ -42,6 +50,7 @@ These are all the command the engine gets from the interface.
 	If no uciok is sent within a certain time period, the engine task will be killed by the GUI.
 
 * isready
+
 	this is used to synchronize the engine with the GUI. When the GUI has sent a command or
 	multiple commands that can take some time to complete,
 	this command can be used to wait for the engine to be ready again or
@@ -53,6 +62,7 @@ These are all the command the engine gets from the interface.
 	in which case the engine should also immediately answer with "readyok" without stopping the search.
 
 * ucinewgame
+
    this is sent to the engine when the next search (started with "position" and "go") will be from
    a different game. This can be a new game the engine should play or a new game it should analyse but
    also the next position from a testsuite with positions only.
@@ -63,6 +73,7 @@ These are all the command the engine gets from the interface.
    after "ucinewgame" to wait for the engine to finish its operation.
    
 * position [fen <fenstring> | startpos ]  moves <move1> .... <movei>
+
 	set up the position described in fenstring on the internal board and
 	play the moves on the internal chess board.
 	if the game was played  from the start position the string "startpos" will be sent
@@ -70,9 +81,11 @@ These are all the command the engine gets from the interface.
 	the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
 
 * d
+
 	Displays the position using ASCII
 
 * go
+
 	start calculating on the current position set up with the "position" command.
 	There are a number of commands that can follow this command, all will be sent in the same string.
 	If one command is not sent its value should be interpreted as it would not influence the search.
@@ -96,10 +109,12 @@ These are all the command the engine gets from the interface.
 		search until the "stop" command. Do not exit the search without being told so in this mode!
     
 * stop
+
 	stop calculating as soon as possible,
 	don't forget the "bestmove" and possibly the "ponder" token when finishing the search
 
 * quit
+
 	quit the program as soon as possible
 
 
