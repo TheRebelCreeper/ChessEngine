@@ -442,17 +442,10 @@ void search(GameState *pos, SearchInfo *rootInfo)
 			break;
 
 		#ifdef ASPIRATION_WINDOW
-		
-		if (bestScore <= alpha)
+		if (bestScore <= alpha || bestScore >= beta)
 		{
-			beta = (alpha + beta) / 2;
-			alpha = MAX(bestScore - 50, -INF);
-			ID--;
-			continue;
-		}
-		else if (bestScore >= beta)
-		{
-			beta = MIN(bestScore + 50, INF);
+			alpha = -INF;
+			beta = INF;
 			ID--;
 			continue;
 		}
