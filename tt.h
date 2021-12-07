@@ -6,7 +6,7 @@
 #include "evaluation.h"
 
 // 16 Megabytes
-#define TT_SIZE ((1 << 20) * 32)
+#define TT_SIZE ((1 << 20) * 128)
 
 #define INVALID_SCORE (INF + 100)
 
