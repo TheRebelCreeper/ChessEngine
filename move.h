@@ -15,12 +15,6 @@
 #include "position.h"
 
 /*
-	There are special moves for kings and pawns only
-	For kings, 1 = O-O, 2 = O-O-O
-	For pawns, 4 = Q, 3 = R, 2 = B, 1 = N, 5 = EP
-*/
-
-/*
 
 0000 0000 0000 0000 0000 0000 0011 1111  src 0x3f
 0000 0000 0000 0000 0000 1111 1100 0000  dst 0xfc0
