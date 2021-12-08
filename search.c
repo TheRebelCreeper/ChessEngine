@@ -31,7 +31,7 @@ void checkTimeLeft(SearchInfo *info) {
 
 void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 {
-	int i, scorePV = 0;
+	int i;
 	int ply = info->ply;
 	
 	for (i = 0; i < moves->nextOpen; i++)
