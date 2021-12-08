@@ -54,6 +54,8 @@ static const int MVV_LVA_TABLE[6][6] =
 	{100, 200, 300, 400, 500, 600}
 };
 
+static const int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
+
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
 void search(GameState *pos, SearchInfo *info);
 int GetTimeMs();

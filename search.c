@@ -117,6 +117,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	int inCheck = isInCheck(pos);
 	int isPVNode = beta - alpha > 1;
 	int isRoot = (ply == 0);
+	int enableFutilityPruning = 0;
 	
 	MoveList moveList;
 	Move bestMove = 0;
@@ -184,11 +185,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		return eval;
 	}
 	
+	int staticEval = evaluation(pos);
+	
 	// Static Null Move Pruning
 	// TODO Learn how this works
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
-		int staticEval = evaluation(pos);
 		int evalMargin = 120 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
@@ -226,6 +228,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 
 	// Could add futility pruning check here
+	if (depth < 9 && !isPVNode && !inCheck && alpha < CHECKMATE)
+	{
+		if (staticEval + futilityMargins[depth] <= alpha)
+			enableFutilityPruning = 1;
+	}
 
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, ttMove, info);
@@ -250,6 +257,17 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		
 		// Does this move give check
 		int givesCheck = isInCheck(&newState);
+		
+		// Futility Pruning
+		if (enableFutilityPruning && legalMoves > 1)
+		{
+			if (!givesCheck && !GET_MOVE_PROMOTION(current) && !GET_MOVE_CAPTURED(current))
+			{
+				info->ply--;
+				historyIndex--;
+				continue;
+			}
+		}
 		
 		// LMR psuedocode comes from https://web.archive.org/web/20150212051846/http://www.glaurungchess.com/lmr.html
 		// via Tord Romstad
