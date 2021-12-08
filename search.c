@@ -356,6 +356,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
 	int size, i, legal;
+	int inCheck = isInCheck(pos);
 	
 	info->nodes++;
 	
@@ -395,7 +396,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
-		if (GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
+		if (!inCheck && GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
 		{
 			continue;
 		}
