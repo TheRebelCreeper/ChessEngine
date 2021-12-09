@@ -15,9 +15,7 @@
 #define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 
-#define CHECK_EXTENTIONS
 #define ASPIRATION_WINDOW
-//#define DELTA_PRUNING
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))

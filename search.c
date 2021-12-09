@@ -141,10 +141,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 	
 	// Increase depth if currently in check since there are few replies
-	#ifdef CHECK_EXTENTIONS
 	if (inCheck)
 		depth++;
-	#endif
 	
 	// Enter quiescence if not in check
 	if (depth <= 0)
@@ -355,7 +353,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
-	int size, i, legal;
+	int size, i, legal, legalMoves = 0;
 	int inCheck = isInCheck(pos);
 	
 	info->nodes++;
@@ -376,13 +374,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		return beta;
 	}
-
-	#ifdef DELTA_PRUNING
-	// Delta pruning while not in check
-	int BIG_DELTA = 900;
-	if (eval < alpha - BIG_DELTA && !isInCheck(pos))
-		return alpha;
-	#endif
 
 	if (eval > alpha)
 	{
@@ -406,6 +397,8 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		if (!legal)
 			continue;
 		
+		legalMoves++;
+		
 		info->ply++;
 		eval = -quiescence(-beta, -alpha, depth, &newState, info);
 		info->ply--;
@@ -421,6 +414,12 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 				return beta;
 			}	
 		}
+	}
+	
+	// If no more legal moves and we are in check checkmate
+	if (legalMoves == 0 && inCheck)
+	{
+		return -INF + info->ply;
 	}
 	
 	// Draw by 50 move rule
