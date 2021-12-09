@@ -121,6 +121,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	
 	MoveList moveList;
 	Move bestMove = 0;
+	int bestScore = -INF;
 	
 	info->pvTableLength[ply] = depth;
 	info->nodes++;
@@ -189,7 +190,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// TODO Learn how this works
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
-		int evalMargin = 120 * depth;
+		int evalMargin = 180 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
@@ -298,6 +299,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 			}
 		}
 		
+		if (eval > bestScore)
+		{
+			bestScore = eval;
+			bestMove = current;
+		}
+		
 		// Unmake move by removing current move from history
 		info->ply--;
 		historyIndex--;
@@ -316,7 +323,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 				info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
 			}
 			alpha = eval;
-			bestMove = current;
 			
 			if (eval >= beta)
 			{
@@ -362,22 +368,25 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		checkTimeLeft(info);
 	}
-
-	int eval = evaluation(pos);
 	
 	if (info->ply > MAX_PLY)
 	{
 		return evaluation(pos);
 	}
 	
-	if (eval >= beta)
+	int eval = evaluation(pos);
+	
+	if (!inCheck)
 	{
-		return beta;
-	}
+		if (eval >= beta)
+		{
+			return beta;
+		}
 
-	if (eval > alpha)
-	{
-		alpha = eval;
+		if (eval > alpha)
+		{
+			alpha = eval;
+		}
 	}
 	
 	moveList = generateMoves(pos, &size);
