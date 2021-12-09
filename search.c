@@ -190,7 +190,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// TODO Learn how this works
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
-		int evalMargin = 180 * depth;
+		// Try margin of 180 after working on TT-bug
+		int evalMargin = 120 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
@@ -367,6 +368,8 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	if(( info->nodes & 2047 ) == 0)
 	{
 		checkTimeLeft(info);
+		if (info->stopped)
+			return 0;
 	}
 	
 	if (info->ply > MAX_PLY)
@@ -376,8 +379,9 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	int eval = evaluation(pos);
 	
-	if (!inCheck)
-	{
+	// Uncomment after testing TT-bug fix
+	//if (!inCheck)
+	//{
 		if (eval >= beta)
 		{
 			return beta;
@@ -387,7 +391,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		{
 			alpha = eval;
 		}
-	}
+	//}
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, 0, info);
