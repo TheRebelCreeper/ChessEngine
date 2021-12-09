@@ -20,7 +20,7 @@ NAME = Saxton
 
 all: clean $(NAME)
 
-$(LAB):$(OBJECTS)
+$(NAME):$(OBJECTS)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJECTS) $(LIBS) $(DEFINES)
 
 $(OBJECTS):$(SOURCES) $(INCLUDES)
