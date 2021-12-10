@@ -191,7 +191,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
 		// Try margin of 180 after working on TT-bug
-		int evalMargin = 180 * depth;
+		int evalMargin = 120 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
