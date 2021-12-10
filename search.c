@@ -191,7 +191,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
 	{   
 		// Try margin of 180 after working on TT-bug
-		int evalMargin = 120 * depth;
+		int evalMargin = 180 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
@@ -300,6 +300,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 			}
 		}
 		
+		// Update bestMove whenever found so all-nodes can be stored in TT
 		if (eval > bestScore)
 		{
 			bestScore = eval;
@@ -379,19 +380,15 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	
 	int eval = evaluation(pos);
 	
-	// Uncomment after testing TT-bug fix
-	//if (!inCheck)
-	//{
-		if (eval >= beta)
-		{
-			return beta;
-		}
+	if (eval >= beta)
+	{
+		return beta;
+	}
 
-		if (eval > alpha)
-		{
-			alpha = eval;
-		}
-	//}
+	if (eval > alpha)
+	{
+		alpha = eval;
+	}
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, 0, info);
