@@ -76,17 +76,8 @@ inline int onlyHasPawns(GameState *pos, int side)
 
 inline int isSquareAttacked(GameState *pos, int square, int byColor)
 {
-	/*	Will use individual bits to indicate which pieces are attacking the square
-		This is only really used for debugging purposes
-		Bit 0 - Pawn
-		Bit 1 - Knight
-		Bit 2 - Bishop
-		Bit 3 - Rook
-		Bit 4 - Queen
-		Bit 5 - King
-	*/
-	int colorOffset = (byColor == WHITE) ? 0 : 6;
-	int pawnAttackColor = (byColor == WHITE) ? 1 : 0;
+	int colorOffset = 6 * byColor;
+	int pawnAttackColor = byColor ^ 1;
 	U64 occupancy = pos->occupancies[BOTH];
 	
 	if (kingAttacks[square] & pos->pieceBitboards[K + colorOffset])
@@ -101,6 +92,28 @@ inline int isSquareAttacked(GameState *pos, int square, int byColor)
 		return 1;
 		
 	return 0;	
+}
+
+inline int get_smallest_attacker(GameState *pos, int square)
+{
+	int colorOffset = 6 * pos->turn;
+	int pawnAttackColor = pos->turn ^ 1;
+	U64 occupancy = pos->occupancies[BOTH];
+	
+	if (pawnAttacks[pawnAttackColor][square] & pos->pieceBitboards[P + colorOffset])
+		return P + colorOffset;
+	if (knightAttacks[square] & pos->pieceBitboards[N + colorOffset])
+		return N + colorOffset;
+	if (getBishopAttacks(square, occupancy) & pos->pieceBitboards[B + colorOffset])
+		return B + colorOffset;
+	if (getRookAttacks(square, occupancy) & pos->pieceBitboards[R + colorOffset])
+		return R + colorOffset;
+	if (getQueenAttacks(square, occupancy) & pos->pieceBitboards[Q + colorOffset])
+		return Q + colorOffset;
+	if (kingAttacks[square] & pos->pieceBitboards[K + colorOffset])
+		return K + colorOffset;
+	
+	return -1;	
 }
 
 inline int isInCheck(GameState *pos)
