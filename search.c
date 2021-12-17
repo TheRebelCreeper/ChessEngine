@@ -280,7 +280,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		// LMR on non PV node
 		else
 		{
-			int r = (legalMoves <= 6) ? 1 : 2;
+			int r = (legalMoves <= 6) ? 1 : (depth / 3);
 			if (legalMoves >= FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
 			{
 				// Reduced search without null moves

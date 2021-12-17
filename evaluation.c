@@ -57,6 +57,19 @@ int nonPawnMaterial(GameState *pos)
 	return mat;
 }
 
+int see(GameState *pos, int square)
+{
+	int value = 0;
+	int piece = get_smallest_attacker(pos, square);
+	if (piece != -1)
+	{
+		// Make capture
+		// value = MAX(0, piece_captured - see(square, newPos));
+		// Undo capture
+	}
+	return value;
+}
+
 int nnue_eval(GameState *pos)
 {
 	int i, idx = 2;
