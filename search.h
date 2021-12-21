@@ -12,7 +12,7 @@
 #define KILLER_TWO 4400
 #define TT_HIT_SCORE 10000
 
-#define FULL_DEPTH_MOVES 2
+#define FULL_DEPTH_MOVES 4
 #define REDUCTION_LIMIT 3
 
 #define ASPIRATION_WINDOW
@@ -50,6 +50,12 @@ static const int MVV_LVA_TABLE[6][6] =
 	{102, 202, 302, 402, 502, 602},
 	{101, 201, 301, 401, 501, 601},
 	{100, 200, 300, 400, 500, 600}
+};
+
+static const int RAZOR_MARGIN[4] = {0,
+    280,
+    300,
+    320
 };
 
 // Original values were multiplied by 1.5

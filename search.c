@@ -156,8 +156,15 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// Stops from searching for mate when faster mate already found
 	if (!isRoot)
 	{
-		int distance = -INF + ply;
+		int distance = INF - ply;
+		if (distance < beta)
+		{
+			beta = distance;
+			if (alpha >= distance)
+				return distance;
+		}
 		
+		distance = -INF + ply;
 		if (distance > alpha)
 		{
 			alpha = distance;
@@ -186,15 +193,32 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	
 	int staticEval = evaluation(pos);
 	
-	// Static Null Move Pruning
-	// TODO Learn how this works
-	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
+	// Static Null Move Pruning / Reverse Futility Pruning
+	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	{   
 		// Try margin of 180 after working on TT-bug
 		int evalMargin = 120 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
+	
+	// Razoring
+    // If static eval is a good amount below alpha, we are probably at an all-node.
+    // Do a qsearch just to confirm. If the qsearch fails high, a capture gained back
+    // the material and trust its result since a quiet move probably can't gain
+    // as much.
+    /*if (!isPVNode && !inCheck
+     && abs(alpha) < CHECKMATE
+     && depth <= 3 && staticEval <= alpha - RAZOR_MARGIN[depth]) {
+        if (depth == 1)
+            return quiescence(alpha, beta, 0, pos, info);
+
+        int rWindow = alpha - RAZOR_MARGIN[depth];
+        int value = quiescence(rWindow, rWindow+1, 0, pos, info);
+        // Fail hard here to be safe
+        if (value <= rWindow)
+            return value;
+    }*/
 	
 	// Null move pruning
 	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
@@ -281,7 +305,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		else
 		{
 			int r = (legalMoves <= 6) ? 1 : (depth / 3);
-			if (legalMoves >= FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
+			if (legalMoves > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
 			{
 				// Reduced search without null moves
 				eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
