@@ -207,7 +207,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     // Do a qsearch just to confirm. If the qsearch fails high, a capture gained back
     // the material and trust its result since a quiet move probably can't gain
     // as much.
-    /*if (!isPVNode && !inCheck
+    if (!isPVNode && !inCheck
      && abs(alpha) < CHECKMATE
      && depth <= 3 && staticEval <= alpha - RAZOR_MARGIN[depth]) {
         if (depth == 1)
@@ -218,7 +218,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         // Fail hard here to be safe
         if (value <= rWindow)
             return value;
-    }*/
+    }
 	
 	// Null move pruning
 	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
@@ -339,6 +339,21 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		if (info->stopped)
 			return 0;
 		
+		if (eval >= beta)
+		{
+			saveTT(pos, current, beta, TT_CUT, depth, ply);
+			if ((current & IS_CAPTURE) == 0)
+			{
+				if (current != info->killerMoves[0][ply])
+				{
+					info->killerMoves[1][ply] = info->killerMoves[0][ply];
+					info->killerMoves[0][ply] = current;
+				}
+				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+			}
+			return beta;
+		}
+		
 		if (eval > alpha)
 		{		
 			nodeBound = TT_PV;
@@ -351,20 +366,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 			}
 			alpha = eval;
 			
-			if (eval >= beta)
-			{
-				saveTT(pos, current, beta, TT_CUT, depth, ply);
-				if ((current & IS_CAPTURE) == 0)
-				{
-					if (current != info->killerMoves[0][ply])
-					{
-						info->killerMoves[1][ply] = info->killerMoves[0][ply];
-						info->killerMoves[0][ply] = current;
-					}
-					info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
-				}
-				return beta;
-			}
 		}
 	}
 	
@@ -441,13 +442,14 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		if (info->stopped)
 			return 0;
 	
+		if (eval >= beta)
+		{
+			return beta;
+		}	
+	
 		if (eval > alpha)
 		{
 			alpha = eval;
-			if (eval >= beta)
-			{
-				return beta;
-			}	
 		}
 	}
 	
