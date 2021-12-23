@@ -369,6 +369,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		}
 	}
 	
+	// If only one legal move make the move right away
+	if (legalMoves == 1 && isRoot && info->timeset == 1 && depth > 2)
+	{
+		info->stopped = 1;
+	}
+	
 	if (legalMoves == 0)
 	{
 		// When no more legal moves, the pv does not exist
