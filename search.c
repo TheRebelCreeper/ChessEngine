@@ -156,8 +156,15 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// Stops from searching for mate when faster mate already found
 	if (!isRoot)
 	{
-		int distance = -INF + ply;
+		int distance = INF - ply;
+		if (distance < beta)
+		{
+			beta = distance;
+			if (alpha >= distance)
+				return distance;
+		}
 		
+		distance = -INF + ply;
 		if (distance > alpha)
 		{
 			alpha = distance;
@@ -186,16 +193,34 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	
 	int staticEval = evaluation(pos);
 	
-	// Static Null Move Pruning
-	// TODO test out this version
+	// Static Null Move Pruning / Reverse Futility Pruning
+  // TODO test out this version
 	// if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
-	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE)
+	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	{   
 		// Try margin of 180 after working on TT-bug
 		int evalMargin = 120 * depth;
 		if (staticEval - evalMargin >= beta)
 			return staticEval - evalMargin;
 	}
+	
+	// Razoring
+    // If static eval is a good amount below alpha, we are probably at an all-node.
+    // Do a qsearch just to confirm. If the qsearch fails high, a capture gained back
+    // the material and trust its result since a quiet move probably can't gain
+    // as much.
+    if (!isPVNode && !inCheck
+     && abs(alpha) < CHECKMATE
+     && depth <= 3 && staticEval <= alpha - RAZOR_MARGIN[depth]) {
+        if (depth == 1)
+            return quiescence(alpha, beta, 0, pos, info);
+
+        int rWindow = alpha - RAZOR_MARGIN[depth];
+        int value = quiescence(rWindow, rWindow+1, 0, pos, info);
+        // Fail hard here to be safe
+        if (value <= rWindow)
+            return value;
+    }
 	
 	// Null move pruning
 	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
@@ -281,8 +306,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		// LMR on non PV node
 		else
 		{
-			int r = 1;
-			if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
+			int r = (legalMoves <= 6) ? 1 : (depth / 3);
+			if (legalMoves > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
+			//int r = 1;
+			//if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
 			{
 				// Reduced search without null moves
 				eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
@@ -316,6 +343,21 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		if (info->stopped)
 			return 0;
 		
+		if (eval >= beta)
+		{
+			saveTT(pos, current, beta, TT_CUT, depth, ply);
+			if ((current & IS_CAPTURE) == 0)
+			{
+				if (current != info->killerMoves[0][ply])
+				{
+					info->killerMoves[1][ply] = info->killerMoves[0][ply];
+					info->killerMoves[0][ply] = current;
+				}
+				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+			}
+			return beta;
+		}
+		
 		if (eval > alpha)
 		{		
 			nodeBound = TT_PV;
@@ -328,21 +370,13 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 			}
 			alpha = eval;
 			
-			if (eval >= beta)
-			{
-				saveTT(pos, current, beta, TT_CUT, depth, ply);
-				if ((current & IS_CAPTURE) == 0)
-				{
-					if (current != info->killerMoves[0][ply])
-					{
-						info->killerMoves[1][ply] = info->killerMoves[0][ply];
-						info->killerMoves[0][ply] = current;
-					}
-					info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
-				}
-				return beta;
-			}
 		}
+	}
+	
+	// If only one legal move make the move right away
+	if (legalMoves == 1 && isRoot && info->timeset == 1 && depth > 2)
+	{
+		info->stopped = 1;
 	}
 	
 	if (legalMoves == 0)
@@ -418,13 +452,14 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		if (info->stopped)
 			return 0;
 	
+		if (eval >= beta)
+		{
+			return beta;
+		}	
+	
 		if (eval > alpha)
 		{
 			alpha = eval;
-			if (eval >= beta)
-			{
-				return beta;
-			}	
 		}
 	}
 	
