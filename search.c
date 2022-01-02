@@ -353,7 +353,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 					info->killerMoves[1][ply] = info->killerMoves[0][ply];
 					info->killerMoves[0][ply] = current;
 				}
-				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (depth * depth);
 			}
 			return beta;
 		}
