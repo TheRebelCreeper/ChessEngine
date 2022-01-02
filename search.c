@@ -196,6 +196,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	int staticEval = evaluation(pos);
 	
 	// Static Null Move Pruning / Reverse Futility Pruning
+  // TODO test out this version
+	// if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	{   
 		// Try margin of 180 after working on TT-bug
@@ -308,6 +310,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		{
 			int r = (legalMoves <= 6) ? 1 : (depth / 3);
 			if (legalMoves > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
+			//int r = 1;
+			//if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
 			{
 				// Reduced search without null moves
 				eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
