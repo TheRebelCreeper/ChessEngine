@@ -66,8 +66,6 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 			else
 			{
 				moves->score[i] = info->history[pos->turn][GET_MOVE_SRC(moves->list[i])][GET_MOVE_DST(moves->list[i])];
-				//if (moves->score[i] > HISTORY_SCORE_MAX)
-					//exit(1);
 			}
 		}
 	}
