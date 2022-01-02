@@ -66,6 +66,8 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 			else
 			{
 				moves->score[i] = info->history[pos->turn][GET_MOVE_SRC(moves->list[i])][GET_MOVE_DST(moves->list[i])];
+				//if (moves->score[i] > HISTORY_SCORE_MAX)
+					//exit(1);
 			}
 		}
 	}
@@ -349,7 +351,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 					info->killerMoves[1][ply] = info->killerMoves[0][ply];
 					info->killerMoves[0][ply] = current;
 				}
-				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (ply * ply);
+				info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (depth * depth);
 			}
 			return beta;
 		}
