@@ -369,7 +369,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 				info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
 			}
 			alpha = eval;
-			
 		}
 	}
 	
