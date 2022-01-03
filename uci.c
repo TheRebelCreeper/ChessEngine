@@ -122,7 +122,7 @@ void parsePosition(char *line, GameState *pos)
 
 void parseGo(char *line, GameState *pos)
 {
-	int depth = -1, movestogo = 30,movetime = -1;
+	int depth = -1, movestogo = 35, movetime = -1;
 	int wtime = -1, btime = -1, time = -1, inc = 0;
 
 	SearchInfo info;
