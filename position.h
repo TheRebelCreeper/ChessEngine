@@ -74,6 +74,34 @@ inline int onlyHasPawns(GameState *pos, int side)
 	return totalPieces - 1 == totalPawns;
 }
 
+inline int insufficientMaterial(GameState *pos)
+{
+	int totalPieces = countBits(pos->occupancies[BOTH]);
+	int whiteKnights = countBits(pos->pieceBitboards[N]);
+	int whiteBishops = countBits(pos->pieceBitboards[B]);
+	int blackKnights = countBits(pos->pieceBitboards[n]);
+	int blackBishops = countBits(pos->pieceBitboards[b]);
+	int minors = whiteKnights + whiteBishops + blackKnights + blackBishops;
+	
+	// Not insufficientMaterial
+	if (totalPieces - minors > 2)
+		return 0;
+	
+	// King vs King
+	if (totalPieces == 2)
+		return 1;
+	
+	// K+N vs K or K+B vs K
+	if (minors == 1)
+		return 1;
+	
+	if (minors == 2 && whiteKnights == 1 && blackKnights == 1)
+		return 1;
+	else
+		return 0;
+	
+}
+
 inline int isSquareAttacked(GameState *pos, int square, int byColor)
 {
 	int colorOffset = 6 * byColor;
