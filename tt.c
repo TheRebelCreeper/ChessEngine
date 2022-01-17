@@ -6,17 +6,6 @@
 
 TT GLOBAL_TT;
 
-TTEntry createTTEntry(U64 key, Move move, int score, int depth, char pv, char bound)
-{
-	TTEntry entry;
-	entry.key = key;
-	entry.move = move;
-	entry.score = score;
-	entry.depth = depth;
-	entry.bound = pv | bound;
-	return entry;
-}
-
 void initTT(TT *table)
 {
 	table->numEntries = TT_SIZE / sizeof(TTEntry);
@@ -103,5 +92,5 @@ void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
     GLOBAL_TT.hashTable[index].key = pos->key;
 	GLOBAL_TT.hashTable[index].bound = bound;
 	GLOBAL_TT.hashTable[index].score = score;
-	GLOBAL_TT.hashTable[index].depth = depth;
+	GLOBAL_TT.hashTable[index].depth = (unsigned char)depth;
 }

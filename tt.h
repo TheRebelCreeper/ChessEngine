@@ -20,7 +20,7 @@
 
 typedef struct ttEntry {
 	U64 key;
-	int depth;
+	unsigned char depth;
 	unsigned char bound;
 	Move move;
 	int score;
@@ -37,7 +37,6 @@ typedef struct tt{
 
 extern TT GLOBAL_TT;
 
-TTEntry createTTEntry(U64 key, Move move, int score, int depth, char pv, char bound);
 void initTT(TT *table);
 void clearTT(TT *table);
 int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply);
