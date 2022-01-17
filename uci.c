@@ -201,24 +201,12 @@ void parseGo(char *line, GameState *pos)
 	
 	if(time != -1)
 	{
-		int timeLeft = time + inc;
+		int timeLeft = time;
 		info.timeset = 1;
 		time /= movestogo;
 		time -= 50;
 		
-		if (wtime != -1 && btime != -1)
-		{
-			if (pos->turn == WHITE && time - 10000 > btime)
-			{
-				time += (time - btime / 4);
-			}
-			else if (pos->turn == BLACK && time - 10000 > wtime)
-			{
-				time += (time - wtime / 4);
-			}
-		}
-		
-		if (time <= 0)
+		if (timeLeft <= inc)
 		{
 			time = 0;
 			inc -= 750;
