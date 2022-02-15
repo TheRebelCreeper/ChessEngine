@@ -25,7 +25,7 @@ void clearTT(TT *table)
 		e->key = 0ULL;
 		e->move = 0;
 		e->depth = 0;
-		e->score = 0;
+		e->score = INVALID_SCORE;
 		e->bound = 0;
 	}
 	table->newWrite=0;

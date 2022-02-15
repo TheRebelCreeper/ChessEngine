@@ -9,6 +9,7 @@
 #include "perft.h"
 #include "wrapper.h"
 #include "tt.h"
+#include "et.h"
 
 //#define VALIDATE
 
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
 	initKeys();
 	initAttacks();
 	initTT(&GLOBAL_TT);
+	initET(&GLOBAL_ET);
 	
 	#ifdef VALIDATE
 	moveGeneratorValidator();
