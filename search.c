@@ -436,6 +436,13 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		{
 			continue;
 		}
+		
+		// Delta Pruning
+		int potentialEval = eval + pieceValue[GET_MOVE_CAPTURED(current)];
+		if (potentialEval + 240 < alpha)
+		{
+			continue;
+		}
 
 		GameState newState = playMove(pos, current, &legal);
 		
