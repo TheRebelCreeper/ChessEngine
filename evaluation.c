@@ -3,6 +3,7 @@
 #include "position.h"
 #include "evaluation.h"
 #include "wrapper.h"
+#include "et.h"
 
 int materialCount(GameState *pos)
 {
@@ -110,13 +111,20 @@ int nnue_eval(GameState *pos)
 
 int evaluation(GameState *pos)
 {
-	int score = 0;
-	int matPawns = countBits(pos->pieceBitboards[P]) + countBits(pos->pieceBitboards[p]);
-	int mat =  nonPawnMaterial(pos) + matPawns * pieceValue[P];
-	if (FOUND_NETWORK)
-		score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
-	else
-		score += materialCount(pos);
+	int score = probeET(pos);
+	
+	if (score == INVALID_EVALUATION)
+	{
+		score = 0;
+		int matPawns = countBits(pos->pieceBitboards[P]) + countBits(pos->pieceBitboards[p]);
+		int mat =  nonPawnMaterial(pos) + matPawns * pieceValue[P];
+		if (FOUND_NETWORK)
+			score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
+		else
+			score += materialCount(pos);
+		saveET(pos, score);
+	}
+	
 	return score * (100 - pos->halfMoveClock) / 100;
 }
 
