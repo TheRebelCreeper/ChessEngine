@@ -8,8 +8,8 @@
 #define INF 1000000
 #endif
 
-// 32 Megabytes
-#define ET_SIZE ((1 << 20) * 32)
+// 64 Megabytes
+#define ET_SIZE ((1 << 20) * 64)
 
 #define INVALID_EVALUATION (INF + 100)
 
