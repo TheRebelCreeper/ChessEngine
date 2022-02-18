@@ -1,20 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <omp.h>
-
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <sys/time.h>
-#include <sys/select.h>
-#endif
 
 #include "movegen.h"
 #include "move.h"
 #include "search.h"
 #include "tt.h"
+#include "util.h"
 
 int NUM_THREADS = 1;
 int followingPV = 0;
@@ -491,10 +483,10 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	int alpha = -INF;
 	int beta = INF;
 	int searchDepth = rootInfo->depth;
-	double start, finish;
+	unsigned int start, finish;
 	
 	// Clear information for rootInfo. Will have to do this for ID upon each depth
-	start = omp_get_wtime();
+	start = GetTimeMs();
 	rootInfo->nodes = 0ULL;
 	rootInfo->ply = 0;
 	memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
@@ -528,9 +520,9 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		bestMove = rootInfo->pvTable[0][0];
 
 		// After searching all possible moves, compile stats
-		finish = omp_get_wtime() + 0.0001;
-		rootInfo->ms = (unsigned int)((finish - start) * 1000);
-		rootInfo->nps = (unsigned int)(rootInfo->nodes / (finish - start));
+		finish = GetTimeMs() + 1;
+		rootInfo->ms = finish - start;
+		rootInfo->nps = (unsigned int)(1000 * rootInfo->nodes / (rootInfo->ms));
 		rootInfo->bestScore = bestScore;
 		
 		int mated = 0;
@@ -565,76 +557,4 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	printf("bestmove ");
 	printMove(bestMove);
 	printf("\n");
-}
-
-int GetTimeMs()
-{ 
-#ifdef WIN32
-	return GetTickCount();
-#else
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	return t.tv_sec*1000 + t.tv_usec/1000;
-#endif
-}
-
-
-// http://home.arcor.de/dreamlike/chess/
-int InputWaiting()
-{
-#ifndef WIN32
-	fd_set readfds;
-	struct timeval tv;
-	FD_ZERO (&readfds);
-	FD_SET (fileno(stdin), &readfds);
-	tv.tv_sec=0; tv.tv_usec=0;
-	select(16, &readfds, 0, 0, &tv);
-
-	return (FD_ISSET(fileno(stdin), &readfds));
-#else
-	static int init = 0, pipe;
-	static HANDLE inh;
-	DWORD dw;
-
-	if (!init) {
-		init = 1;
-		inh = GetStdHandle(STD_INPUT_HANDLE);
-		pipe = !GetConsoleMode(inh, &dw);
-		if (!pipe) {
-			SetConsoleMode(inh, dw & ~(ENABLE_MOUSE_INPUT|ENABLE_WINDOW_INPUT));
-			FlushConsoleInputBuffer(inh);
-		}
-	}
-	if (pipe) {
-		if (!PeekNamedPipe(inh, NULL, 0, NULL, &dw, NULL)) return 1;
-		return dw;
-	} else {
-		GetNumberOfConsoleInputEvents(inh, &dw);
-		return dw <= 1 ? 0 : dw;
-	}
-#endif
-}
-
-void ReadInput(SearchInfo *info)
-{
-	int bytes;
-	char input[256] = "", *endc;
-
-	if (InputWaiting())
-	{
-		info->stopped = 1;
-		do {
-			bytes=read(fileno(stdin),input,256);
-		} while (bytes<0);
-		endc = strchr(input,'\n');
-		if (endc) *endc=0;
-
-		if (strlen(input) > 0) {
-			if (!strncmp(input, "quit", 4))
-			{
-				exit(0);
-			}
-		}
-		return;
-	}
 }

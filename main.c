@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <omp.h>
 #include "bitboard.h"
 #include "movegen.h"
 #include "search.h"
