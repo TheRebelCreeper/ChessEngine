@@ -1,4 +1,5 @@
 #include "perft.h"
+#include "util.h"
 
 extern int NUM_THREADS;
 
@@ -39,7 +40,6 @@ U64 perftDivide(int depth, GameState *pos)
 	moveList = generateMoves(pos, &size);
 	printf("Perft results for depth %d:\n", depth);
 
-	//#pragma omp parallel for num_threads(NUM_THREADS) shared(moveList) reduction(+:sum)
 	for (i = 0; i < size; i++)
 	{
 		Move current = moveList.list[i];
@@ -58,13 +58,15 @@ U64 perftDivide(int depth, GameState *pos)
 U64 runPerft(int depth, GameState *pos)
 {
 	U64 size;
-	double start, finish;
-	start = omp_get_wtime();
+	unsigned int start, finish;
+	double seconds;
+	start = GetTimeMs();
 	size = perftDivide(depth, pos);
 	printf("Nodes searched: %llu\n\n", size);
-	finish = omp_get_wtime();
-	printf("Finished perft in %f seconds\n", finish - start);
-	printf("NPS: %f\n", size / (finish - start));
+	finish = GetTimeMs();
+	seconds = (finish - start) / 1000;
+	printf("Finished perft in %f seconds\n", seconds);
+	printf("NPS: %f\n", size / seconds);
 	return size;
 }
 
