@@ -3,6 +3,8 @@
 #include <assert.h>
 #include "et.h"
 
+// Default to 16 MB
+uint32_t ET_SIZE = ((1 << 20) * 16);
 ET GLOBAL_ET;
 
 void initET(ET *table)
@@ -12,6 +14,10 @@ void initET(ET *table)
 	if(table->hashTable != NULL)
 		free(table->hashTable);
     table->hashTable = (ETEntry*) malloc(table->numEntries * sizeof(ETEntry));
+	if (table->hashTable == NULL)
+	{
+		perror("Failed to allocate hash table\n");
+	}
     clearET(table);
     printf("EvalTable init complete with %d entries\n", table->numEntries);
 }

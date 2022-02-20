@@ -8,8 +8,7 @@
 #define INF 1000000
 #endif
 
-// 32 Megabytes
-#define ET_SIZE ((1 << 20) * 32)
+extern uint32_t ET_SIZE;
 
 #define INVALID_EVALUATION (INF + 100)
 

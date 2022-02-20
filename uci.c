@@ -7,6 +7,8 @@
 #include "search.h"
 #include "perft.h"
 #include "uci.h"
+#include "tt.h"
+#include "et.h"
 
 // The code is to allow the engine to connect to GUI's via UCI protocol
 
@@ -275,20 +277,25 @@ void uciLoop()
 		{
 			return;
 		}
-		else if (strncmp(buf, "setoption name Threads", 22) == 0)
+		else if (strncmp(buf, "setoption name Hash", 19) == 0)
 		{
-			NUM_THREADS = atoi(buf + 28);
-			if (NUM_THREADS <= 0 || NUM_THREADS > 12)
+			int MB = atoi(buf + 25);
+			if (MB <= 0 || MB > 1024)
 			{
-				NUM_THREADS = 1;
+				MB = 1;
 			}
+			TT_SIZE = (1 << 20) * MB;
+			ET_SIZE = (TT_SIZE >> 2);
+			initTT(&GLOBAL_TT);
+			initET(&GLOBAL_ET);
 		}
 		else if (strncmp(buf, "uci", 3) == 0)
 		{
 			// Print engine info
 			printf("id name Saxton\n");
 			printf("id author Aaron Lampert\n");
-			printf("option name Threads type spin default 1 min 1 max 12\n");
+			//printf("option name Threads type spin default 1 min 1 max 12\n");
+			printf("option name Hash type spin default 64 min 1 max 1024\n");
 			printf("uciok\n");
 		}
 	}

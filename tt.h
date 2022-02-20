@@ -5,8 +5,7 @@
 #include "move.h"
 #include "evaluation.h"
 
-// 128 Megabytes
-#define TT_SIZE ((1 << 20) * 128)
+extern uint32_t TT_SIZE;
 
 #define INVALID_SCORE (INF + 100)
 

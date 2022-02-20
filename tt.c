@@ -3,7 +3,8 @@
 #include <assert.h>
 #include "tt.h"
 
-
+// Default memory to 64 MB
+uint32_t TT_SIZE = ((1 << 20) * 64);
 TT GLOBAL_TT;
 
 void initTT(TT *table)
@@ -13,6 +14,10 @@ void initTT(TT *table)
 	if(table->hashTable != NULL)
 		free(table->hashTable);
     table->hashTable = (TTEntry*) malloc(table->numEntries * sizeof(TTEntry));
+	if (table->hashTable == NULL)
+	{
+		perror("Failed to allocate hash table\n");
+	}
     clearTT(table);
     printf("HashTable init complete with %d entries\n", table->numEntries);
 }
