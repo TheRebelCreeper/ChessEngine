@@ -12,14 +12,6 @@ extern uint32_t ET_SIZE;
 
 #define INVALID_EVALUATION (INF + 100)
 
-/*#define TT_PV  0x4
-#define TT_ALL 0x2
-#define TT_CUT 0x1
-
-#define TT_BOUND(entry) ((entry) & 0x3)
-#define TT_IS_PV(entry) ((entry) & TT_PV)
-#define TT_GENERATION(entry) ((entry) & F8)*/
-
 typedef struct etEntry {
 	U64 key;
 	int eval;
