@@ -5,6 +5,7 @@
 #define OOO_SPECIAL 2
 #define EN_PASSANT_SPECIAL 5
 #define NO_SPECIAL 0
+#define NO_CAPTURE -1
 
 #define IS_CAPTURE 0xf00000
 #define IS_PAWN_PUSH 0x1000000
@@ -31,13 +32,13 @@ typedef uint32_t Move;
 
 #define CREATE_MOVE(src, dst, piece, promotion, captured, dpp, ep, castles) \
 	(src) | ((dst) << 6) | ((piece) << 12) | ((promotion) << 16) | \
-	((captured) << 20) | ((dpp) << 24) | ((ep) << 25) | ((castles) << 26)
+	((captured + 1) << 20) | ((dpp) << 24) | ((ep) << 25) | ((castles) << 26)
 
 #define GET_MOVE_SRC(move) ((move) & 0x3f)
 #define GET_MOVE_DST(move) (((move) & 0xfc0) >> 6)
 #define GET_MOVE_PIECE(move) (((move) & 0xf000) >> 12)
 #define GET_MOVE_PROMOTION(move) (((move) & 0xf0000) >> 16)
-#define GET_MOVE_CAPTURED(move) (((move) & 0xf00000) >> 20)
+#define GET_MOVE_CAPTURED(move) ((((move) & 0xf00000) >> 20) - 1)
 #define IS_MOVE_DPP(move) (((move) & 0x1000000) >> 24)
 #define IS_MOVE_EP(move) (((move) & 0x2000000) >> 25)
 #define IS_MOVE_CASTLES(move) (((move) & 0x4000000) >> 26)
