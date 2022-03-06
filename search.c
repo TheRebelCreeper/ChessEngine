@@ -436,11 +436,11 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		}
 		
 		// Delta Pruning
-		if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && 
-		    eval + pieceValue[GET_MOVE_CAPTURED(current)] + 240 < alpha)
-		{
-			continue;
-		}
+		//if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && 
+		//    eval + pieceValue[GET_MOVE_CAPTURED(current)] + 240 < alpha)
+		//{
+		//	continue;
+		//}
 
 		GameState newState = playMove(pos, current, &legal);
 		
