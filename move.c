@@ -87,26 +87,24 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	{
 		clear_square(newPos.occupancies[BLACK], dst);
 		
-
-		// This causes race condition somehow
 		int victim = GET_MOVE_CAPTURED(move);
-		if (victim != 0)
+		if (victim != NO_CAPTURE)
 		{
-			clear_square(newPos.pieceBitboards[victim + 5], dst);
-			hashKey ^= pieceKeys[victim + 5][dst];
+			clear_square(newPos.pieceBitboards[victim + 6], dst);
+			hashKey ^= pieceKeys[victim + 6][dst];
 		}
 		
 		newPos.turn = BLACK;
 	}
 	else
 	{
-		
 		clear_square(newPos.occupancies[WHITE], dst);
+		
 		int victim = GET_MOVE_CAPTURED(move);
-		if (victim != 0)
+		if (victim != NO_CAPTURE)
 		{
-			clear_square(newPos.pieceBitboards[victim -1], dst);
-			hashKey ^= pieceKeys[victim -1][dst];
+			clear_square(newPos.pieceBitboards[victim], dst);
+			hashKey ^= pieceKeys[victim][dst];
 		}
 		
 		newPos.turn = WHITE;
@@ -161,7 +159,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	hashKey ^= castleKeys[newPos.castlingRights];
 	
 	// Reset 50 move counter if capture or pawn push
-	if (GET_MOVE_CAPTURED(move) || piece == P || piece == p)
+	if (GET_MOVE_CAPTURED(move) != NO_CAPTURE || piece == P || piece == p)
 	{
 		newPos.halfMoveClock = 0;
 	}

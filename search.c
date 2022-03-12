@@ -40,7 +40,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 		if (moves->list[i] & IS_CAPTURE)
 		{
 			int offset = 6 * pos->turn;
-			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i]) - 1] + KILLER_ONE;
+			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i])] + KILLER_ONE;
 		}
 		// Score quiet moves
 		else
@@ -96,9 +96,14 @@ inline int is_repetition(GameState *pos)
 	return reps != 0; // Detects a single rep
 }
 
+inline int isTactical(Move move, int inCheck, int givesCheck)
+{
+	return GET_MOVE_CAPTURED(move) != NO_CAPTURE || GET_MOVE_PROMOTION(move) != 0 || inCheck || givesCheck;
+}
+
 inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 {
-	return (GET_MOVE_CAPTURED(move) == 0 && GET_MOVE_PROMOTION(move) == 0 && inCheck == 0 && givesCheck == 0);
+	return !isTactical(move, inCheck, givesCheck);
 }
 
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
@@ -279,7 +284,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		// Futility Pruning
 		if (enableFutilityPruning && legalMoves > 1)
 		{
-			if (!givesCheck && !GET_MOVE_PROMOTION(current) && !GET_MOVE_CAPTURED(current))
+			if (!isTactical(current, inCheck, givesCheck))
 			{
 				info->ply--;
 				historyIndex--;
@@ -424,17 +429,18 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		pickMove(&moveList, i);
 		Move current = moveList.list[i];
-		if (!inCheck && GET_MOVE_CAPTURED(current) == 0 && GET_MOVE_PROMOTION(current) == 0)
+		
+		if (!inCheck && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == 0)
 		{
 			continue;
 		}
 		
 		// Delta Pruning
-		int potentialEval = eval + pieceValue[GET_MOVE_CAPTURED(current)];
-		if (potentialEval + 240 < alpha)
-		{
-			continue;
-		}
+		//if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && 
+		//    eval + pieceValue[GET_MOVE_CAPTURED(current)] + 240 < alpha)
+		//{
+		//	continue;
+		//}
 
 		GameState newState = playMove(pos, current, &legal);
 		

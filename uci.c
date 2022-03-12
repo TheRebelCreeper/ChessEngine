@@ -102,7 +102,7 @@ void parsePosition(char *line, GameState *pos)
 			}
 
 			// If the move is a pawn push or capture, reset history list
-			if (GET_MOVE_CAPTURED(moveList.list[idx]) || piece == P || piece == p)
+			if (GET_MOVE_CAPTURED(moveList.list[idx]) != NO_CAPTURE || piece == P || piece == p)
 			{
 				historyIndex = 0;
 			}
