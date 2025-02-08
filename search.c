@@ -191,7 +191,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	int staticEval = evaluation(pos);
 	
 	// Static Null Move Pruning / Reverse Futility Pruning
-  // TODO test out this version
+	// TODO test out this version
 	// if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	{   
@@ -220,10 +220,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 	
 	// Null move pruning
-	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
+	if (pruneNull && staticEval >= beta && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
 	{
 		// Reduce by either 2 or 3 ply depending on depth
-		int r = (depth <= 6) ? 2 : 3;
+		int r = (depth <= 6) ? 3 : 4;
 		
 		// Make the null move
 		GameState newPos;
@@ -233,7 +233,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		newPos.key ^= sideKey;
 		if (pos->enpassantSquare != none)
 			newPos.key ^= epKey[pos->enpassantSquare & 7];
-		
 		info->ply++;
 		
 		// Search resulting position with reduced depth
