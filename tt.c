@@ -3,8 +3,8 @@
 #include <assert.h>
 #include "tt.h"
 
-// Default memory to 64 MB
-uint32_t TT_SIZE = ((1 << 20) * 64);
+// Default memory to 128 MB
+uint32_t TT_SIZE = ((1 << 20) * 128);
 TT GLOBAL_TT;
 
 void initTT(TT *table)
