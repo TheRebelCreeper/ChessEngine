@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "movegen.h"
 #include "move.h"
@@ -103,7 +104,7 @@ inline int isTactical(Move move, int inCheck, int givesCheck)
 
 inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 {
-	return !isTactical(move, inCheck, givesCheck);
+	return !isTactical(move, inCheck, givesCheck) && !pv;
 }
 
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
@@ -302,10 +303,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		// LMR on non PV node
 		else
 		{
-			int r = (legalMoves <= 6) ? 1 : (depth / 3);
+			int r = 0.99 + log(depth) * log(legalMoves) / 3.14;
 			if (legalMoves > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
-			//int r = 1;
-			//if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
+			
 			{
 				// Reduced search without null moves
 				eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
