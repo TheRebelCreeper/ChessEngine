@@ -34,23 +34,23 @@ enum
 #define clear_lsb(board) ((board) = ((board) & ((board) - 1)))
 #define get_square(board, square) ((board) & (1ULL << (square)))
 
-extern const U64 FileA;
-extern const U64 FileB;
-extern const U64 FileC;
-extern const U64 FileD;
-extern const U64 FileE;
-extern const U64 FileF;
-extern const U64 FileG;
-extern const U64 FileH;
+#define FileA 0x0101010101010101ULL
+#define FileB (FileA << 1)
+#define FileC (FileA << 2)
+#define FileD (FileA << 3)
+#define FileE (FileA << 4)
+#define FileF (FileA << 5)
+#define FileG (FileA << 6)
+#define FileH (FileA << 7)
 
-extern const U64 Rank1;
-extern const U64 Rank2;
-extern const U64 Rank3;
-extern const U64 Rank4;
-extern const U64 Rank5;
-extern const U64 Rank6;
-extern const U64 Rank7;
-extern const U64 Rank8;
+#define Rank1 0xFFULL
+#define Rank2 (Rank1 << (8 * 1))
+#define Rank3 (Rank1 << (8 * 2))
+#define Rank4 (Rank1 << (8 * 3))
+#define Rank5 (Rank1 << (8 * 4))
+#define Rank6 (Rank1 << (8 * 5))
+#define Rank7 (Rank1 << (8 * 6))
+#define Rank8 (Rank1 << (8 * 7))
 
 extern char *squareNames[65];
 
