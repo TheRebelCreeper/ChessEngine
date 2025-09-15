@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Ofast
+CFLAGS = -Wall -Ofast -fcommon
 
 LIBS += -lrt
 
