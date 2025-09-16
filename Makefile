@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Ofast -fcommon
 
-LIBS += -lrt
+LIBS += -lrt -lm
 
 SOURCES  = $(wildcard *.c)
 INCLUDES = $(wildcard *.h)
@@ -16,7 +16,7 @@ DEFINES += -DUSE_SSE3 -msse3
 DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
-NAME = Saxton
+NAME = Saxton_Beta
 
 all: clean $(NAME)
 
