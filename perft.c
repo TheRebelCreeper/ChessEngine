@@ -64,7 +64,7 @@ U64 runPerft(int depth, GameState *pos)
 	size = perftDivide(depth, pos);
 	printf("Nodes searched: %llu\n\n", size);
 	finish = GetTimeMs();
-	seconds = (finish - start) / 1000;
+	seconds = (finish - start) / 1000.0;
 	printf("Finished perft in %f seconds\n", seconds);
 	printf("NPS: %f\n", size / seconds);
 	return size;
