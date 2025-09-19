@@ -16,6 +16,12 @@ char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "
 #endif
 char *pieceNotation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
 
+int pieceLookup[2][6] =
+{
+	{P, N, B, R, Q, K},
+	{p, n, b, r, q, k}
+};
+
 
 int getSquareFromNotation(char *str)
 {
