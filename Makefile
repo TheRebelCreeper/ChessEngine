@@ -19,10 +19,6 @@ DEFINES += -DUSE_SSE -msse
 ifeq ($(OS), Windows_NT)
 	CFLAGS += -fstrict-aliasing
 	CFLAGS += -fno-exceptions
-	CFLAGS += -Wno-unused-variable
-	CFLAGS += -Wno-unused-result
-	CFLAGS += -Wno-unused-but-set-variable
-	CFLAGS += -Wno-maybe-uninitialized
 	CFLAGS += -fomit-frame-pointer
 	DEFINES += -Drandom=rand
 	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
