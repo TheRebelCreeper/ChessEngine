@@ -1,35 +1,52 @@
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Ofast
+CFLAGS = -Wall -Ofast -fcommon -flto
+LIBS =
 
-LIBS += -lrt
-
+# Source files
 SOURCES  = $(wildcard *.c)
 INCLUDES = $(wildcard *.h)
 OBJECTS  = $(SOURCES:.c=.o)
 
-DEFINES =
+# Definitions
 DEFINES = -DIS_64BIT
-# TODO: Check if CPU supports AVX2 and enable if it does
 DEFINES += -DUSE_AVX2 -mavx2
 DEFINES += -DUSE_SSE41 -msse4.1
 DEFINES += -DUSE_SSE3 -msse3
 DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
+ifeq ($(OS), Windows_NT)
+	CFLAGS += -fstrict-aliasing
+	CFLAGS += -fno-exceptions
+	CFLAGS += -fomit-frame-pointer
+	DEFINES += -Drandom=rand
+	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
+	EXEEXT = .exe
+	RM = del /Q
+else
+	LIBS += -lrt -lm
+	EXEEXT = 
+	RM = rm -f
+endif
+
+# Executable name
 NAME = Saxton
+VERSION = $(file < version.txt)
+TARGET = $(NAME)_v$(VERSION)
 
-all: clean $(NAME)
+all: release
 
-$(NAME):$(OBJECTS)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJECTS) $(LIBS) $(DEFINES)
+release: $(TARGET)$(EXEEXT)
+
+debug: CFLAGS += -g
+debug: $(TARGET)$(EXEEXT)
+
+$(TARGET)$(EXEEXT): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET)$(EXEEXT) $(OBJECTS) $(LIBS) $(DEFINES)
 
 $(OBJECTS):$(SOURCES) $(INCLUDES)
 	$(CC) $(CFLAGS) -c $(SOURCES) $(DEFINES)
 
-
-
-.PHONY: clean
 clean:
-	-rm *.o 2>> /dev/null;
-	-rm *.so 2>> /dev/null;
-	-rm core.* 2>> /dev/null;
+	$(RM) $(OBJECTS) $(TARGET)$(EXEEXT)

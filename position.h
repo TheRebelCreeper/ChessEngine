@@ -32,6 +32,7 @@ enum
 
 extern int historyIndex;
 extern char *pieceNotation[12];
+extern int pieceLookup[2][6];
 
 U64 posHistory[256];
 U64 pieceKeys[12][64];
@@ -64,6 +65,53 @@ inline void setOccupancies(GameState *pos)
 	pos->occupancies[BLACK] |= pos->pieceBitboards[k];
 	
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
+}
+
+/*
+inline int isEndgame(GameState *pos)
+{
+    // Material balance (excluding kings)
+    int whiteMaterial = 0;
+    int blackMaterial = 0;
+
+    // Pawns
+    whiteMaterial += 100 * countBits(pos->pieceBitboards[P]);
+    blackMaterial += 100 * countBits(pos->pieceBitboards[p]);
+
+    // Knights
+    whiteMaterial += 320 * countBits(pos->pieceBitboards[N]);
+    blackMaterial += 320 * countBits(pos->pieceBitboards[n]);
+
+    // Bishops
+    whiteMaterial += 330 * countBits(pos->pieceBitboards[B]);
+    blackMaterial += 330 * countBits(pos->pieceBitboards[b]);
+
+    // Rooks
+    whiteMaterial += 500 * countBits(pos->pieceBitboards[R]);
+    blackMaterial += 500 * countBits(pos->pieceBitboards[r]);
+
+    // Queens
+    whiteMaterial += 900 * countBits(pos->pieceBitboards[Q]);
+    blackMaterial += 900 * countBits(pos->pieceBitboards[q]);
+
+    int totalMaterial = whiteMaterial + blackMaterial;
+
+    // Rule of thumb:
+    // Endgame when queens are off OR when remaining material (excluding pawns) is very low
+    int queens = countBits(pos->pieceBitboards[Q]) + countBits(pos->pieceBitboards[q]);
+    int heavyPieces = countBits(pos->pieceBitboards[R]) + countBits(pos->pieceBitboards[r]) +
+                      countBits(pos->pieceBitboards[Q]) + countBits(pos->pieceBitboards[q]);
+
+    if (queens == 0) return 1;
+    if (heavyPieces <= 2 && totalMaterial <= 2400) return 1;
+
+    return 0;
+} */
+
+
+inline int isEndgame(GameState *pos)
+{
+	return countBits(pos->occupancies[BOTH]) <= 10;
 }
 
 inline int onlyHasPawns(GameState *pos, int side)
@@ -146,8 +194,7 @@ inline int get_smallest_attacker(GameState *pos, int square)
 
 inline int isInCheck(GameState *pos)
 {
-	int offset = 6 * pos->turn;
-	int kingLocation = getFirstBitSquare(pos->pieceBitboards[K + offset]);
+	int kingLocation = getFirstBitSquare(pos->pieceBitboards[pieceLookup[pos->turn][K]]);
 	return isSquareAttacked(pos, kingLocation, pos->turn ^ 1);
 }
 

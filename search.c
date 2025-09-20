@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "movegen.h"
 #include "move.h"
@@ -8,7 +9,8 @@
 #include "tt.h"
 #include "util.h"
 
-int NUM_THREADS = 1;
+//static U64 deltaPruneCount = 0;
+//static U64 deltaPruneTotal = 0;
 int followingPV = 0;
 
 void checkTimeLeft(SearchInfo *info) {
@@ -28,7 +30,6 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
-		
 		// Score TT hits
 		if (moves->list[i] == ttMove)
 		{
@@ -103,18 +104,19 @@ inline int isTactical(Move move, int inCheck, int givesCheck)
 
 inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 {
-	return !isTactical(move, inCheck, givesCheck);
+	return !isTactical(move, inCheck, givesCheck) && !pv;
 }
 
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
 {
 	char nodeBound = TT_ALL;
-	int size, i, legal, legalMoves = 0;
+	int size, i, legal, moveCount = 0;
 	int ply = info->ply;
 	int inCheck = isInCheck(pos);
 	int isPVNode = beta - alpha > 1;
 	int isRoot = (ply == 0);
 	int enableFutilityPruning = 0;
+	int staticEval = evaluation(pos);
 	
 	MoveList moveList;
 	Move bestMove = 0;
@@ -126,16 +128,17 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	// Search has exceeded max depth, return static eval
 	if (ply > MAX_PLY)
 	{
-		return evaluation(pos);
+		return staticEval;
 	}
-	
+
+	// TODO Shouldn't this return static eval?
 	// Update time left
 	if(( info->nodes & 2047 ) == 0)
 	{
 		checkTimeLeft(info);
 		// Ran out of time
 		if (info->stopped)
-			return 0;
+			return alpha;
 	}
 	
 	// Increase depth if currently in check since there are few replies
@@ -188,10 +191,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		return eval;
 	}
 	
-	int staticEval = evaluation(pos);
-	
 	// Static Null Move Pruning / Reverse Futility Pruning
-  // TODO test out this version
+	// TODO test out this version
 	// if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
 	{   
@@ -220,10 +221,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 	
 	// Null move pruning
-	if (pruneNull && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
+	if (pruneNull && staticEval >= beta && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn))
 	{
 		// Reduce by either 2 or 3 ply depending on depth
-		int r = (depth <= 6) ? 2 : 3;
+		int r = (depth <= 6) ? 3 : 4;
 		
 		// Make the null move
 		GameState newPos;
@@ -233,7 +234,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		newPos.key ^= sideKey;
 		if (pos->enpassantSquare != none)
 			newPos.key ^= epKey[pos->enpassantSquare & 7];
-		
 		info->ply++;
 		
 		// Search resulting position with reduced depth
@@ -244,13 +244,13 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		
 		// Ran out of time
 		if (info->stopped)
-			return 0;
+			return alpha;
 		
 		if (eval >= beta && abs(eval) < CHECKMATE)
 			return beta;
 	}
 
-	// Could add futility pruning check here
+	// Check if move is eligible for futility pruning
 	if (depth < 9 && !isPVNode && !inCheck && alpha < CHECKMATE)
 	{
 		if (staticEval + futilityMargins[depth] <= alpha)
@@ -271,7 +271,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		if (!legal)
 			continue;
 		
-		legalMoves++;
+		moveCount++;
 		info->ply++;
 		
 		// Save the current move into history
@@ -282,7 +282,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		int givesCheck = isInCheck(&newState);
 		
 		// Futility Pruning
-		if (enableFutilityPruning && legalMoves > 1)
+		if (enableFutilityPruning && moveCount > 1)
 		{
 			if (!isTactical(current, inCheck, givesCheck))
 			{
@@ -296,17 +296,16 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		// via Tord Romstad
 		
 		// Do a full depth search on PV
-		if (legalMoves == 1)
+		if (moveCount == 1)
 		{
 			eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
 		}
 		// LMR on non PV node
 		else
 		{
-			int r = (legalMoves <= 6) ? 1 : (depth / 3);
-			if (legalMoves > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
-			//int r = 1;
-			//if (legalMoves >= FULL_DEPTH_MOVES && depth >= REDUCTION_LIMIT && okToReduce(current, inCheck, givesCheck, isPVNode))
+			int r = 0.99 + log(depth) * log(moveCount) / 3.14;
+			if (moveCount > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(current, inCheck, givesCheck, isPVNode))
+			
 			{
 				// Reduced search without null moves
 				eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
@@ -338,7 +337,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		historyIndex--;
 
 		if (info->stopped)
-			return 0;
+			return alpha;
 		
 		if (eval >= beta)
 		{
@@ -370,12 +369,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 	
 	// If only one legal move make the move right away
-	if (legalMoves == 1 && isRoot && info->timeset == 1 && depth > 2)
+	if (moveCount == 1 && isRoot && info->timeset == 1 && depth > 2)
 	{
 		info->stopped = 1;
 	}
 	
-	if (legalMoves == 0)
+	if (moveCount == 0)
 	{
 		// When no more legal moves, the pv does not exist
 		info->pvTableLength[ply] = 0;
@@ -390,41 +389,46 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	return alpha;
 }
 
+// Cannot enter while in check initially
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
 	MoveList moveList;
-	int size, i, legal, legalMoves = 0;
+	int size, i, legal, moveCount = 0;
 	int inCheck = isInCheck(pos);
 	
 	info->nodes++;
 	
+	// Check if time is up every 2048 nodes
 	if(( info->nodes & 2047 ) == 0)
 	{
 		checkTimeLeft(info);
 		if (info->stopped)
-			return 0;
+			return alpha;
 	}
+	
+	int staticEval = evaluation(pos);
+	int eval = staticEval;
 	
 	if (info->ply > MAX_PLY)
 	{
-		return evaluation(pos);
+		return staticEval;
 	}
-	
-	int eval = evaluation(pos);
-	
-	if (eval >= beta)
+
+	// Should this return bestVal or beta?
+	if (staticEval >= beta && !inCheck)
 	{
 		return beta;
 	}
 
-	if (eval > alpha)
+	if (staticEval > alpha && !inCheck)
 	{
-		alpha = eval;
+		alpha = staticEval;
 	}
 	
 	moveList = generateMoves(pos, &size);
 	scoreMoves(&moveList, pos, 0, info);
 	
+	// TODO: use moves that give check within the first two ply of qsearch
 	for (i = 0; i < size; i++)
 	{
 		pickMove(&moveList, i);
@@ -435,32 +439,44 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 			continue;
 		}
 		
-		// Delta Pruning
-		//if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && 
-		//    eval + pieceValue[GET_MOVE_CAPTURED(current)] + 240 < alpha)
-		//{
-		//	continue;
-		//}
-
-		GameState newState = playMove(pos, current, &legal);
 		
+		/* Delta Pruning
+		if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && !isEndgame(pos))
+		{
+			int piece = GET_MOVE_CAPTURED(current);
+			int margin = 250;
+			int vic = pieceValue[piece];
+			
+			if (piece == R)
+				margin = 400;
+			else if (piece == Q)
+				margin = 800;
+			
+			deltaPruneTotal++;
+			if (eval + vic + margin < alpha)
+			{
+				deltaPruneCount++;
+				continue;
+			}
+		}*/
+		
+		GameState newState = playMove(pos, current, &legal);
 		if (!legal)
 			continue;
-		
-		legalMoves++;
+		moveCount++;
 		
 		info->ply++;
 		eval = -quiescence(-beta, -alpha, depth, &newState, info);
 		info->ply--;
 		
 		if (info->stopped)
-			return 0;
+			return alpha;
 	
+		// Should this return best eval found or beta?
 		if (eval >= beta)
 		{
 			return beta;
 		}	
-	
 		if (eval > alpha)
 		{
 			alpha = eval;
@@ -468,7 +484,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 	
 	// If no more legal moves and we are in check checkmate
-	if (legalMoves == 0 && inCheck)
+	if (moveCount == 0 && inCheck)
 	{
 		return -INF + info->ply;
 	}
@@ -484,7 +500,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 void search(GameState *pos, SearchInfo *rootInfo)
 {
-	int bestScore;
+	int score, bestScore;
 	Move bestMove = 0;
 	int alpha = -INF;
 	int beta = INF;
@@ -505,10 +521,11 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		rootInfo->depth = ID;
 		followingPV = 1;
 		
-		bestScore = negaMax(alpha, beta, ID, pos, rootInfo, 1);
+		score = negaMax(alpha, beta, ID, pos, rootInfo, 1);
 
 		if (rootInfo->stopped == 1)
 			break;
+		bestScore = score;
 
 		#ifdef ASPIRATION_WINDOW
 		if (bestScore <= alpha || bestScore >= beta)
@@ -563,4 +580,9 @@ void search(GameState *pos, SearchInfo *rootInfo)
 	printf("bestmove ");
 	printMove(bestMove);
 	printf("\n");
+	//printf("Delta pruning: %llu pruned out of %llu captures (%.2f%%)\n",
+    //   deltaPruneCount, deltaPruneTotal,
+    //   (deltaPruneTotal > 0) ? (100.0 * deltaPruneCount / deltaPruneTotal) : 0.0);
+	//deltaPruneCount = 0;
+	//deltaPruneTotal = 0;
 }
