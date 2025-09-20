@@ -30,7 +30,7 @@ ifeq ($(OS), Windows_NT)
 	RM = del /Q
 else
 	LIBS += -lrt -lm
-	EXEEXT = .exe
+	EXEEXT = 
 	RM = rm -f
 endif
 
