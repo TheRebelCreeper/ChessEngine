@@ -9,8 +9,8 @@
 #include "tt.h"
 #include "util.h"
 
-static U64 deltaPruneCount = 0;
-static U64 deltaPruneTotal = 0;
+//static U64 deltaPruneCount = 0;
+//static U64 deltaPruneTotal = 0;
 int followingPV = 0;
 
 void checkTimeLeft(SearchInfo *info) {
