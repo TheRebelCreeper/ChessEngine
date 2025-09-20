@@ -30,7 +30,6 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 	
 	for (i = 0; i < moves->nextOpen; i++)
 	{
-		
 		// Score TT hits
 		if (moves->list[i] == ttMove)
 		{
@@ -131,14 +130,15 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	{
 		return staticEval;
 	}
-	
+
+	// TODO Shouldn't this return static eval?
 	// Update time left
 	if(( info->nodes & 2047 ) == 0)
 	{
 		checkTimeLeft(info);
 		// Ran out of time
 		if (info->stopped)
-			return 0;
+			return alpha;
 	}
 	
 	// Increase depth if currently in check since there are few replies
@@ -244,7 +244,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		
 		// Ran out of time
 		if (info->stopped)
-			return 0;
+			return alpha;
 		
 		if (eval >= beta && abs(eval) < CHECKMATE)
 			return beta;
@@ -337,7 +337,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 		historyIndex--;
 
 		if (info->stopped)
-			return 0;
+			return alpha;
 		
 		if (eval >= beta)
 		{
@@ -403,7 +403,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	{
 		checkTimeLeft(info);
 		if (info->stopped)
-			return 0;
+			return alpha;
 	}
 	
 	int staticEval = evaluation(pos);
@@ -470,7 +470,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 		info->ply--;
 		
 		if (info->stopped)
-			return 0;
+			return alpha;
 	
 		// Should this return best eval found or beta?
 		if (eval >= beta)
@@ -500,7 +500,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
 void search(GameState *pos, SearchInfo *rootInfo)
 {
-	int bestScore;
+	int score, bestScore;
 	Move bestMove = 0;
 	int alpha = -INF;
 	int beta = INF;
@@ -521,10 +521,11 @@ void search(GameState *pos, SearchInfo *rootInfo)
 		rootInfo->depth = ID;
 		followingPV = 1;
 		
-		bestScore = negaMax(alpha, beta, ID, pos, rootInfo, 1);
+		score = negaMax(alpha, beta, ID, pos, rootInfo, 1);
 
 		if (rootInfo->stopped == 1)
 			break;
+		bestScore = score;
 
 		#ifdef ASPIRATION_WINDOW
 		if (bestScore <= alpha || bestScore >= beta)
