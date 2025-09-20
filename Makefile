@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Ofast -fcommon
+CFLAGS = -Wall -Ofast -fcommon -flto
 LIBS =
 
 # Source files
