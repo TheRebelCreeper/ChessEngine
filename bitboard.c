@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "bitboard.h"
+#include <stdio.h>
 #include "magic.h"
 
 int RBits[64] = {

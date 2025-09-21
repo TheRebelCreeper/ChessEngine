@@ -2,8 +2,8 @@
 #define TT_H
 
 #include <stdint.h>
-#include "move.h"
 #include "evaluation.h"
+#include "move.h"
 
 extern uint32_t TT_SIZE;
 

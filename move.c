@@ -1,8 +1,8 @@
+#include "move.h"
 #include <stdio.h>
 #include <string.h>
-#include "move.h"
-#include "position.h"
 #include "bitboard.h"
+#include "position.h"
 
 /*
 	There are special moves for kings and pawns only

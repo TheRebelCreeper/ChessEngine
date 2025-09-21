@@ -1,14 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "bitboard.h"
-#include "movegen.h"
-#include "search.h"
-#include "uci.h"
-#include "perft.h"
-#include "wrapper.h"
-#include "tt.h"
 #include "et.h"
+#include "perft.h"
+#include "search.h"
+#include "tt.h"
+#include "uci.h"
+#include "wrapper.h"
 
 //#define VALIDATE
 

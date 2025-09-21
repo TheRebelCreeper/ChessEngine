@@ -1,7 +1,7 @@
+#include "magic.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "magic.h"
 #include "bitboard.h"
 
 /* 

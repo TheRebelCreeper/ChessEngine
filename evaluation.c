@@ -1,9 +1,9 @@
+#include "evaluation.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "position.h"
-#include "evaluation.h"
-#include "wrapper.h"
 #include "et.h"
+#include "position.h"
+#include "wrapper.h"
 
 int materialCount(GameState *pos)
 {

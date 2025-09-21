@@ -1,8 +1,8 @@
+#include "position.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include "position.h"
 #include "magic.h"
 
 int flip = 0;

@@ -1,11 +1,11 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
-#include "movegen.h"
-#include "move.h"
 #include "search.h"
+#include "move.h"
+#include "movegen.h"
 #include "tt.h"
 #include "util.h"
 
@@ -208,7 +208,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
 	// Null move pruning
 	if (pruneNull && staticEval >= beta && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
-		// Reduce by either 2 or 3 ply depending on depth
+		// Reduce by either 3 or 4 ply depending on depth
 		int r = (depth <= 6) ? 3 : 4;
 
 		// Make the null move

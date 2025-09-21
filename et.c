@@ -1,7 +1,7 @@
+#include "et.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-#include "et.h"
 
 // Default to 16 MB
 uint32_t ET_SIZE = ((1 << 20) * 16);

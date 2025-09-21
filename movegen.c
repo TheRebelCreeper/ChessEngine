@@ -1,10 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "movegen.h"
 #include <string.h>
 #include "bitboard.h"
-#include "position.h"
-#include "movegen.h"
 #include "list.h"
+#include "position.h"
 
 void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 {

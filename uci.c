@@ -1,14 +1,15 @@
+#include "uci.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <sys/time.h>
-#include "movegen.h"
-#include "search.h"
-#include "perft.h"
-#include "uci.h"
-#include "tt.h"
+
 #include "et.h"
+#include "movegen.h"
+#include "perft.h"
+#include "search.h"
+#include "tt.h"
+#include "util.h"
 
 // The code is to allow the engine to connect to GUI's via UCI protocol
 

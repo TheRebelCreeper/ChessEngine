@@ -1,9 +1,8 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include "position.h"
 #include "move.h"
-#include "evaluation.h"
+#include "position.h"
 
 #define MAX_PLY 64
 
@@ -68,7 +67,6 @@ static const int futilityMargins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780
 
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
 void search(GameState *pos, SearchInfo *info);
-int GetTimeMs();
 void ReadInput(SearchInfo *info);
 
 #endif

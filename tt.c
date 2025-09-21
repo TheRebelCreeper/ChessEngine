@@ -1,7 +1,7 @@
+#include "tt.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-#include "tt.h"
 
 // Default memory to 128 MB
 uint32_t TT_SIZE = ((1 << 20) * 128);

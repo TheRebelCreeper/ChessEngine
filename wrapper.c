@@ -1,5 +1,5 @@
-#include "nnue.h"
 #include "wrapper.h"
+#include "nnue.h"
 
 int FOUND_NETWORK = 0;
 
