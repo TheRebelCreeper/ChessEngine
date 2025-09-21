@@ -40,11 +40,12 @@
 * use this format.
 */
 enum colors {
-	white,black
+  white, black
 };
+
 enum pieces {
-	blank=0,wking,wqueen,wrook,wbishop,wknight,wpawn,
-			bking,bqueen,brook,bbishop,bknight,bpawn
+  blank = 0, wking, wqueen, wrook, wbishop, wknight, wpawn,
+  bking, bqueen, brook, bbishop, bknight, bpawn
 };
 
 /**
@@ -74,12 +75,12 @@ typedef struct NNUEdata {
 */
 typedef struct Position {
   int player;
-  int* pieces;
-  int* squares;
-  NNUEdata* nnue[3];
+  int *pieces;
+  int *squares;
+  NNUEdata *nnue[3];
 } Position;
 
-int nnue_evaluate_pos(Position* pos);
+int nnue_evaluate_pos(Position *pos);
 
 /************************************************************************
 *         EXTERNAL INTERFACES
@@ -90,7 +91,7 @@ int nnue_evaluate_pos(Position* pos);
 *
 * and then probe score using one of three functions, whichever
 * is convenient. From easy to hard
-*   
+*
 *   a) nnue_evaluate_fen         - accepts a fen string for evaluation
 *   b) nnue_evaluate             - suitable for use in engines
 *   c) nnue_evaluate_incremental - for ultimate performance but will need
@@ -102,7 +103,7 @@ int nnue_evaluate_pos(Position* pos);
 * Load NNUE file
 */
 int nnue_init(
-  const char * evalFile             /** Path to NNUE file */
+  const char *evalFile /** Path to NNUE file */
 );
 
 /**
@@ -111,7 +112,7 @@ int nnue_init(
 *   Score relative to side to move in approximate centi-pawns
 */
 int nnue_evaluate_fen(
-  const char* fen                   /** FEN string to probe evaluation for */
+  const char *fen /** FEN string to probe evaluation for */
 );
 
 /**
@@ -133,9 +134,9 @@ int nnue_evaluate_fen(
 *   Score relative to side to move in approximate centi-pawns
 */
 int nnue_evaluate(
-  int player,                       /** Side to move: white=0 black=1 */
-  int* pieces,                      /** Array of pieces */
-  int* squares                      /** Corresponding array of squares each piece stands on */
+  int player, /** Side to move: white=0 black=1 */
+  int *pieces, /** Array of pieces */
+  int *squares /** Corresponding array of squares each piece stands on */
 );
 
 /**
@@ -149,10 +150,10 @@ int nnue_evaluate(
 *    nnue_data[2] is pointer to NNUEdata for ply - 2
 */
 int nnue_evaluate_incremental(
-  int player,                       /** Side to move: white=0 black=1 */
-  int* pieces,                      /** Array of pieces */
-  int* squares,                     /** Corresponding array of squares each piece stands on */
-  NNUEdata** nnue_data              /** Pointer to NNUEdata* for current and previous plies */
+  int player, /** Side to move: white=0 black=1 */
+  int *pieces, /** Array of pieces */
+  int *squares, /** Corresponding array of squares each piece stands on */
+  NNUEdata **nnue_data /** Pointer to NNUEdata* for current and previous plies */
 );
 
 #endif

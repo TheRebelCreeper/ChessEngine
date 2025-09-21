@@ -25,11 +25,11 @@ int main(int argc, char *argv[])
 	initAttacks();
 	initTT(&GLOBAL_TT);
 	initET(&GLOBAL_ET);
-	
-	#ifdef VALIDATE
+
+#ifdef VALIDATE
 	moveGeneratorValidator();
-	#else
+#else
 	uciLoop();
-	#endif
+#endif
 	return 0;
 }

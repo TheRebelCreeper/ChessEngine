@@ -1,8 +1,6 @@
 #include "perft.h"
 #include "util.h"
 
-extern int NUM_THREADS;
-
 U64 perft(int depth, GameState *pos)
 {
 	MoveList moveList;

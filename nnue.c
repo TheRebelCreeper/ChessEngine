@@ -63,39 +63,43 @@ INLINE int16x8_t vmovl_high_s16(int8x16_t v)
 #endif
 
 enum {
-	PS_W_PAWN   =  1,
-	PS_B_PAWN   =  1 * 64 + 1,
-	PS_W_KNIGHT =  2 * 64 + 1,
-	PS_B_KNIGHT =  3 * 64 + 1,
-	PS_W_BISHOP =  4 * 64 + 1,
-	PS_B_BISHOP =  5 * 64 + 1,
-	PS_W_ROOK   =  6 * 64 + 1,
-	PS_B_ROOK   =  7 * 64 + 1,
-	PS_W_QUEEN  =  8 * 64 + 1,
-	PS_B_QUEEN  =  9 * 64 + 1,
-	PS_END      = 10 * 64 + 1
+	PS_W_PAWN = 1,
+	PS_B_PAWN = 1 * 64 + 1,
+	PS_W_KNIGHT = 2 * 64 + 1,
+	PS_B_KNIGHT = 3 * 64 + 1,
+	PS_W_BISHOP = 4 * 64 + 1,
+	PS_B_BISHOP = 5 * 64 + 1,
+	PS_W_ROOK = 6 * 64 + 1,
+	PS_B_ROOK = 7 * 64 + 1,
+	PS_W_QUEEN = 8 * 64 + 1,
+	PS_B_QUEEN = 9 * 64 + 1,
+	PS_END = 10 * 64 + 1
 };
 
 uint32_t PieceToIndex[2][14] = {
-	{ 0, 0, PS_W_QUEEN, PS_W_ROOK, PS_W_BISHOP, PS_W_KNIGHT, PS_W_PAWN,
-		0, PS_B_QUEEN, PS_B_ROOK, PS_B_BISHOP, PS_B_KNIGHT, PS_B_PAWN, 0},
-		{ 0, 0, PS_B_QUEEN, PS_B_ROOK, PS_B_BISHOP, PS_B_KNIGHT, PS_B_PAWN,
-			0, PS_W_QUEEN, PS_W_ROOK, PS_W_BISHOP, PS_W_KNIGHT, PS_W_PAWN, 0}
-		};
+	{
+		0, 0, PS_W_QUEEN, PS_W_ROOK, PS_W_BISHOP, PS_W_KNIGHT, PS_W_PAWN,
+		0, PS_B_QUEEN, PS_B_ROOK, PS_B_BISHOP, PS_B_KNIGHT, PS_B_PAWN, 0
+	},
+	{
+		0, 0, PS_B_QUEEN, PS_B_ROOK, PS_B_BISHOP, PS_B_KNIGHT, PS_B_PAWN,
+		0, PS_W_QUEEN, PS_W_ROOK, PS_W_BISHOP, PS_W_KNIGHT, PS_W_PAWN, 0
+	}
+};
 
 // Version of the evaluation file
-		static const uint32_t NnueVersion = 0x7AF32F16u;
+static const uint32_t NnueVersion = 0x7AF32F16u;
 
 // Constants used in evaluation value calculation
-		enum {
-			FV_SCALE = 16,
-			SHIFT = 6
-		};
+enum {
+	FV_SCALE = 16,
+	SHIFT = 6
+};
 
-		enum {
-			kHalfDimensions = 256,
-  FtInDims = 64 * PS_END, // 64 * 641
-  FtOutDims = kHalfDimensions * 2
+enum {
+	kHalfDimensions = 256,
+	FtInDims = 64 * PS_END, // 64 * 641
+	FtOutDims = kHalfDimensions * 2
 };
 
 // USE_MMX generates _mm_empty() instructions, so undefine if not needed
@@ -206,7 +210,7 @@ INLINE unsigned make_index(int c, int s, int pc, int ksq)
 }
 
 static void half_kp_append_active_indices(const Position *pos, const int c,
-	IndexList *active)
+                                          IndexList *active)
 {
 	int ksq = pos->squares[c];
 	ksq = orient(c, ksq);
@@ -218,13 +222,14 @@ static void half_kp_append_active_indices(const Position *pos, const int c,
 }
 
 static void half_kp_append_changed_indices(const Position *pos, const int c,
-	const DirtyPiece *dp, IndexList *removed, IndexList *added)
+                                           const DirtyPiece *dp, IndexList *removed, IndexList *added)
 {
 	int ksq = pos->squares[c];
 	ksq = orient(c, ksq);
 	for (int i = 0; i < dp->dirtyNum; i++) {
 		int pc = dp->pc[i];
-		if (IS_KING(pc)) continue;
+		if (IS_KING(pc))
+			continue;
 		if (dp->from[i] != 64)
 			removed->values[removed->size++] = make_index(c, dp->from[i], pc, ksq);
 		if (dp->to[i] != 64)
@@ -239,24 +244,25 @@ static void append_active_indices(const Position *pos, IndexList active[2])
 }
 
 static void append_changed_indices(const Position *pos, IndexList removed[2],
-	IndexList added[2], bool reset[2])
+                                   IndexList added[2], bool reset[2])
 {
 	const DirtyPiece *dp = &(pos->nnue[0]->dirtyPiece);
-  // assert(dp->dirtyNum != 0);
+	// assert(dp->dirtyNum != 0);
 
 	if (pos->nnue[1]->accumulator.computedAccumulation) {
 		for (unsigned c = 0; c < 2; c++) {
-			reset[c] = dp->pc[0] == (int)KING(c);
+			reset[c] = dp->pc[0] == (int) KING(c);
 			if (reset[c])
 				half_kp_append_active_indices(pos, c, &added[c]);
 			else
 				half_kp_append_changed_indices(pos, c, dp, &removed[c], &added[c]);
 		}
-	} else {
+	}
+	else {
 		const DirtyPiece *dp2 = &(pos->nnue[1]->dirtyPiece);
 		for (unsigned c = 0; c < 2; c++) {
-			reset[c] =   dp->pc[0] == (int)KING(c)
-			|| dp2->pc[0] == (int)KING(c);
+			reset[c] = dp->pc[0] == (int) KING(c)
+			           || dp2->pc[0] == (int) KING(c);
 			if (reset[c])
 				half_kp_append_active_indices(pos, c, &added[c]);
 			else {
@@ -280,24 +286,24 @@ static void append_changed_indices(const Position *pos, IndexList removed[2],
 // 32 x clipped_t -> 1 x int32_t
 
 #if !defined(USE_AVX512)
-alignas(64) static weight_t hidden1_weights [32 * 512];
-alignas(64) static weight_t hidden2_weights [32 * 32];
+alignas(64) static weight_t hidden1_weights[32 * 512];
+alignas(64) static weight_t hidden2_weights[32 * 32];
 #else
-alignas(64) static weight_t hidden1_weights [64 * 512];
-alignas(64) static weight_t hidden2_weights [64 * 32];
+alignas(64) static weight_t hidden1_weights[64 * 512];
+alignas(64) static weight_t hidden2_weights[64 * 32];
 #endif
-alignas(64) static weight_t output_weights [1 * 32];
+alignas(64) static weight_t output_weights[1 * 32];
 
-alignas(64) static int32_t hidden1_biases [32];
-alignas(64) static int32_t hidden2_biases [32];
+alignas(64) static int32_t hidden1_biases[32];
+alignas(64) static int32_t hidden2_biases[32];
 static int32_t output_biases[1];
 
 INLINE int32_t affine_propagate(clipped_t *input, int32_t *biases,
-	weight_t *weights)
+                                weight_t *weights)
 {
 #if defined(USE_AVX2)
-	__m256i *iv = (__m256i *)input;
-	__m256i *row = (__m256i *)weights;
+	__m256i *iv = (__m256i *) input;
+	__m256i *row = (__m256i *) weights;
 #if defined(USE_VNNI)
 	__m256i prod = _mm256_dpbusd_epi32(_mm256_setzero_si256(), iv[0], row[0]);
 #else
@@ -310,8 +316,8 @@ INLINE int32_t affine_propagate(clipped_t *input, int32_t *biases,
 	return _mm_cvtsi128_si32(sum) + _mm_extract_epi32(sum, 1) + biases[0];
 
 #elif defined(USE_SSE2)
-	__m128i *iv = (__m128i *)input;
-	__m128i *row = (__m128i *)weights;
+	__m128i *iv = (__m128i *) input;
+	__m128i *row = (__m128i *) weights;
 #if defined(AVOID_USE_SSSE3)
 	const __m128i kOnes = _mm_set1_epi16(1);
 	__m128i p0 = _mm_madd_epi16(_mm_maddubs_epi16(iv[0], row[0]), kOnes);
@@ -333,9 +339,9 @@ INLINE int32_t affine_propagate(clipped_t *input, int32_t *biases,
 #endif
 
 #elif defined(USE_MMX)
-	__m64 *iv = (__m64 *)input;
+	__m64 *iv = (__m64 *) input;
 	__m64 s0 = _mm_setzero_si64(), s1 = s0;
-	__m64 *row = (__m64 *)weights;
+	__m64 *row = (__m64 *) weights;
 	for (unsigned j = 0; j < 4; j++) {
 		s0 = _mm_add_pi32(s0, _mm_madd_pi16(row[2 * j], iv[2 * j]));
 		s1 = _mm_add_pi32(s1, _mm_madd_pi16(row[2 * j + 1], iv[2 * j + 1]));
@@ -345,9 +351,9 @@ INLINE int32_t affine_propagate(clipped_t *input, int32_t *biases,
 	return _mm_cvtsi64_si32(sum) + biases[0];
 
 #elif defined(USE_NEON)
-	int8x8_t *iv = (int8x8_t *)input;
+	int8x8_t *iv = (int8x8_t *) input;
 	int32x4_t sum = {biases[0]};
-	int8x8_t *row = (int8x8_t *)weights;
+	int8x8_t *row = (int8x8_t *) weights;
 	int16x8_t p0 = vmull_s8(iv[0], row[0]);
 	int16x8_t p1 = vmull_s8(iv[1], row[1]);
 	p0 = vmlal_s8(p0, iv[2], row[2]);
@@ -369,12 +375,13 @@ static_assert(FtOutDims % 64 == 0, "FtOutDims not a multiple of 64");
 
 #ifdef VECTOR
 INLINE bool next_idx(unsigned *idx, unsigned *offset, mask2_t *v,
-	mask_t *mask, unsigned inDims)
+                     mask_t *mask, unsigned inDims)
 {
 	while (*v == 0) {
 		*offset += 8 * sizeof(mask2_t);
-		if (*offset >= inDims) return false;
-		memcpy(v, (char *)mask + (*offset / 8), sizeof(mask2_t));
+		if (*offset >= inDims)
+			return false;
+		memcpy(v, (char *) mask + (*offset / 8), sizeof(mask2_t));
 	}
 #ifdef IS_64BIT
 	*idx = *offset + bsf(*v);
@@ -399,27 +406,27 @@ INLINE int _mm_movemask_pi8(__m64 v)
 INLINE int neon_movemask(uint8x16_t v)
 {
 	const uint8_t __attribute__((aligned(16))) powers[16] =
-	{ 1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128 };
+			{1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128};
 	const uint8x16_t kPowers = vld1q_u8(powers);
 
 	uint64x2_t mask = vpaddlq_u32(vpaddlq_u16(vpaddlq_u8(vandq_u8(v, kPowers))));
-	return   vgetq_lane_u8((uint8x16_t)mask, 0)
-	| (vgetq_lane_u8((uint8x16_t)mask, 8) << 8);
+	return vgetq_lane_u8((uint8x16_t) mask, 0)
+	       | (vgetq_lane_u8((uint8x16_t) mask, 8) << 8);
 }
 #endif
 #endif
 
 #if defined(USE_AVX512)
 INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
-	(void)outDims;
+	(void) outDims;
 	const __m512i kZero = _mm512_setzero_si512();
-	__m512i out_0 = ((__m512i *)biases)[0];
-	__m512i out_1 = ((__m512i *)biases)[1];
+	__m512i out_0 = ((__m512i *) biases)[0];
+	__m512i out_1 = ((__m512i *) biases)[1];
 	__m512i first, second;
 	mask2_t v;
 	unsigned idx;
@@ -428,12 +435,13 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 	for (unsigned offset = 0; offset < inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
-		first = ((__m512i *)weights)[idx];
+		first = ((__m512i *) weights)[idx];
 		uint16_t factor = input[idx];
 		if (next_idx(&idx, &offset, &v, inMask, inDims)) {
-			second = ((__m512i *)weights)[idx];
+			second = ((__m512i *) weights)[idx];
 			factor |= input[idx] << 8;
-		} else {
+		}
+		else {
 			second = kZero;
 		}
 		__m512i mul = _mm512_set1_epi16(factor), prod, signs;
@@ -445,28 +453,28 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 
 	__m512i out16 = _mm512_srai_epi16(_mm512_packs_epi32(out_0, out_1), SHIFT);
 
-	__m256i *outVec = (__m256i *)output;
+	__m256i *outVec = (__m256i *) output;
 	const __m256i kZero256 = _mm256_setzero_si256();
 	outVec[0] = _mm256_packs_epi16(
-		_mm512_castsi512_si256(out16),_mm512_extracti64x4_epi64(out16, 1));
+		_mm512_castsi512_si256(out16), _mm512_extracti64x4_epi64(out16, 1));
 	if (pack8_and_calc_mask)
-		outMask[0] = (uint32_t)_mm256_movemask_epi8(_mm256_cmpgt_epi8(outVec[0], kZero256));
+		outMask[0] = (uint32_t) _mm256_movemask_epi8(_mm256_cmpgt_epi8(outVec[0], kZero256));
 	else
 		outVec[0] = _mm256_max_epi8(outVec[0], kZero256);
 }
 #elif defined(USE_AVX2)
 INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
-	(void)outDims;
+	(void) outDims;
 	const __m256i kZero = _mm256_setzero_si256();
-	__m256i out_0 = ((__m256i *)biases)[0];
-	__m256i out_1 = ((__m256i *)biases)[1];
-	__m256i out_2 = ((__m256i *)biases)[2];
-	__m256i out_3 = ((__m256i *)biases)[3];
+	__m256i out_0 = ((__m256i *) biases)[0];
+	__m256i out_1 = ((__m256i *) biases)[1];
+	__m256i out_2 = ((__m256i *) biases)[2];
+	__m256i out_3 = ((__m256i *) biases)[3];
 	__m256i first, second;
 	mask2_t v;
 	unsigned idx;
@@ -475,12 +483,13 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 	for (unsigned offset = 0; offset < inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
-		first = ((__m256i *)weights)[idx];
+		first = ((__m256i *) weights)[idx];
 		uint16_t factor = input[idx];
 		if (next_idx(&idx, &offset, &v, inMask, inDims)) {
-			second = ((__m256i *)weights)[idx];
+			second = ((__m256i *) weights)[idx];
 			factor |= input[idx] << 8;
-		} else {
+		}
+		else {
 			second = kZero;
 		}
 		__m256i mul = _mm256_set1_epi16(factor), prod, signs;
@@ -497,7 +506,7 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 	__m256i out16_0 = _mm256_srai_epi16(_mm256_packs_epi32(out_0, out_1), SHIFT);
 	__m256i out16_1 = _mm256_srai_epi16(_mm256_packs_epi32(out_2, out_3), SHIFT);
 
-	__m256i *outVec = (__m256i *)output;
+	__m256i *outVec = (__m256i *) output;
 	outVec[0] = _mm256_packs_epi16(out16_0, out16_1);
 	if (pack8_and_calc_mask)
 		outMask[0] = _mm256_movemask_epi8(_mm256_cmpgt_epi8(outVec[0], kZero));
@@ -506,20 +515,20 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 }
 #elif AVOID_USE_SSSE3
 INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
-	const __m128i kZeros[2] = { 0 };
-	__m128i out_0 = ((__m128i *)biases)[0];
-	__m128i out_1 = ((__m128i *)biases)[1];
-	__m128i out_2 = ((__m128i *)biases)[2];
-	__m128i out_3 = ((__m128i *)biases)[3];
-	__m128i out_4 = ((__m128i *)biases)[4];
-	__m128i out_5 = ((__m128i *)biases)[5];
-	__m128i out_6 = ((__m128i *)biases)[6];
-	__m128i out_7 = ((__m128i *)biases)[7];
+	const __m128i kZeros[2] = {0};
+	__m128i out_0 = ((__m128i *) biases)[0];
+	__m128i out_1 = ((__m128i *) biases)[1];
+	__m128i out_2 = ((__m128i *) biases)[2];
+	__m128i out_3 = ((__m128i *) biases)[3];
+	__m128i out_4 = ((__m128i *) biases)[4];
+	__m128i out_5 = ((__m128i *) biases)[5];
+	__m128i out_6 = ((__m128i *) biases)[6];
+	__m128i out_7 = ((__m128i *) biases)[7];
 	const __m128i *first, *second;
 	mask2_t v;
 	unsigned idx;
@@ -528,12 +537,13 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 	for (unsigned offset = 0; offset < inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
-		first = (__m128i *)&weights[outDims * idx];
+		first = (__m128i *) &weights[outDims * idx];
 		uint16_t factor = input[idx];
 		if (next_idx(&idx, &offset, &v, inMask, inDims)) {
-			second = (__m128i *)&weights[outDims * idx];
+			second = (__m128i *) &weights[outDims * idx];
 			factor |= input[idx] << 8;
-		} else {
+		}
+		else {
 			second = kZeros;
 		}
 		__m128i mul = _mm_set1_epi16(factor), prod, signs;
@@ -560,40 +570,41 @@ INLINE void affine_txfm(int8_t *input, void *output, unsigned inDims,
 	__m128i out16_2 = _mm_srai_epi16(_mm_packs_epi32(out_4, out_5), SHIFT);
 	__m128i out16_3 = _mm_srai_epi16(_mm_packs_epi32(out_6, out_7), SHIFT);
 
-	__m128i *outVec = (__m128i *)output;
+	__m128i *outVec = (__m128i *) output;
 	if (pack8_and_calc_mask) {
 		outVec[0] = _mm_packs_epi16(out16_0, out16_1);
 		outMask[0] = _mm_movemask_epi8(_mm_cmpgt_epi8(outVec[0], kZeros[0]));
 		outVec[1] = _mm_packs_epi16(out16_2, out16_3);
 		outMask[1] = _mm_movemask_epi8(_mm_cmpgt_epi8(outVec[1], kZeros[0]));
-	} else {
-#if defined(USE_SSE41)
-		outVec[0] = _mm_max_epi8(_mm_packs_epi16(out16_0, out16_1), kZeros[0]);
-		outVec[1] = _mm_max_epi8(_mm_packs_epi16(out16_2, out16_3), kZeros[0]);
-#else
-		outVec[0] = _mm_packs_epi16(
-			_mm_max_epi16(out16_0, kZeros[0]), _mm_max_epi16(out16_1, kZeros[0]));
-		outVec[1] = _mm_packs_epi16(
-			_mm_max_epi16(out16_2, kZeros[0]), _mm_max_epi16(out16_3, kZeros[0]));
-#endif
 	}
+	else {
+#if defined(USE_SSE41)
+outVec[0] = _mm_max_epi8(_mm_packs_epi16(out16_0, out16_1), kZeros[0]);
+outVec[1] = _mm_max_epi8(_mm_packs_epi16(out16_2, out16_3), kZeros[0]);
+#else
+outVec[0] = _mm_packs_epi16(
+	_mm_max_epi16(out16_0, kZeros[0]), _mm_max_epi16(out16_1, kZeros[0]));
+outVec[1] = _mm_packs_epi16(
+	_mm_max_epi16(out16_2, kZeros[0]), _mm_max_epi16(out16_3, kZeros[0]));
+#endif
+}
 }
 #elif defined(USE_SSE2)
 INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
-	const __m128i kZeros[4] = { 0 };
-	__m128i out_0 = ((__m128i *)biases)[0];
-	__m128i out_1 = ((__m128i *)biases)[1];
-	__m128i out_2 = ((__m128i *)biases)[2];
-	__m128i out_3 = ((__m128i *)biases)[3];
-	__m128i out_4 = ((__m128i *)biases)[4];
-	__m128i out_5 = ((__m128i *)biases)[5];
-	__m128i out_6 = ((__m128i *)biases)[6];
-	__m128i out_7 = ((__m128i *)biases)[7];
+	const __m128i kZeros[4] = {0};
+	__m128i out_0 = ((__m128i *) biases)[0];
+	__m128i out_1 = ((__m128i *) biases)[1];
+	__m128i out_2 = ((__m128i *) biases)[2];
+	__m128i out_3 = ((__m128i *) biases)[3];
+	__m128i out_4 = ((__m128i *) biases)[4];
+	__m128i out_5 = ((__m128i *) biases)[5];
+	__m128i out_6 = ((__m128i *) biases)[6];
+	__m128i out_7 = ((__m128i *) biases)[7];
 	const __m128i *first, *second;
 	mask2_t v;
 	unsigned idx;
@@ -602,23 +613,24 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	for (unsigned offset = 0; offset < inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
-		first = (__m128i *)&weights[outDims * idx];
+		first = (__m128i *) &weights[outDims * idx];
 		uint32_t factor = input[idx];
 		if (next_idx(&idx, &offset, &v, inMask, inDims)) {
-			second = (__m128i *)&weights[outDims * idx];
+			second = (__m128i *) &weights[outDims * idx];
 			factor |= input[idx] << 16;
-		} else {
+		}
+		else {
 			second = kZeros;
 		}
 		__m128i mul = _mm_set1_epi32(factor);
-		out_0 = _mm_add_epi32(out_0, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[0],second[0])));
-		out_1 = _mm_add_epi32(out_1, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[0],second[0])));
-		out_2 = _mm_add_epi32(out_2, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[1],second[1])));
-		out_3 = _mm_add_epi32(out_3, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[1],second[1])));
-		out_4 = _mm_add_epi32(out_4, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[2],second[2])));
-		out_5 = _mm_add_epi32(out_5, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[2],second[2])));
-		out_6 = _mm_add_epi32(out_6, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[3],second[3])));
-		out_7 = _mm_add_epi32(out_7, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[3],second[3])));
+		out_0 = _mm_add_epi32(out_0, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[0], second[0])));
+		out_1 = _mm_add_epi32(out_1, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[0], second[0])));
+		out_2 = _mm_add_epi32(out_2, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[1], second[1])));
+		out_3 = _mm_add_epi32(out_3, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[1], second[1])));
+		out_4 = _mm_add_epi32(out_4, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[2], second[2])));
+		out_5 = _mm_add_epi32(out_5, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[2], second[2])));
+		out_6 = _mm_add_epi32(out_6, _mm_madd_epi16(mul, _mm_unpacklo_epi16(first[3], second[3])));
+		out_7 = _mm_add_epi32(out_7, _mm_madd_epi16(mul, _mm_unpackhi_epi16(first[3], second[3])));
 	}
 
 	__m128i out16_0 = _mm_srai_epi16(_mm_packs_epi32(out_0, out_1), SHIFT);
@@ -626,13 +638,14 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	__m128i out16_2 = _mm_srai_epi16(_mm_packs_epi32(out_4, out_5), SHIFT);
 	__m128i out16_3 = _mm_srai_epi16(_mm_packs_epi32(out_6, out_7), SHIFT);
 
-	__m128i *outVec = (__m128i *)output;
+	__m128i *outVec = (__m128i *) output;
 	if (pack8_and_calc_mask) {
 		outVec[0] = _mm_packs_epi16(out16_0, out16_1);
 		outMask[0] = _mm_movemask_epi8(_mm_cmpgt_epi8(outVec[0], kZeros[0]));
 		outVec[1] = _mm_packs_epi16(out16_2, out16_3);
 		outMask[1] = _mm_movemask_epi8(_mm_cmpgt_epi8(outVec[1], kZeros[0]));
-	} else {
+	}
+	else {
 		const __m128i kx07f = _mm_set1_epi16(127);
 		outVec[0] = _mm_min_epi16(_mm_max_epi16(out16_0, kZeros[0]), kx07f);
 		outVec[1] = _mm_min_epi16(_mm_max_epi16(out16_1, kZeros[0]), kx07f);
@@ -642,14 +655,14 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 }
 #elif defined(USE_MMX)
 INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
 #if 0
-  const __m64 kZeros[2] = { 0 };
-  for (unsigned t = 0; t < 4; t++) {
+const __m64 kZeros[2] = {0};
+  for (unsigned t = 0; t<4; t++) {
 	__m64 out_0 = ((__m64 *)biases)[4 * t + 0];
 	__m64 out_1 = ((__m64 *)biases)[4 * t + 1];
 	__m64 out_2 = ((__m64 *)biases)[4 * t + 2];
@@ -686,42 +699,42 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	  outMask[t] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[t], kZeros[0]));
 	} else {
 #ifdef USE_SSE
-	  const __m64 kx07f = _mm_set1_pi16(127);
-	  outVec[2 * t] = _mm_min_pi16(_mm_max_pi16(out16_0, kZeros[0]), kx07f);
-	  outVec[2 * t + 1] = _mm_min_pi16(_mm_max_pi16(out16_1, kZeros[0]), kx07f);
+const __m64 kx07f = _mm_set1_pi16(127);
+outVec[2 * t] = _mm_min_pi16(_mm_max_pi16(out16_0, kZeros[0]), kx07f);
+outVec[2 * t + 1] = _mm_min_pi16(_mm_max_pi16(out16_1, kZeros[0]), kx07f);
 #else
-	  const __m64 k0x7f80 = _mm_set1_pi16(0x7f80);
-	  const __m64 k0x0080 = _mm_set1_pi16(0x0080);
-	  const __m64 k0x8000 = _mm_set1_pi16(-0x8000);
-	  outVec[2 * t] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_0, k0x7f80), k0x0080), k0x8000);
-	  outVec[2 * t + 1] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_1, k0x7f80), k0x0080), k0x8000);
+const __m64 k0x7f80 = _mm_set1_pi16(0x7f80);
+const __m64 k0x0080 = _mm_set1_pi16(0x0080);
+const __m64 k0x8000 = _mm_set1_pi16(-0x8000);
+outVec[2 * t] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_0, k0x7f80), k0x0080), k0x8000);
+outVec[2 * t + 1] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_1, k0x7f80), k0x0080), k0x8000);
 #endif
-	}
+}
   }
 #else
-	const __m64 kZeros[8] = { 0 };
-	__m64 out_0 = ((__m64 *)biases)[0];
-	__m64 out_1 = ((__m64 *)biases)[1];
-	__m64 out_2 = ((__m64 *)biases)[2];
-	__m64 out_3 = ((__m64 *)biases)[3];
-	__m64 out_4 = ((__m64 *)biases)[4];
-	__m64 out_5 = ((__m64 *)biases)[5];
-	__m64 out_6 = ((__m64 *)biases)[6];
-	__m64 out_7 = ((__m64 *)biases)[7];
-	__m64 out_8 = ((__m64 *)biases)[8];
-	__m64 out_9 = ((__m64 *)biases)[9];
-	__m64 out_10 = ((__m64 *)biases)[10];
-	__m64 out_11 = ((__m64 *)biases)[11];
-	__m64 out_12 = ((__m64 *)biases)[12];
-	__m64 out_13 = ((__m64 *)biases)[13];
-	__m64 out_14 = ((__m64 *)biases)[14];
-	__m64 out_15 = ((__m64 *)biases)[15];
-	const __m64 *first, *second;
-	mask2_t v;
-	unsigned idx;
+const __m64 kZeros[8] = {0};
+__m64 out_0 = ((__m64 *) biases)[0];
+__m64 out_1 = ((__m64 *) biases)[1];
+__m64 out_2 = ((__m64 *) biases)[2];
+__m64 out_3 = ((__m64 *) biases)[3];
+__m64 out_4 = ((__m64 *) biases)[4];
+__m64 out_5 = ((__m64 *) biases)[5];
+__m64 out_6 = ((__m64 *) biases)[6];
+__m64 out_7 = ((__m64 *) biases)[7];
+__m64 out_8 = ((__m64 *) biases)[8];
+__m64 out_9 = ((__m64 *) biases)[9];
+__m64 out_10 = ((__m64 *) biases)[10];
+__m64 out_11 = ((__m64 *) biases)[11];
+__m64 out_12 = ((__m64 *) biases)[12];
+__m64 out_13 = ((__m64 *) biases)[13];
+__m64 out_14 = ((__m64 *) biases)[14];
+__m64 out_15 = ((__m64 *) biases)[15];
+const __m64 *first, *second;
+mask2_t v;
+unsigned idx;
 
-	memcpy(&v, inMask, sizeof(mask2_t));
-	for (unsigned offset = 0; offset < inDims;) {
+memcpy(&v, inMask, sizeof(mask2_t));
+	for (unsigned offset = 0; offset<inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
 		first = (__m64 *)&weights[outDims * idx];
@@ -751,67 +764,68 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 		out_15 = _mm_add_pi32(out_15, _mm_madd_pi16(mul, _mm_unpackhi_pi16(first[7],second[7])));
 	}
 
-	__m64 out16_0 = _mm_srai_pi16(_mm_packs_pi32(out_0, out_1), SHIFT);
-	__m64 out16_1 = _mm_srai_pi16(_mm_packs_pi32(out_2, out_3), SHIFT);
-	__m64 out16_2 = _mm_srai_pi16(_mm_packs_pi32(out_4, out_5), SHIFT);
-	__m64 out16_3 = _mm_srai_pi16(_mm_packs_pi32(out_6, out_7), SHIFT);
-	__m64 out16_4 = _mm_srai_pi16(_mm_packs_pi32(out_8, out_9), SHIFT);
-	__m64 out16_5 = _mm_srai_pi16(_mm_packs_pi32(out_10, out_11), SHIFT);
-	__m64 out16_6 = _mm_srai_pi16(_mm_packs_pi32(out_12, out_13), SHIFT);
-	__m64 out16_7 = _mm_srai_pi16(_mm_packs_pi32(out_14, out_15), SHIFT);
+__m64 out16_0 = _mm_srai_pi16(_mm_packs_pi32(out_0, out_1), SHIFT);
+__m64 out16_1 = _mm_srai_pi16(_mm_packs_pi32(out_2, out_3), SHIFT);
+__m64 out16_2 = _mm_srai_pi16(_mm_packs_pi32(out_4, out_5), SHIFT);
+__m64 out16_3 = _mm_srai_pi16(_mm_packs_pi32(out_6, out_7), SHIFT);
+__m64 out16_4 = _mm_srai_pi16(_mm_packs_pi32(out_8, out_9), SHIFT);
+__m64 out16_5 = _mm_srai_pi16(_mm_packs_pi32(out_10, out_11), SHIFT);
+__m64 out16_6 = _mm_srai_pi16(_mm_packs_pi32(out_12, out_13), SHIFT);
+__m64 out16_7 = _mm_srai_pi16(_mm_packs_pi32(out_14, out_15), SHIFT);
 
-	__m64 *outVec = (__m64 *)output;
-	if (pack8_and_calc_mask) {
-		outVec[0] = _mm_packs_pi16(out16_0, out16_1);
-		outMask[0] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[0], kZeros[0]));
-		outVec[1] = _mm_packs_pi16(out16_2, out16_3);
-		outMask[1] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[1], kZeros[0]));
-		outVec[2] = _mm_packs_pi16(out16_4, out16_5);
-		outMask[2] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[2], kZeros[0]));
-		outVec[3] = _mm_packs_pi16(out16_6, out16_7);
-		outMask[3] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[3], kZeros[0]));
-	} else {
+__m64 *outVec = (__m64 *) output;
+	if (pack8_and_calc_mask)
+{
+	outVec[0] = _mm_packs_pi16(out16_0, out16_1);
+	outMask[0] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[0], kZeros[0]));
+	outVec[1] = _mm_packs_pi16(out16_2, out16_3);
+	outMask[1] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[1], kZeros[0]));
+	outVec[2] = _mm_packs_pi16(out16_4, out16_5);
+	outMask[2] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[2], kZeros[0]));
+	outVec[3] = _mm_packs_pi16(out16_6, out16_7);
+	outMask[3] = _mm_movemask_pi8(_mm_cmpgt_pi8(outVec[3], kZeros[0]));
+}else {
 #ifdef USE_SSE
-		const __m64 kx07f = _mm_set1_pi16(127);
-		outVec[0] = _mm_min_pi16(_mm_max_pi16(out16_0, kZeros[0]), kx07f);
-		outVec[1] = _mm_min_pi16(_mm_max_pi16(out16_1, kZeros[0]), kx07f);
-		outVec[2] = _mm_min_pi16(_mm_max_pi16(out16_2, kZeros[0]), kx07f);
-		outVec[3] = _mm_min_pi16(_mm_max_pi16(out16_3, kZeros[0]), kx07f);
-		outVec[4] = _mm_min_pi16(_mm_max_pi16(out16_4, kZeros[0]), kx07f);
-		outVec[5] = _mm_min_pi16(_mm_max_pi16(out16_5, kZeros[0]), kx07f);
-		outVec[6] = _mm_min_pi16(_mm_max_pi16(out16_6, kZeros[0]), kx07f);
-		outVec[7] = _mm_min_pi16(_mm_max_pi16(out16_7, kZeros[0]), kx07f);
+const __m64 kx07f = _mm_set1_pi16(127);
+outVec[0] = _mm_min_pi16(_mm_max_pi16(out16_0, kZeros[0]), kx07f);
+outVec[1] = _mm_min_pi16(_mm_max_pi16(out16_1, kZeros[0]), kx07f);
+outVec[2] = _mm_min_pi16(_mm_max_pi16(out16_2, kZeros[0]), kx07f);
+outVec[3] = _mm_min_pi16(_mm_max_pi16(out16_3, kZeros[0]), kx07f);
+outVec[4] = _mm_min_pi16(_mm_max_pi16(out16_4, kZeros[0]), kx07f);
+outVec[5] = _mm_min_pi16(_mm_max_pi16(out16_5, kZeros[0]), kx07f);
+outVec[6] = _mm_min_pi16(_mm_max_pi16(out16_6, kZeros[0]), kx07f);
+outVec[7] = _mm_min_pi16(_mm_max_pi16(out16_7, kZeros[0]), kx07f);
 #else
-		const __m64 k0x7f80 = _mm_set1_pi16(0x7f80);
-		const __m64 k0x0080 = _mm_set1_pi16(0x0080);
-		const __m64 k0x8000 = _mm_set1_pi16(-0x8000);
-		outVec[0] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_0, k0x7f80), k0x0080), k0x8000);
-		outVec[1] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_1, k0x7f80), k0x0080), k0x8000);
-		outVec[2] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_2, k0x7f80), k0x0080), k0x8000);
-		outVec[3] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_3, k0x7f80), k0x0080), k0x8000);
-		outVec[4] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_4, k0x7f80), k0x0080), k0x8000);
-		outVec[5] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_5, k0x7f80), k0x0080), k0x8000);
-		outVec[6] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_6, k0x7f80), k0x0080), k0x8000);
-		outVec[7] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_7, k0x7f80), k0x0080), k0x8000);
+const __m64 k0x7f80 = _mm_set1_pi16(0x7f80);
+const __m64 k0x0080 = _mm_set1_pi16(0x0080);
+const __m64 k0x8000 = _mm_set1_pi16(-0x8000);
+outVec[0] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_0, k0x7f80), k0x0080), k0x8000);
+outVec[1] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_1, k0x7f80), k0x0080), k0x8000);
+outVec[2] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_2, k0x7f80), k0x0080), k0x8000);
+outVec[3] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_3, k0x7f80), k0x0080), k0x8000);
+outVec[4] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_4, k0x7f80), k0x0080), k0x8000);
+outVec[5] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_5, k0x7f80), k0x0080), k0x8000);
+outVec[6] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_6, k0x7f80), k0x0080), k0x8000);
+outVec[7] = _mm_subs_pu16(_mm_add_pi16(_mm_adds_pi16(out16_7, k0x7f80), k0x0080), k0x8000);
 #endif
-	}
+}
 #endif
 }
 #elif defined(USE_NEON)
 INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
-	unsigned outDims, const int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, const int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
 	assert(outDims == 32);
 
-	int32x4_t out_0 = ((int32x4_t *)biases)[0];
-	int32x4_t out_1 = ((int32x4_t *)biases)[1];
-	int32x4_t out_2 = ((int32x4_t *)biases)[2];
-	int32x4_t out_3 = ((int32x4_t *)biases)[3];
-	int32x4_t out_4 = ((int32x4_t *)biases)[4];
-	int32x4_t out_5 = ((int32x4_t *)biases)[5];
-	int32x4_t out_6 = ((int32x4_t *)biases)[6];
-	int32x4_t out_7 = ((int32x4_t *)biases)[7];
+	int32x4_t out_0 = ((int32x4_t *) biases)[0];
+	int32x4_t out_1 = ((int32x4_t *) biases)[1];
+	int32x4_t out_2 = ((int32x4_t *) biases)[2];
+	int32x4_t out_3 = ((int32x4_t *) biases)[3];
+	int32x4_t out_4 = ((int32x4_t *) biases)[4];
+	int32x4_t out_5 = ((int32x4_t *) biases)[5];
+	int32x4_t out_6 = ((int32x4_t *) biases)[6];
+	int32x4_t out_7 = ((int32x4_t *) biases)[7];
 	const int8x8_t *first;
 	mask2_t v;
 	unsigned idx;
@@ -820,7 +834,7 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	for (unsigned offset = 0; offset < inDims;) {
 		if (!next_idx(&idx, &offset, &v, inMask, inDims))
 			break;
-		first = (int8x8_t *)&weights[outDims * idx];
+		first = (int8x8_t *) &weights[outDims * idx];
 		int16_t factor = input[idx];
 
 		int16x8_t prod;
@@ -844,16 +858,17 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	int16x8_t out16_3 = vcombine_s16(vqshrn_n_s32(out_6, SHIFT), vqshrn_n_s32(out_7, SHIFT));
 
 	if (pack8_and_calc_mask) {
-		const int8x16_t kZero = { 0 };
-		int8x16_t *outVec = (int8x16_t *)output;
+		const int8x16_t kZero = {0};
+		int8x16_t *outVec = (int8x16_t *) output;
 		outVec[0] = vcombine_s8(vqmovn_s16(out16_0), vqmovn_s16(out16_1));
 		outMask[0] = neon_movemask(vcgtq_s8(outVec[0], kZero));
 		outVec[1] = vcombine_s8(vqmovn_s16(out16_2), vqmovn_s16(out16_3));
 		outMask[1] = neon_movemask(vcgtq_s8(outVec[1], kZero));
-	} else {
-	// The next step takes int8x8_t as input, so store as int8x8_t
-		const int8x8_t kZero = { 0 };
-		int8x8_t *outVec = (int8x8_t *)output;
+	}
+	else {
+		// The next step takes int8x8_t as input, so store as int8x8_t
+		const int8x8_t kZero = {0};
+		int8x8_t *outVec = (int8x8_t *) output;
 		outVec[0] = vmax_s8(vqmovn_s16(out16_0), kZero);
 		outVec[1] = vmax_s8(vqmovn_s16(out16_1), kZero);
 		outVec[2] = vmax_s8(vqmovn_s16(out16_2), kZero);
@@ -862,10 +877,12 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 }
 #else /* generic fallback */
 INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
-	unsigned outDims, int32_t *biases, const weight_t *weights,
-	mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
+                        unsigned outDims, int32_t *biases, const weight_t *weights,
+                        mask_t *inMask, mask_t *outMask, const bool pack8_and_calc_mask)
 {
-	(void)inMask; (void)outMask; (void)pack8_and_calc_mask;
+	(void) inMask;
+	(void) outMask;
+	(void) pack8_and_calc_mask;
 
 	int32_t tmp[outDims];
 
@@ -875,193 +892,194 @@ INLINE void affine_txfm(clipped_t *input, void *output, unsigned inDims,
 	for (unsigned idx = 0; idx < inDims; idx++)
 		if (input[idx])
 			for (unsigned i = 0; i < outDims; i++)
-				tmp[i] += (int8_t)input[idx] * weights[outDims * idx + i];
+				tmp[i] += (int8_t) input[idx] * weights[outDims * idx + i];
 
-			clipped_t *outVec = (clipped_t *)output;
-			for (unsigned i = 0; i < outDims; i++)
-				outVec[i] = clamp(tmp[i] >> SHIFT, 0, 127);
-		}
+	clipped_t *outVec = (clipped_t *) output;
+	for (unsigned i = 0; i < outDims; i++)
+		outVec[i] = clamp(tmp[i] >> SHIFT, 0, 127);
+}
 #endif
 
 // Input feature converter
-		alignas(64) static int16_t ft_biases [kHalfDimensions];
-		alignas(64) static int16_t ft_weights [kHalfDimensions * FtInDims];
+alignas(64) static int16_t ft_biases[kHalfDimensions];
+alignas(64) static int16_t ft_weights[kHalfDimensions * FtInDims];
 
 #ifdef VECTOR
 #define TILE_HEIGHT (NUM_REGS * SIMD_WIDTH / 16)
 #endif
 
 // Calculate cumulative value without using difference calculation
-		INLINE static void refresh_accumulator(Position *pos)
-		{
-			Accumulator *accumulator = &(pos->nnue[0]->accumulator);
+INLINE static void refresh_accumulator(Position *pos)
+{
+	Accumulator *accumulator = &(pos->nnue[0]->accumulator);
 
-			IndexList activeIndices[2];
-			activeIndices[0].size = activeIndices[1].size = 0;
-			append_active_indices(pos, activeIndices);
+	IndexList activeIndices[2];
+	activeIndices[0].size = activeIndices[1].size = 0;
+	append_active_indices(pos, activeIndices);
 
-			for (unsigned c = 0; c < 2; c++) {
+	for (unsigned c = 0; c < 2; c++) {
 #ifdef VECTOR
-				for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
-					vec16_t *ft_biases_tile = (vec16_t *)&ft_biases[i * TILE_HEIGHT];
-					vec16_t *accTile = (vec16_t *)&accumulator->accumulation[c][i * TILE_HEIGHT];
-					vec16_t acc[NUM_REGS];
+		for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
+			vec16_t *ft_biases_tile = (vec16_t *) &ft_biases[i * TILE_HEIGHT];
+			vec16_t *accTile = (vec16_t *) &accumulator->accumulation[c][i * TILE_HEIGHT];
+			vec16_t acc[NUM_REGS];
 
-					for (unsigned j = 0; j < NUM_REGS; j++)
-						acc[j] = ft_biases_tile[j];
+			for (unsigned j = 0; j < NUM_REGS; j++)
+				acc[j] = ft_biases_tile[j];
 
-					for (size_t k = 0; k < activeIndices[c].size; k++) {
-						unsigned index = activeIndices[c].values[k];
-						unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
-						vec16_t *column = (vec16_t *)&ft_weights[offset];
+			for (size_t k = 0; k < activeIndices[c].size; k++) {
+				unsigned index = activeIndices[c].values[k];
+				unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
+				vec16_t *column = (vec16_t *) &ft_weights[offset];
 
-						for (unsigned j = 0; j < NUM_REGS; j++)
-							acc[j] = vec_add_16(acc[j], column[j]);
-					}
-
-					for (unsigned j = 0; j < NUM_REGS; j++)
-						accTile[j] = acc[j];
-				}
-#else
-				memcpy(accumulator->accumulation[c], ft_biases,
-					kHalfDimensions * sizeof(int16_t));
-
-				for (size_t k = 0; k < activeIndices[c].size; k++) {
-					unsigned index = activeIndices[c].values[k];
-					unsigned offset = kHalfDimensions * index;
-
-					for (unsigned j = 0; j < kHalfDimensions; j++)
-						accumulator->accumulation[c][j] += ft_weights[offset + j];
-				}
-#endif
+				for (unsigned j = 0; j < NUM_REGS; j++)
+					acc[j] = vec_add_16(acc[j], column[j]);
 			}
 
-			accumulator->computedAccumulation = 1;
+			for (unsigned j = 0; j < NUM_REGS; j++)
+				accTile[j] = acc[j];
 		}
+#else
+		memcpy(accumulator->accumulation[c], ft_biases,
+		       kHalfDimensions * sizeof(int16_t));
+
+		for (size_t k = 0; k < activeIndices[c].size; k++) {
+			unsigned index = activeIndices[c].values[k];
+			unsigned offset = kHalfDimensions * index;
+
+			for (unsigned j = 0; j < kHalfDimensions; j++)
+				accumulator->accumulation[c][j] += ft_weights[offset + j];
+		}
+#endif
+	}
+
+	accumulator->computedAccumulation = 1;
+}
 
 // Calculate cumulative value using difference calculation if possible
-		INLINE static bool update_accumulator(Position *pos)
-		{
-			Accumulator *accumulator = &(pos->nnue[0]->accumulator);
-			if (accumulator->computedAccumulation)
-				return true;
+INLINE static bool update_accumulator(Position *pos)
+{
+	Accumulator *accumulator = &(pos->nnue[0]->accumulator);
+	if (accumulator->computedAccumulation)
+		return true;
 
-			Accumulator *prevAcc;
-			if (   (!pos->nnue[1] || !(prevAcc = &pos->nnue[1]->accumulator)->computedAccumulation)
-				&& (!pos->nnue[2] || !(prevAcc = &pos->nnue[2]->accumulator)->computedAccumulation) )
-				return false;
+	Accumulator *prevAcc;
+	if ((!pos->nnue[1] || !(prevAcc = &pos->nnue[1]->accumulator)->computedAccumulation)
+	    && (!pos->nnue[2] || !(prevAcc = &pos->nnue[2]->accumulator)->computedAccumulation))
+		return false;
 
-			IndexList removed_indices[2], added_indices[2];
-			removed_indices[0].size = removed_indices[1].size = 0;
-			added_indices[0].size = added_indices[1].size = 0;
-			bool reset[2];
-			append_changed_indices(pos, removed_indices, added_indices, reset);
+	IndexList removed_indices[2], added_indices[2];
+	removed_indices[0].size = removed_indices[1].size = 0;
+	added_indices[0].size = added_indices[1].size = 0;
+	bool reset[2];
+	append_changed_indices(pos, removed_indices, added_indices, reset);
 
 #ifdef VECTOR
-			for (unsigned i = 0; i< kHalfDimensions / TILE_HEIGHT; i++) {
-				for (unsigned c = 0; c < 2; c++) {
-					vec16_t *accTile = (vec16_t *)&accumulator->accumulation[c][i * TILE_HEIGHT];
-					vec16_t acc[NUM_REGS];
+	for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
+		for (unsigned c = 0; c < 2; c++) {
+			vec16_t *accTile = (vec16_t *) &accumulator->accumulation[c][i * TILE_HEIGHT];
+			vec16_t acc[NUM_REGS];
 
-					if (reset[c]) {
-						vec16_t *ft_b_tile = (vec16_t *)&ft_biases[i * TILE_HEIGHT];
-						for (unsigned j = 0; j < NUM_REGS; j++)
-							acc[j] = ft_b_tile[j];
-					} else {
-						vec16_t *prevAccTile = (vec16_t *)&prevAcc->accumulation[c][i * TILE_HEIGHT];
-						for (unsigned j = 0; j < NUM_REGS; j++)
-							acc[j] = prevAccTile[j];
+			if (reset[c]) {
+				vec16_t *ft_b_tile = (vec16_t *) &ft_biases[i * TILE_HEIGHT];
+				for (unsigned j = 0; j < NUM_REGS; j++)
+					acc[j] = ft_b_tile[j];
+			}
+			else {
+				vec16_t *prevAccTile = (vec16_t *) &prevAcc->accumulation[c][i * TILE_HEIGHT];
+				for (unsigned j = 0; j < NUM_REGS; j++)
+					acc[j] = prevAccTile[j];
 
-		// Difference calculation for the deactivated features
-						for (unsigned k = 0; k < removed_indices[c].size; k++) {
-							unsigned index = removed_indices[c].values[k];
-							const unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
+				// Difference calculation for the deactivated features
+				for (unsigned k = 0; k < removed_indices[c].size; k++) {
+					unsigned index = removed_indices[c].values[k];
+					const unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
 
-							vec16_t *column = (vec16_t *)&ft_weights[offset];
-							for (unsigned j = 0; j < NUM_REGS; j++)
-								acc[j] = vec_sub_16(acc[j], column[j]);
-						}
-					}
-
-	  // Difference calculation for the activated features
-					for (unsigned k = 0; k < added_indices[c].size; k++) {
-						unsigned index = added_indices[c].values[k];
-						const unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
-
-						vec16_t *column = (vec16_t *)&ft_weights[offset];
-						for (unsigned j = 0; j < NUM_REGS; j++)
-							acc[j] = vec_add_16(acc[j], column[j]);
-					}
-
+					vec16_t *column = (vec16_t *) &ft_weights[offset];
 					for (unsigned j = 0; j < NUM_REGS; j++)
-						accTile[j] = acc[j];
+						acc[j] = vec_sub_16(acc[j], column[j]);
 				}
 			}
+
+			// Difference calculation for the activated features
+			for (unsigned k = 0; k < added_indices[c].size; k++) {
+				unsigned index = added_indices[c].values[k];
+				const unsigned offset = kHalfDimensions * index + i * TILE_HEIGHT;
+
+				vec16_t *column = (vec16_t *) &ft_weights[offset];
+				for (unsigned j = 0; j < NUM_REGS; j++)
+					acc[j] = vec_add_16(acc[j], column[j]);
+			}
+
+			for (unsigned j = 0; j < NUM_REGS; j++)
+				accTile[j] = acc[j];
+		}
+	}
 #else
-			for (unsigned c = 0; c < 2; c++) {
-				if (reset[c]) {
-					memcpy(accumulator->accumulation[c], ft_biases,
-						kHalfDimensions * sizeof(int16_t));
-				} else {
-					memcpy(accumulator->accumulation[c], prevAcc->accumulation[c],
-						kHalfDimensions * sizeof(int16_t));
-	  // Difference calculation for the deactivated features
-					for (unsigned k = 0; k < removed_indices[c].size; k++) {
-						unsigned index = removed_indices[c].values[k];
-						const unsigned offset = kHalfDimensions * index;
+	for (unsigned c = 0; c < 2; c++) {
+		if (reset[c]) {
+			memcpy(accumulator->accumulation[c], ft_biases,
+			       kHalfDimensions * sizeof(int16_t));
+		}
+		else {
+			memcpy(accumulator->accumulation[c], prevAcc->accumulation[c],
+			       kHalfDimensions * sizeof(int16_t));
+			// Difference calculation for the deactivated features
+			for (unsigned k = 0; k < removed_indices[c].size; k++) {
+				unsigned index = removed_indices[c].values[k];
+				const unsigned offset = kHalfDimensions * index;
 
-						for (unsigned j = 0; j < kHalfDimensions; j++)
-							accumulator->accumulation[c][j] -= ft_weights[offset + j];
-					}
-				}
-
-	// Difference calculation for the activated features
-				for (unsigned k = 0; k < added_indices[c].size; k++) {
-					unsigned index = added_indices[c].values[k];
-					const unsigned offset = kHalfDimensions * index;
-
-					for (unsigned j = 0; j < kHalfDimensions; j++)
-						accumulator->accumulation[c][j] += ft_weights[offset + j];
-				}
+				for (unsigned j = 0; j < kHalfDimensions; j++)
+					accumulator->accumulation[c][j] -= ft_weights[offset + j];
 			}
-#endif
-
-			accumulator->computedAccumulation = 1;
-			return true;
 		}
 
-// Convert input features
-		INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
-		{
-			if (!update_accumulator(pos))
-				refresh_accumulator(pos);
+		// Difference calculation for the activated features
+		for (unsigned k = 0; k < added_indices[c].size; k++) {
+			unsigned index = added_indices[c].values[k];
+			const unsigned offset = kHalfDimensions * index;
 
-			int16_t (*accumulation)[2][256] = &pos->nnue[0]->accumulator.accumulation;
-  (void)outMask; // avoid compiler warning
-
-  const int perspectives[2] = { pos->player, !pos->player };
-  for (unsigned p = 0; p < 2; p++) {
-  	const unsigned offset = kHalfDimensions * p;
-
-#ifdef VECTOR
-  	const unsigned numChunks = (16 * kHalfDimensions) / SIMD_WIDTH;
-  	vec8_t *out = (vec8_t *)&output[offset];
-  	for (unsigned i = 0; i < numChunks / 2; i++) {
-  		vec16_t s0 = ((vec16_t *)(*accumulation)[perspectives[p]])[i * 2];
-  		vec16_t s1 = ((vec16_t *)(*accumulation)[perspectives[p]])[i * 2 + 1];
-  		out[i] = vec_packs(s0, s1);
-  		*outMask++ = vec_mask_pos(out[i]);
-  	}
-
-#else
-  	for (unsigned i = 0; i < kHalfDimensions; i++) {
-  		int16_t sum = (*accumulation)[perspectives[p]][i];
-  		output[offset + i] = clamp(sum, 0, 127);
-  	}
-
+			for (unsigned j = 0; j < kHalfDimensions; j++)
+				accumulator->accumulation[c][j] += ft_weights[offset + j];
+		}
+	}
 #endif
 
-  }
+	accumulator->computedAccumulation = 1;
+	return true;
+}
+
+// Convert input features
+INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
+{
+	if (!update_accumulator(pos))
+		refresh_accumulator(pos);
+
+	int16_t (*accumulation)[2][256] = &pos->nnue[0]->accumulator.accumulation;
+	(void) outMask; // avoid compiler warning
+
+	const int perspectives[2] = {pos->player, !pos->player};
+	for (unsigned p = 0; p < 2; p++) {
+		const unsigned offset = kHalfDimensions * p;
+
+#ifdef VECTOR
+		const unsigned numChunks = (16 * kHalfDimensions) / SIMD_WIDTH;
+		vec8_t *out = (vec8_t *) &output[offset];
+		for (unsigned i = 0; i < numChunks / 2; i++) {
+			vec16_t s0 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2];
+			vec16_t s1 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2 + 1];
+			out[i] = vec_packs(s0, s1);
+			*outMask++ = vec_mask_pos(out[i]);
+		}
+
+#else
+		for (unsigned i = 0; i < kHalfDimensions; i++) {
+			int16_t sum = (*accumulation)[perspectives[p]][i];
+			output[offset + i] = clamp(sum, 0, 127);
+		}
+
+#endif
+	}
 }
 
 struct NetData {
@@ -1079,10 +1097,10 @@ int nnue_evaluate_pos(Position *pos)
 {
 	int32_t out_value;
 	alignas(8) mask_t input_mask[FtOutDims / (8 * sizeof(mask_t))];
-	alignas(8) mask_t hidden1_mask[8 / sizeof(mask_t)] = { 0 };
+	alignas(8) mask_t hidden1_mask[8 / sizeof(mask_t)] = {0};
 #ifdef ALIGNMENT_HACK // work around a bug in old gcc on Windows
 	uint8_t buf[sizeof(struct NetData) + 63];
-	struct NetData *b = (struct NetData *)(buf + ((((uintptr_t)buf-1) ^ 0x3f) & 0x3f));
+	struct NetData *b = (struct NetData *) (buf + ((((uintptr_t) buf - 1) ^ 0x3f) & 0x3f));
 #define B(x) (b->x)
 #else
 	struct NetData buf;
@@ -1092,13 +1110,13 @@ int nnue_evaluate_pos(Position *pos)
 	transform(pos, B(input), input_mask);
 
 	affine_txfm(B(input), B(hidden1_out), FtOutDims, 32,
-		hidden1_biases, hidden1_weights, input_mask, hidden1_mask, true);
+	            hidden1_biases, hidden1_weights, input_mask, hidden1_mask, true);
 
 	affine_txfm(B(hidden1_out), B(hidden2_out), 32, 32,
-		hidden2_biases, hidden2_weights, hidden1_mask, NULL, false);
+	            hidden2_biases, hidden2_weights, hidden1_mask, NULL, false);
 
-	out_value = affine_propagate((int8_t *)B(hidden2_out), output_biases,
-		output_weights);
+	out_value = affine_propagate((int8_t *) B(hidden2_out), output_biases,
+	                             output_weights);
 
 #if defined(USE_MMX)
 	_mm_empty();
@@ -1122,7 +1140,7 @@ static void read_output_weights(weight_t *w, const char *d)
 
 INLINE unsigned wt_idx(unsigned r, unsigned c, unsigned dims)
 {
-	(void)dims;
+	(void) dims;
 
 #if defined(USE_AVX512)
 	if (dims > 32) {
@@ -1155,7 +1173,7 @@ INLINE unsigned wt_idx(unsigned r, unsigned c, unsigned dims)
 }
 
 static const char *read_hidden_weights(weight_t *w, unsigned dims,
-	const char *d)
+                                       const char *d)
 {
 	for (unsigned r = 0; r < 32; r++)
 		for (unsigned c = 0; c < dims; c++)
@@ -1165,156 +1183,164 @@ static const char *read_hidden_weights(weight_t *w, unsigned dims,
 }
 
 #ifdef USE_AVX2
-	static void permute_biases(int32_t *biases)
-	{
-		__m128i *b = (__m128i *)biases;
-		__m128i tmp[8];
+static void permute_biases(int32_t *biases)
+{
+	__m128i *b = (__m128i *) biases;
+	__m128i tmp[8];
 #ifdef USE_AVX512
-		tmp[0] = b[0];
-		tmp[1] = b[2];
-		tmp[2] = b[4];
-		tmp[3] = b[6];
-		tmp[4] = b[1];
-		tmp[5] = b[3];
-		tmp[6] = b[5];
-		tmp[7] = b[7];
+	tmp[0] = b[0];
+	tmp[1] = b[2];
+	tmp[2] = b[4];
+	tmp[3] = b[6];
+	tmp[4] = b[1];
+	tmp[5] = b[3];
+	tmp[6] = b[5];
+	tmp[7] = b[7];
 #elif USE_AVX2
-		tmp[0] = b[0];
-		tmp[1] = b[4];
-		tmp[2] = b[1];
-		tmp[3] = b[5];
-		tmp[4] = b[2];
-		tmp[5] = b[6];
-		tmp[6] = b[3];
-		tmp[7] = b[7];
+	tmp[0] = b[0];
+	tmp[1] = b[4];
+	tmp[2] = b[1];
+	tmp[3] = b[5];
+	tmp[4] = b[2];
+	tmp[5] = b[6];
+	tmp[6] = b[3];
+	tmp[7] = b[7];
 #else
 #error
 #endif
-		memcpy(b, tmp, 8 * sizeof(__m128i));
-	}
+	memcpy(b, tmp, 8 * sizeof(__m128i));
+}
 #endif
 
-	enum {
-		TransformerStart = 3 * 4 + 177,
-		NetworkStart = TransformerStart + 4 + 2 * 256 + 2 * 256 * 64 * 641
-	};
+enum {
+	TransformerStart = 3 * 4 + 177,
+	NetworkStart = TransformerStart + 4 + 2 * 256 + 2 * 256 * 64 * 641
+};
 
-	static bool verify_net(const void *evalData, size_t size)
-	{
-		if (size != 21022697) return false;
+static bool verify_net(const void *evalData, size_t size)
+{
+	if (size != 21022697)
+		return false;
 
-		const char *d = (const char*)evalData;
-		if (readu_le_u32(d) != NnueVersion) return false;
-		if (readu_le_u32(d + 4) != 0x3e5aa6eeU) return false;
-		if (readu_le_u32(d + 8) != 177) return false;
-		if (readu_le_u32(d + TransformerStart) != 0x5d69d7b8) return false;
-		if (readu_le_u32(d + NetworkStart) != 0x63337156) return false;
+	const char *d = (const char *) evalData;
+	if (readu_le_u32(d) != NnueVersion)
+		return false;
+	if (readu_le_u32(d + 4) != 0x3e5aa6eeU)
+		return false;
+	if (readu_le_u32(d + 8) != 177)
+		return false;
+	if (readu_le_u32(d + TransformerStart) != 0x5d69d7b8)
+		return false;
+	if (readu_le_u32(d + NetworkStart) != 0x63337156)
+		return false;
 
-		return true;
-	}
+	return true;
+}
 
-	static void init_weights(const void *evalData)
-	{
-		const char *d = (const char *)evalData + TransformerStart + 4;
+static void init_weights(const void *evalData)
+{
+	const char *d = (const char *) evalData + TransformerStart + 4;
 
-  // Read transformer
-		for (unsigned i = 0; i < kHalfDimensions; i++, d += 2)
-			ft_biases[i] = readu_le_u16(d);
-		for (unsigned i = 0; i < kHalfDimensions * FtInDims; i++, d += 2)
-			ft_weights[i] = readu_le_u16(d);
+	// Read transformer
+	for (unsigned i = 0; i < kHalfDimensions; i++, d += 2)
+		ft_biases[i] = readu_le_u16(d);
+	for (unsigned i = 0; i < kHalfDimensions * FtInDims; i++, d += 2)
+		ft_weights[i] = readu_le_u16(d);
 
-  // Read network
-		d += 4;
-		for (unsigned i = 0; i < 32; i++, d += 4)
-			hidden1_biases[i] = readu_le_u32(d);
-		d = read_hidden_weights(hidden1_weights, 512, d);
-		for (unsigned i = 0; i < 32; i++, d += 4)
-			hidden2_biases[i] = readu_le_u32(d);
-		d = read_hidden_weights(hidden2_weights, 32, d);
-		for (unsigned i = 0; i < 1; i++, d += 4)
-			output_biases[i] = readu_le_u32(d);
-		read_output_weights(output_weights, d);
+	// Read network
+	d += 4;
+	for (unsigned i = 0; i < 32; i++, d += 4)
+		hidden1_biases[i] = readu_le_u32(d);
+	d = read_hidden_weights(hidden1_weights, 512, d);
+	for (unsigned i = 0; i < 32; i++, d += 4)
+		hidden2_biases[i] = readu_le_u32(d);
+	d = read_hidden_weights(hidden2_weights, 32, d);
+	for (unsigned i = 0; i < 1; i++, d += 4)
+		output_biases[i] = readu_le_u32(d);
+	read_output_weights(output_weights, d);
 
 #ifdef USE_AVX2
-		permute_biases(hidden1_biases);
-		permute_biases(hidden2_biases);
+	permute_biases(hidden1_biases);
+	permute_biases(hidden2_biases);
 #endif
-	}
+}
 
-	static bool load_eval_file(const char *evalFile)
+static bool load_eval_file(const char *evalFile)
+{
+	const void *evalData;
+	map_t mapping;
+	size_t size;
+
 	{
-		const void *evalData;
-		map_t mapping;
-		size_t size;
-
-		{
-			FD fd = open_file(evalFile);
-			if (fd == FD_ERR) return false;
-			evalData = map_file(fd, &mapping);
-			size = file_size(fd);
-			close_file(fd);
-		}
-
-		bool success = verify_net(evalData, size);
-		if (success)
-			init_weights(evalData);
-		if (mapping) unmap_file(evalData, mapping);
-		return success;
+		FD fd = open_file(evalFile);
+		if (fd == FD_ERR)
+			return false;
+		evalData = map_file(fd, &mapping);
+		size = file_size(fd);
+		close_file(fd);
 	}
+
+	bool success = verify_net(evalData, size);
+	if (success)
+		init_weights(evalData);
+	if (mapping)
+		unmap_file(evalData, mapping);
+	return success;
+}
 
 /*
 Interfaces
 */
-	int nnue_init(const char* evalFile)
-	{
-		printf("Loading NNUE : %s\n", evalFile);
+int nnue_init(const char *evalFile)
+{
+	printf("Loading NNUE : %s\n", evalFile);
+	fflush(stdout);
+
+	if (load_eval_file(evalFile)) {
+		printf("NNUE loaded !\n");
 		fflush(stdout);
-
-		if (load_eval_file(evalFile)) {
-			printf("NNUE loaded !\n");
-			fflush(stdout);
-			return 1;
-		}
-
-		printf("NNUE file not found!\n");
-		fflush(stdout);
-		return 0;
+		return 1;
 	}
 
-	int nnue_evaluate(
-		int player, int* pieces, int* squares)
-	{
-		NNUEdata nnue;
-		nnue.accumulator.computedAccumulation = 0;
+	printf("NNUE file not found!\n");
+	fflush(stdout);
+	return 0;
+}
 
-		Position pos;
-		pos.nnue[0] = &nnue;
-		pos.nnue[1] = 0;
-		pos.nnue[2] = 0;
-		pos.player = player;
-		pos.pieces = pieces;
-		pos.squares = squares;
-		return nnue_evaluate_pos(&pos);
-	}
+int nnue_evaluate(
+	int player, int *pieces, int *squares)
+{
+	NNUEdata nnue;
+	nnue.accumulator.computedAccumulation = 0;
 
-	int nnue_evaluate_incremental(
-		int player, int* pieces, int* squares, NNUEdata** nnue)
-	{
-		assert(nnue[0] && (uint64_t)(&nnue[0]->accumulator) % 64 == 0);
+	Position pos;
+	pos.nnue[0] = &nnue;
+	pos.nnue[1] = 0;
+	pos.nnue[2] = 0;
+	pos.player = player;
+	pos.pieces = pieces;
+	pos.squares = squares;
+	return nnue_evaluate_pos(&pos);
+}
 
-		Position pos;
-		pos.nnue[0] = nnue[0];
-		pos.nnue[1] = nnue[1];
-		pos.nnue[2] = nnue[2];
-		pos.player = player;
-		pos.pieces = pieces;
-		pos.squares = squares;
-		return nnue_evaluate_pos(&pos);
-	}
+int nnue_evaluate_incremental(
+	int player, int *pieces, int *squares, NNUEdata **nnue)
+{
+	assert(nnue[0] && (uint64_t)(&nnue[0]->accumulator) % 64 == 0);
 
-	int nnue_evaluate_fen(const char* fen)
-	{
-		int pieces[33],squares[33],player,castle,fifty,move_number;
-		decode_fen((char*)fen,&player,&castle,&fifty,&move_number,pieces,squares);;
-		return nnue_evaluate(player,pieces,squares);
-	}
+	Position pos;
+	pos.nnue[0] = nnue[0];
+	pos.nnue[1] = nnue[1];
+	pos.nnue[2] = nnue[2];
+	pos.player = player;
+	pos.pieces = pieces;
+	pos.squares = squares;
+	return nnue_evaluate_pos(&pos);
+}
+
+int nnue_evaluate_fen(const char *fen)
+{
+	int pieces[33], squares[33], player, castle, fifty, move_number;
+	decode_fen((char *) fen, &player, &castle, &fifty, &move_number, pieces, squares);;
+	return nnue_evaluate(player, pieces, squares);
+}

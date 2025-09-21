@@ -25,7 +25,7 @@ typedef struct ttEntry {
 	int score;
 } TTEntry;
 
-typedef struct tt{
+typedef struct tt {
 	TTEntry *hashTable;
 	int numEntries;
 	int newWrite;

@@ -12,7 +12,7 @@ FD open_file(const char *name)
 	return open(name, O_RDONLY);
 #else
 	return CreateFile(name, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-		FILE_FLAG_RANDOM_ACCESS, NULL);
+	                  FILE_FLAG_RANDOM_ACCESS, NULL);
 #endif
 }
 
@@ -34,7 +34,7 @@ size_t file_size(FD fd)
 #else
 	DWORD sizeLow, sizeHigh;
 	sizeLow = GetFileSize(fd, &sizeHigh);
-	return ((uint64_t)sizeHigh << 32) | sizeLow;
+	return ((uint64_t) sizeHigh << 32) | sizeLow;
 #endif
 }
 
@@ -63,11 +63,12 @@ const void *map_file(FD fd, map_t *map)
 
 void unmap_file(const void *data, map_t map)
 {
-	if (!data) return;
+	if (!data)
+		return;
 
 #ifndef _WIN32
 
-	munmap((void *)data, map);
+	munmap((void *) data, map);
 
 #else
 
@@ -86,33 +87,36 @@ static const char file_name[] = "abcdefgh";
 static const char col_name[] = "WwBb";
 static const char cas_name[] = "KQkq";
 
-void decode_fen(const char* fen_str, int* player, int* castle,
-	int* fifty, int* move_number, int* piece, int* square)
+void decode_fen(const char *fen_str, int *player, int *castle,
+                int *fifty, int *move_number, int *piece, int *square)
 {
-  /*decode fen*/
-	int sq,index = 2;
-	const char* p = fen_str,*pfen;
-	for(int r = 7;r >= 0; r--) {
-		for(int f = 0;f <= 7;f++) {
+	/*decode fen*/
+	int sq, index = 2;
+	const char *p = fen_str, *pfen;
+	for (int r = 7; r >= 0; r--) {
+		for (int f = 0; f <= 7; f++) {
 			sq = r * 8 + f;
-			if((pfen = strchr(piece_name,*p)) != 0) {
-				int pc = (int)(strchr(piece_name,*pfen) - piece_name);
-				if(pc == 1) {
+			if ((pfen = strchr(piece_name, *p)) != 0) {
+				int pc = (int) (strchr(piece_name, *pfen) - piece_name);
+				if (pc == 1) {
 					piece[0] = pc;
 					square[0] = sq;
-				} else if(pc == 7) {
+				}
+				else if (pc == 7) {
 					piece[1] = pc;
 					square[1] = sq;
-				} else {
+				}
+				else {
 					piece[index] = pc;
 					square[index] = sq;
 					index++;
 				}
-			} else if((pfen = strchr(rank_name,*p)) != 0) {
-				for(int i = 0;i < pfen - rank_name;i++) {
+			}
+			else if ((pfen = strchr(rank_name, *p)) != 0) {
+				for (int i = 0; i < pfen - rank_name; i++) {
 					f++;
 				}
-			} 
+			}
 			p++;
 		}
 		p++;
@@ -120,42 +124,46 @@ void decode_fen(const char* fen_str, int* player, int* castle,
 	piece[index] = 0;
 	square[index] = 0;
 
-  /*player*/
-	if((pfen = strchr(col_name,*p)) != 0)
+	/*player*/
+	if ((pfen = strchr(col_name, *p)) != 0)
 		*player = ((pfen - col_name) >= 2);
 	p++;
 	p++;
 
-  /*castling rights*/
+	/*castling rights*/
 	*castle = 0;
-	if(*p == '-') {
+	if (*p == '-') {
 		p++;
-	} else {
-		while((pfen = strchr(cas_name,*p)) != 0) {
+	}
+	else {
+		while ((pfen = strchr(cas_name, *p)) != 0) {
 			*castle |= (1 << (pfen - cas_name));
 			p++;
 		}
 	}
-  /*epsquare*/
+	/*epsquare*/
 	int epsquare;
 	p++;
-	if(*p == '-') {
+	if (*p == '-') {
 		epsquare = 0;
 		p++;
-	} else {
-		epsquare = (int)(strchr(file_name,*p) - file_name);
+	}
+	else {
+		epsquare = (int) (strchr(file_name, *p) - file_name);
 		p++;
-		epsquare += 16 * (int)(strchr(rank_name,*p) - rank_name);
+		epsquare += 16 * (int) (strchr(rank_name, *p) - rank_name);
 		p++;
 	}
 	square[index] = epsquare;
 
-  /*fifty & hply*/
+	/*fifty & hply*/
 	p++;
-	if(*p && *(p+1) && isdigit(*p) && ( isdigit(*(p+1)) || *(p+1) == ' ' ) ) {
-		sscanf(p,"%d %d",fifty,move_number);
-		if(*move_number <= 0) *move_number = 1;
-	} else {
+	if (*p && *(p + 1) && isdigit(*p) && (isdigit(*(p + 1)) || *(p + 1) == ' ')) {
+		sscanf(p, "%d %d", fifty, move_number);
+		if (*move_number <= 0)
+			*move_number = 1;
+	}
+	else {
 		*fifty = 0;
 		*move_number = 1;
 	}

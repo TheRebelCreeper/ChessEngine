@@ -34,12 +34,14 @@ Intrinsic bsf
 #       define bsr(b) (63 - __builtin_clzll(b))
 #   elif defined(_WIN32)
 #       include <intrin.h>
-INLINE int bsf(uint64_t b) {
+INLINE int bsf(uint64_t b)
+{
 	unsigned long x;
 	_BitScanForward64(&x, b);
 	return (int) x;
 }
-INLINE int bsr(uint64_t b) {
+INLINE int bsr(uint64_t b)
+{
 	unsigned long x;
 	_BitScanReverse64(&x, b);
 	return (int) x;
@@ -68,18 +70,18 @@ void unmap_file(const void *data, map_t map);
 
 INLINE uint32_t readu_le_u32(const void *p)
 {
-	const uint8_t *q = (const uint8_t*) p;
+	const uint8_t *q = (const uint8_t *) p;
 	return q[0] | (q[1] << 8) | (q[2] << 16) | (q[3] << 24);
 }
 
 INLINE uint16_t readu_le_u16(const void *p)
 {
-	const uint8_t *q = (const uint8_t*) p;
+	const uint8_t *q = (const uint8_t *) p;
 	return q[0] | (q[1] << 8);
 }
 
-void decode_fen(const char* fen_str, int* player, int* castle,
-	int* fifty, int* move_number, int* piece, int* square);
+void decode_fen(const char *fen_str, int *player, int *castle,
+                int *fifty, int *move_number, int *piece, int *square);
 
 #define clamp(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 

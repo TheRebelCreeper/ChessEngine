@@ -17,7 +17,7 @@ typedef struct etEntry {
 	int eval;
 } ETEntry;
 
-typedef struct et{
+typedef struct et {
 	ETEntry *hashTable;
 	int numEntries;
 	int newWrite;
