@@ -116,7 +116,7 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 	friendlyPieces = pos->occupancies[turn];
 
 	pieceBB = pos->pieceBitboards[K + offset];
-	int castlingRights = pos->castlingRights;
+	unsigned char castlingRights = pos->castlingRights;
 	src = getFirstBitSquare(pieceBB);
 	if (turn == WHITE)
 	{
@@ -164,7 +164,6 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
 			int victim = NO_CAPTURE;
 			if (get_square(pos->occupancies[2], dst))
 			{
-				
 				int offset2 = (offset == 0) ? 6 : 0;
 				for (int j = P; j <= K; j++)
 				{
@@ -203,7 +202,6 @@ void generateKnightMoves(GameState *pos, int turn, int offset, MoveList *moveLis
 			dst = getFirstBitSquare(pieceAttacks);
 			if (get_square(pos->occupancies[2], dst))
 			{
-				
 				int offset2 = (offset == 0) ? 6 : 0;
 				for (int j = P; j <= K; j++)
 				{
@@ -243,7 +241,6 @@ void generateBishopMoves(GameState *pos, int turn, int offset, MoveList *moveLis
 			dst = getFirstBitSquare(pieceAttacks);
 			if (get_square(pos->occupancies[2], dst))
 			{
-				
 				int offset2 = (offset == 0) ? 6 : 0;
 				for (int j = P; j <= K; j++)
 				{

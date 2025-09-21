@@ -19,7 +19,7 @@ typedef struct gameState
 	U64 occupancies[3];
 	U64 key;
 	int turn;
-	int castlingRights;
+	unsigned char castlingRights;
 	int enpassantSquare;
 	int halfMoveClock;
 	int fullMove;

@@ -11,9 +11,9 @@
 */
 
 
-int adjustCastlingRights(GameState *pos, int src, int dst, int piece)
+unsigned char adjustCastlingRights(GameState *pos, int src, int dst, int piece)
 {
-	int castlingRights = pos->castlingRights;
+	unsigned char castlingRights = pos->castlingRights;
 	if (src == a1 || dst == a1)
 	{
 		castlingRights &= (WHITE_OO | BLACK_OO | BLACK_OOO);
@@ -186,10 +186,8 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 	{
 		*isLegal = 1;
 	}
-	
-	// TODO incremental update of hash key
+
 	newPos.key = hashKey;
-	//newPos.key = generatePosKey(&newPos);
 
 	return newPos;
 }
