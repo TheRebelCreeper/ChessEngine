@@ -1,9 +1,8 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
-#include "position.h"
 #include "move.h"
-#include "evaluation.h"
+#include "position.h"
 
 #define MAX_PLY 64
 
@@ -19,8 +18,7 @@
 
 extern int NUM_THREADS;
 
-typedef struct info
-{
+typedef struct info {
 	int starttime;
 	int stoptime;
 	int depth;
@@ -47,7 +45,7 @@ typedef struct info
 	QxP QxN QxB QxR QxQ QxK
 	KxP KxN KxB KxR KxQ KxK
 */
-static const int MVV_LVA_TABLE[6][6] = 
+static const int MVV_LVA_TABLE[6][6] =
 {
 	{105, 205, 305, 405, 505, 0},
 	{104, 204, 304, 404, 504, 0},
@@ -57,10 +55,11 @@ static const int MVV_LVA_TABLE[6][6] =
 	{100, 200, 300, 400, 500, 0}
 };
 
-static const int RAZOR_MARGIN[4] = {0,
-    280,
-    300,
-    320
+static const int RAZOR_MARGIN[4] = {
+	0,
+	280,
+	300,
+	320
 };
 
 // Original values were multiplied by 1.5
@@ -68,7 +67,6 @@ static const int futilityMargins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780
 
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
 void search(GameState *pos, SearchInfo *info);
-int GetTimeMs();
 void ReadInput(SearchInfo *info);
 
 #endif

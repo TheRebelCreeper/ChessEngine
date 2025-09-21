@@ -2,8 +2,8 @@
 #define TT_H
 
 #include <stdint.h>
-#include "move.h"
 #include "evaluation.h"
+#include "move.h"
 
 extern uint32_t TT_SIZE;
 
@@ -25,7 +25,7 @@ typedef struct ttEntry {
 	int score;
 } TTEntry;
 
-typedef struct tt{
+typedef struct tt {
 	TTEntry *hashTable;
 	int numEntries;
 	int newWrite;

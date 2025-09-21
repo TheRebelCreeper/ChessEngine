@@ -1,7 +1,7 @@
 #include "perft.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "util.h"
-
-extern int NUM_THREADS;
 
 U64 perft(int depth, GameState *pos)
 {

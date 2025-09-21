@@ -1,14 +1,15 @@
+#include "uci.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <sys/time.h>
-#include "movegen.h"
-#include "search.h"
-#include "perft.h"
-#include "uci.h"
-#include "tt.h"
+
 #include "et.h"
+#include "movegen.h"
+#include "perft.h"
+#include "search.h"
+#include "tt.h"
+#include "util.h"
 
 // The code is to allow the engine to connect to GUI's via UCI protocol
 
@@ -18,30 +19,22 @@ int parseMove(char *inputString, MoveList *moveList)
 	int dst = (inputString[3] - '0' - 1) * 8 + (tolower(inputString[2]) - 'a');
 	int promotionPiece = 0;
 
-	for (int i = 0; i < moveList->nextOpen; i++)
-	{
-		
+	for (int i = 0; i < moveList->nextOpen; i++) {
 		Move move = moveList->list[i];
 		promotionPiece = GET_MOVE_PROMOTION(move);
 
-		if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst)
-		{
-			if (promotionPiece)
-			{
-				if (promotionPiece == Q && tolower(inputString[4]) == 'q')
-				{
+		if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst) {
+			if (promotionPiece) {
+				if (promotionPiece == Q && tolower(inputString[4]) == 'q') {
 					return i;
 				}
-				if (promotionPiece == N && tolower(inputString[4]) == 'n')
-				{
+				if (promotionPiece == N && tolower(inputString[4]) == 'n') {
 					return i;
 				}
-				if (promotionPiece == B && tolower(inputString[4]) == 'b')
-				{
+				if (promotionPiece == B && tolower(inputString[4]) == 'b') {
 					return i;
 				}
-				if (promotionPiece == R && tolower(inputString[4]) == 'r')
-				{
+				if (promotionPiece == R && tolower(inputString[4]) == 'r') {
 					return i;
 				}
 				continue;
@@ -58,52 +51,44 @@ void parsePosition(char *line, GameState *pos)
 {
 	char *temp;
 
-	line += 9;                     // Start the line after the word "position"
+	line += 9; // Start the line after the word "position"
 	temp = line;
 	historyIndex = 0;
 	memset(posHistory, 0, sizeof(posHistory));
 
-	if (strncmp(line, "startpos", 8) == 0)
-	{
+	if (strncmp(line, "startpos", 8) == 0) {
 		loadFEN(pos, STARTING_FEN);
 	}
-	else if (strncmp(line, "fen", 3) == 0)
-	{
-		temp += 4;                 // Start temp after the word "fen"
+	else if (strncmp(line, "fen", 3) == 0) {
+		temp += 4; // Start temp after the word "fen"
 		loadFEN(pos, temp);
 	}
-	else
-	{
+	else {
 		loadFEN(pos, STARTING_FEN);
 	}
 
 	temp = strstr(line, "moves");
-	if (temp != NULL)
-	{
+	if (temp != NULL) {
 		int size, legal;
 		MoveList moveList;
-		temp += 6;                 // Length of "moves "
+		temp += 6; // Length of "moves "
 
-		while(*temp)
-		{
+		while (*temp) {
 			moveList = generateMoves(pos, &size);
 			int idx = parseMove(temp, &moveList);
 			int piece = GET_MOVE_PIECE(moveList.list[idx]);
 
-			if (idx == -1)
-			{
+			if (idx == -1) {
 				break;
 			}
 
 			GameState tempState = playMove(pos, moveList.list[idx], &legal);
-			if (!legal)
-			{
+			if (!legal) {
 				break;
 			}
 
 			// If the move is a pawn push or capture, reset history list
-			if (GET_MOVE_CAPTURED(moveList.list[idx]) != NO_CAPTURE || piece == P || piece == p)
-			{
+			if (GET_MOVE_CAPTURED(moveList.list[idx]) != NO_CAPTURE || piece == P || piece == p) {
 				historyIndex = 0;
 			}
 
@@ -113,8 +98,7 @@ void parsePosition(char *line, GameState *pos)
 
 			*pos = tempState;
 			// Increment temp till the next move
-			while (*temp && *temp != ' ')
-			{
+			while (*temp && *temp != ' ') {
 				temp++;
 			}
 			temp++;
@@ -131,157 +115,133 @@ void parseGo(char *line, GameState *pos)
 	info.stopped = 0;
 	info.timeset = 0;
 	char *temp;
-	
-	line += 3;                     // Start the line after the word "go"
+
+	line += 3; // Start the line after the word "go"
 	temp = line;
 
-	if (strncmp(line, "perft", 5) == 0)
-	{
+	if (strncmp(line, "perft", 5) == 0) {
 		info.depth = atoi(temp + 6);
 		runPerft(info.depth, pos);
 		return;
 	}
 
 	temp = strstr(line, "infinite");
-	if (temp != NULL)
-	{
+	if (temp != NULL) {
 		;
 	}
 
 	temp = strstr(line, "winc");
-	if (temp != NULL && pos->turn == WHITE)
-	{
+	if (temp != NULL && pos->turn == WHITE) {
 		inc = atoi(temp + 5);
 	}
 
 	temp = strstr(line, "binc");
-	if (temp != NULL && pos->turn == BLACK)
-	{
+	if (temp != NULL && pos->turn == BLACK) {
 		inc = atoi(temp + 5);
 	}
 
 
 	temp = strstr(line, "wtime");
-	if (temp != NULL && pos->turn == WHITE)
-	{
+	if (temp != NULL && pos->turn == WHITE) {
 		wtime = atoi(temp + 6);
 		time = wtime;
 	}
 
 	temp = strstr(line, "btime");
-	if (temp != NULL && pos->turn == BLACK)
-	{
+	if (temp != NULL && pos->turn == BLACK) {
 		btime = atoi(temp + 6);
 		time = btime;
 	}
 
-	temp = strstr(line, "movestogo"); 
-	if (temp != NULL)
-	{
+	temp = strstr(line, "movestogo");
+	if (temp != NULL) {
 		movestogo = atoi(temp + 10);
-	} 
+	}
 
 	temp = strstr(line, "movetime");
-	if (temp != NULL)
-	{
+	if (temp != NULL) {
 		movetime = atoi(temp + 9);
 	}
 
 	temp = strstr(line, "depth");
-	if (temp != NULL)
-	{
+	if (temp != NULL) {
 		depth = atoi(temp + 6);
 	}
 
-	if(movetime != -1)
-	{
+	if (movetime != -1) {
 		time = movetime;
 		movestogo = 1;
 	}
-	
+
 	info.starttime = GetTimeMs();
-	
-	if(time != -1)
-	{
+
+	if (time != -1) {
 		int timeLeft = time;
 		info.timeset = 1;
 		time /= movestogo;
 		time -= 50;
-		
-		if (timeLeft <= inc)
-		{
+
+		if (timeLeft <= inc) {
 			time = 0;
 			inc -= 750;
 			if (inc < 0)
 				inc = 1;
 		}
 		info.stoptime = info.starttime + time + inc;
-	} 
-	
-	if(depth == -1)
-	{
+	}
+
+	if (depth == -1) {
 		info.depth = MAX_PLY - 1;
 	}
-	else
-	{
+	else {
 		info.depth = depth;
 	}
-	
+
 	search(pos, &info);
 }
 
 void uciLoop()
 {
 	GameState pos;
-	
+
 	// Needed to correctly output to GUI program, not sure why
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
-	
+
 	char buf[2048];
 	parsePosition("position startpos", &pos);
-	while (1)
-	{
+	while (1) {
 		memset(buf, 0, sizeof(buf));
 		fflush(stdout);
-		
-		if (fgets(buf, sizeof(buf), stdin) == NULL)
-		{
+
+		if (fgets(buf, sizeof(buf), stdin) == NULL) {
 			exit(1);
 		}
-		
+
 		// Engine should respond with "readyok\n"
-		if (strncmp(buf, "isready", 7) == 0)
-		{
+		if (strncmp(buf, "isready", 7) == 0) {
 			printf("readyok\n");
 			continue;
 		}
-		
-		if (strncmp(buf, "position", 8) == 0)
-		{
+
+		if (strncmp(buf, "position", 8) == 0) {
 			parsePosition(buf, &pos);
 		}
-		else if (strncmp(buf, "ucinewgame", 10) == 0)
-		{
+		else if (strncmp(buf, "ucinewgame", 10) == 0) {
 			parsePosition("position startpos", &pos);
 		}
-		else if (strncmp(buf, "go", 2) == 0)
-		{
+		else if (strncmp(buf, "go", 2) == 0) {
 			parseGo(buf, &pos);
 		}
-		else if (strncmp(buf, "d\n", 2) == 0)
-		{
+		else if (strncmp(buf, "d\n", 2) == 0) {
 			printBoard(pos);
-		}			
-		else if (strncmp(buf, "quit", 4) == 0)
-		{
+		}
+		else if (strncmp(buf, "quit", 4) == 0) {
 			return;
 		}
-		else if (strncmp(buf, "setoption name Hash", 19) == 0)
-		{
+		else if (strncmp(buf, "setoption name Hash", 19) == 0) {
 			int MB = atoi(buf + 25);
-			if (MB <= 0 || MB > 1024)
-			{
+			if (MB <= 0 || MB > 1024) {
 				MB = 1;
 			}
 			TT_SIZE = (1 << 20) * MB;
@@ -289,8 +249,7 @@ void uciLoop()
 			initTT(&GLOBAL_TT);
 			initET(&GLOBAL_ET);
 		}
-		else if (strncmp(buf, "uci", 3) == 0)
-		{
+		else if (strncmp(buf, "uci", 3) == 0) {
 			// Print engine info
 			printf("id name Saxton\n");
 			printf("id author Aaron Lampert\n");

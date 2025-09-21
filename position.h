@@ -13,20 +13,18 @@
 
 #define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-typedef struct gameState
-{
+typedef struct gameState {
 	U64 pieceBitboards[12];
 	U64 occupancies[3];
 	U64 key;
 	int turn;
-	int castlingRights;
+	unsigned char castlingRights;
 	int enpassantSquare;
 	int halfMoveClock;
 	int fullMove;
 } GameState;
 
-enum
-{
+enum {
 	P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
@@ -49,7 +47,7 @@ inline void setOccupancies(GameState *pos)
 {
 	pos->occupancies[WHITE] = 0ULL;
 	pos->occupancies[BLACK] = 0ULL;
-	
+
 	pos->occupancies[WHITE] |= pos->pieceBitboards[P];
 	pos->occupancies[WHITE] |= pos->pieceBitboards[N];
 	pos->occupancies[WHITE] |= pos->pieceBitboards[B];
@@ -63,7 +61,7 @@ inline void setOccupancies(GameState *pos)
 	pos->occupancies[BLACK] |= pos->pieceBitboards[r];
 	pos->occupancies[BLACK] |= pos->pieceBitboards[q];
 	pos->occupancies[BLACK] |= pos->pieceBitboards[k];
-	
+
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
@@ -130,24 +128,23 @@ inline int insufficientMaterial(GameState *pos)
 	int blackKnights = countBits(pos->pieceBitboards[n]);
 	int blackBishops = countBits(pos->pieceBitboards[b]);
 	int minors = whiteKnights + whiteBishops + blackKnights + blackBishops;
-	
+
 	// Not insufficientMaterial
 	if (totalPieces - minors > 2)
 		return 0;
-	
+
 	// King vs King
 	if (totalPieces == 2)
 		return 1;
-	
+
 	// K+N vs K or K+B vs K
 	if (minors == 1)
 		return 1;
-	
+
 	if (minors == 2 && whiteKnights == 1 && blackKnights == 1)
 		return 1;
 	else
 		return 0;
-	
 }
 
 inline int isSquareAttacked(GameState *pos, int square, int byColor)
@@ -155,19 +152,21 @@ inline int isSquareAttacked(GameState *pos, int square, int byColor)
 	int colorOffset = 6 * byColor;
 	int pawnAttackColor = byColor ^ 1;
 	U64 occupancy = pos->occupancies[BOTH];
-	
+
 	if (kingAttacks[square] & pos->pieceBitboards[K + colorOffset])
 		return 1;
 	if (knightAttacks[square] & pos->pieceBitboards[N + colorOffset])
 		return 1;
 	if (pawnAttacks[pawnAttackColor][square] & pos->pieceBitboards[P + colorOffset])
 		return 1;
-	if (getBishopAttacks(square, occupancy) & (pos->pieceBitboards[B + colorOffset] | pos->pieceBitboards[Q + colorOffset]))
+	if (getBishopAttacks(square, occupancy) & (pos->pieceBitboards[B + colorOffset] | pos->pieceBitboards[
+		                                           Q + colorOffset]))
 		return 1;
-	if (getRookAttacks(square, occupancy) & (pos->pieceBitboards[R + colorOffset] | pos->pieceBitboards[Q + colorOffset]))
+	if (getRookAttacks(square, occupancy) & (pos->pieceBitboards[R + colorOffset] | pos->pieceBitboards[
+		                                         Q + colorOffset]))
 		return 1;
-		
-	return 0;	
+
+	return 0;
 }
 
 inline int get_smallest_attacker(GameState *pos, int square)
@@ -175,7 +174,7 @@ inline int get_smallest_attacker(GameState *pos, int square)
 	int colorOffset = 6 * pos->turn;
 	int pawnAttackColor = pos->turn ^ 1;
 	U64 occupancy = pos->occupancies[BOTH];
-	
+
 	if (pawnAttacks[pawnAttackColor][square] & pos->pieceBitboards[P + colorOffset])
 		return P + colorOffset;
 	if (knightAttacks[square] & pos->pieceBitboards[N + colorOffset])
@@ -188,8 +187,8 @@ inline int get_smallest_attacker(GameState *pos, int square)
 		return Q + colorOffset;
 	if (kingAttacks[square] & pos->pieceBitboards[K + colorOffset])
 		return K + colorOffset;
-	
-	return -1;	
+
+	return -1;
 }
 
 inline int isInCheck(GameState *pos)
