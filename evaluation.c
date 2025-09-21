@@ -106,7 +106,7 @@ int evaluation(GameState *pos)
 
 	if (score == INVALID_EVALUATION) {
 		score = 0;
-		int matPawns = countBits(pos->pieceBitboards[P]) + countBits(pos->pieceBitboards[p]);
+		int matPawns = countBits(pos->pieceBitboards[P] | pos->pieceBitboards[p]);
 		int mat = nonPawnMaterial(pos) + matPawns * pieceValue[P];
 		if (FOUND_NETWORK)
 			score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
