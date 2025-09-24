@@ -1,6 +1,8 @@
 #include "evaluation.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "et.h"
 #include "position.h"
 #include "wrapper.h"
@@ -56,16 +58,92 @@ int nonPawnMaterial(GameState *pos)
 	return mat;
 }
 
-int see(GameState *pos, int square)
-{
-	int value = 0;
-	int piece = get_smallest_attacker(pos, square);
-	if (piece != -1) {
-		// Make capture
-		// value = MAX(0, piece_captured - see(square, newPos));
-		// Undo capture
+// Fast Static Exchange Evaluation (SEE)
+int see(GameState *pos, int square) {
+
+	U64 pieceBitboards[12];
+	memcpy(pieceBitboards, pos->pieceBitboards, sizeof(pos->pieceBitboards));
+
+    U64 occupied = pos->occupancies[BOTH]; // all pieces
+    U64 attackers[2];                        // white & black attackers
+    int gain[32];                        // swap values
+    int depth = 0;
+
+    // piece on the target square (initial capture value)
+    int captured = getPieceAtSquare(pos, square);
+    if (captured == NO_PIECE)
+    	return 0;
+
+    // Initialize attackers
+    attackers[WHITE] = pawnAttacks[BLACK][square] & pieceBitboards[P];
+    attackers[WHITE] |= knightAttacks[square] & pieceBitboards[N];
+    attackers[WHITE] |= getBishopAttacks(square, occupied) & (pieceBitboards[B] | pieceBitboards[Q]);
+    attackers[WHITE] |= getRookAttacks(square, occupied) & (pieceBitboards[R] | pieceBitboards[Q]);
+    attackers[WHITE] |= kingAttacks[square] & pieceBitboards[K];
+
+    attackers[BLACK] = pawnAttacks[WHITE][square] & pieceBitboards[p];
+    attackers[BLACK] |= knightAttacks[square] & pieceBitboards[n];
+    attackers[BLACK] |= getBishopAttacks(square, occupied) & (pieceBitboards[b] | pieceBitboards[q]);
+    attackers[BLACK] |= getRookAttacks(square, occupied) & (pieceBitboards[r] | pieceBitboards[q]);
+    attackers[BLACK] |= kingAttacks[square] & pieceBitboards[k];
+
+    // swap list holds material balance after each exchange
+    gain[depth] = abs(pieceValue[captured]);
+	//printf("gain[%d] = %d\n", depth, gain[depth]);
+    int stm = pos->turn;  // side to move
+
+
+    do {
+        // find least valuable attacker for current side
+        int attacker = NO_PIECE;
+        int attackerSq = -1;
+        int minValue = 99999;
+    	int offset = stm * 6;
+
+        for (int pt = P; pt <= K; pt++) {
+            U64 bb = pieceBitboards[pt + offset] & attackers[stm];
+            if (bb) {
+                int sq = getFirstBitSquare(bb);
+                int val = abs(pieceValue[pt + offset]);
+                if (val < minValue) {
+                    minValue = val;
+                    attacker = pt + offset;
+                    attackerSq = sq;
+                }
+            }
+        }
+
+        if (attacker == NO_PIECE)
+        	break;
+
+        // next captured piece is the value of this attacker
+        depth++;
+        gain[depth] = -gain[depth - 1] + abs(pieceValue[attacker]);
+    	//printf("gain[%d] = %d\n", depth, gain[depth]);
+
+        // remove attacker from board
+    	clear_square(occupied, attackerSq);
+    	clear_square(pieceBitboards[attacker], attackerSq);
+
+        // update attackers (sliders may now attack through)
+        attackers[WHITE] = (attackers[WHITE] & occupied) |
+                           (getBishopAttacks(square, occupied) & (pieceBitboards[B] | pieceBitboards[Q])) |
+                           (getRookAttacks(square, occupied) & (pieceBitboards[R] | pieceBitboards[Q]));
+
+        attackers[BLACK] = (attackers[BLACK] & occupied) |
+                           (getBishopAttacks(square, occupied) & (pieceBitboards[b] | pieceBitboards[q])) |
+                           (getRookAttacks(square, occupied) & (pieceBitboards[r] | pieceBitboards[q]));
+
+        stm = !stm;  // switch side
+    } while (depth < 31); // safety bound
+
+    // minimax from the end
+	while (--depth) {
+		if (-gain[depth] < gain[depth - 1])
+			gain[depth - 1] = -gain[depth];
 	}
-	return value;
+
+    return gain[0];
 }
 
 int nnue_eval(GameState *pos)

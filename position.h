@@ -65,6 +65,15 @@ inline void setOccupancies(GameState *pos)
 	pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
+inline int getPieceAtSquare(GameState *pos, int square)
+{
+	for (int i = P; i <= k; i++) {
+		if (get_square(pos->pieceBitboards[i], square))
+			return i;
+	}
+	return NO_PIECE;
+}
+
 /*
 inline int isEndgame(GameState *pos)
 {

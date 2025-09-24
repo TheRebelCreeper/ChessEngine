@@ -6,7 +6,7 @@
 #define INF 1000000
 #define CHECKMATE 999900
 
-static const int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -300, -325, -500, -900, -10000};
+static const int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
 
 static const int pawnScore[64] =
 {
@@ -90,5 +90,6 @@ static const int nnue_pieces[12] =
 void printEvaluation(int score);
 int nnue_eval(GameState *pos);
 int evaluation(GameState *pos);
+int see(GameState *pos, int square);
 
 #endif

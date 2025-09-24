@@ -22,7 +22,6 @@ int pieceLookup[2][6] =
 	{p, n, b, r, q, k}
 };
 
-
 int getSquareFromNotation(char *str)
 {
 	if (strlen(str) != 2) {
@@ -83,16 +82,6 @@ char getCastlingRights(char *str)
 	}
 
 	return rights;
-}
-
-int getPieceAtSquare(GameState state, int square)
-{
-	int i;
-	for (i = 0; i < 12; i++) {
-		if (get_square(state.pieceBitboards[i], square))
-			return i;
-	}
-	return NO_PIECE;
 }
 
 void initKeys()
@@ -233,7 +222,7 @@ void printBoard(GameState state)
 
 		for (file = 0; file < 8; file++) {
 			square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-			piece = pieceChars[getPieceAtSquare(state, square)];
+			piece = pieceChars[getPieceAtSquare(&state, square)];
 
 			printf("|");
 #ifndef _WIN32

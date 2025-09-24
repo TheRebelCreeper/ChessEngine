@@ -40,6 +40,11 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 			int offset = 6 * pos->turn;
 			moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i])]
 			                  + KILLER_ONE;
+
+			// Give bad score to results with negative SEE
+			if (see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
+				moves->score[i] -= KILLER_ONE;
+			}
 		}
 		// Score quiet moves
 		else {
@@ -420,6 +425,12 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 				continue;
 			}
 		}*/
+
+		// TODO Save SEE value when picking moves to avoid computing twice
+		// Prune captures with bad SEE when not in check
+		if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
+			continue;
+		}
 
 		GameState newState = playMove(pos, current, &legal);
 		if (!legal)
