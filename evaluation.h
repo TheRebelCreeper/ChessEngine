@@ -6,7 +6,7 @@
 #define INF 1000000
 #define CHECKMATE 999900
 
-static const int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -300, -325, -500, -900, -10000};
+static const int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
 
 static const int pawnScore[64] =
 {
