@@ -23,7 +23,7 @@ void checkTimeLeft(SearchInfo *info)
 	ReadInput(info);
 }
 
-void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
+void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, int use_see)
 {
 	int i;
 	int ply = info->ply;
@@ -42,7 +42,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info)
 			                  + KILLER_ONE;
 
 			// Give bad score to results with negative SEE
-			if (see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
+			if (use_see && see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
 				moves->score[i] -= KILLER_ONE;
 			}
 		}
@@ -247,7 +247,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 	}
 
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, ttMove, info);
+	scoreMoves(&moveList, pos, ttMove, info, 1);
 
 	for (i = 0; i < size; i++) {
 		pickMove(&moveList, i);
@@ -394,7 +394,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 	}
 
 	moveList = generateMoves(pos, &size);
-	scoreMoves(&moveList, pos, 0, info);
+	scoreMoves(&moveList, pos, 0, info, 0);
 
 	// TODO: use moves that give check within the first two ply of qsearch
 	for (i = 0; i < size; i++) {
