@@ -221,13 +221,17 @@ void uciLoop()
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
 
-    char buf[2048];
+    char *buf = malloc(UCI_BUFFER_LEN * sizeof(char));
+    if (buf == NULL) {
+        fprintf(stderr, "uci loop: malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
     parsePosition("position startpos", &pos);
     while (1) {
-        memset(buf, 0, sizeof(buf));
+        memset(buf, 0, sizeof(char) * UCI_BUFFER_LEN);
         fflush(stdout);
 
-        if (fgets(buf, sizeof(buf), stdin) == NULL) {
+        if (fgets(buf, sizeof(char) * UCI_BUFFER_LEN, stdin) == NULL) {
             exit(1);
         }
 
