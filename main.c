@@ -17,19 +17,16 @@
 
 int main(int argc, char *argv[])
 {
-	initNNUE("nn-62ef826d1a6d.nnue");
-	initKeys();
-	initAttacks();
-	initTT(&GLOBAL_TT);
-	initET(&GLOBAL_ET);
+    initNNUE("nn-62ef826d1a6d.nnue");
+    initKeys();
+    initAttacks();
+    initTT(&GLOBAL_TT);
+    initET(&GLOBAL_ET);
 
 #ifdef VALIDATE
-	//moveGeneratorValidator();
-	GameState pos;
-	loadFEN(&pos, TEST_SEE_2);
-	printf("SEE: %d\n", see(&pos, e5));
+    //moveGeneratorValidator();
 #else
-	uciLoop();
+    uciLoop();
 #endif
-	return 0;
+    return 0;
 }

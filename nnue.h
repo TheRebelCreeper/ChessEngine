@@ -39,12 +39,12 @@
 * use this format.
 */
 enum colors {
-  white, black
+    white, black
 };
 
 enum pieces {
-  blank = 0, wking, wqueen, wrook, wbishop, wknight, wpawn,
-  bking, bqueen, brook, bbishop, bknight, bpawn
+    blank = 0, wking, wqueen, wrook, wbishop, wknight, wpawn,
+    bking, bqueen, brook, bbishop, bknight, bpawn
 };
 
 /**
@@ -52,20 +52,20 @@ enum pieces {
 */
 
 typedef struct DirtyPiece {
-  int dirtyNum;
-  int pc[3];
-  int from[3];
-  int to[3];
+    int dirtyNum;
+    int pc[3];
+    int from[3];
+    int to[3];
 } DirtyPiece;
 
 typedef struct Accumulator {
-  alignas(64) int16_t accumulation[2][256];
-  int computedAccumulation;
+    alignas(64) int16_t accumulation[2][256];
+    int computedAccumulation;
 } Accumulator;
 
 typedef struct NNUEdata {
-  Accumulator accumulator;
-  DirtyPiece dirtyPiece;
+    Accumulator accumulator;
+    DirtyPiece dirtyPiece;
 } NNUEdata;
 
 /**
@@ -73,10 +73,10 @@ typedef struct NNUEdata {
 *  See @nnue_evaluate for a description of parameters
 */
 typedef struct Position {
-  int player;
-  int *pieces;
-  int *squares;
-  NNUEdata *nnue[3];
+    int player;
+    int *pieces;
+    int *squares;
+    NNUEdata *nnue[3];
 } Position;
 
 int nnue_evaluate_pos(Position *pos);
@@ -102,7 +102,7 @@ int nnue_evaluate_pos(Position *pos);
 * Load NNUE file
 */
 int nnue_init(
-  const char *evalFile /** Path to NNUE file */
+    const char *evalFile /** Path to NNUE file */
 );
 
 /**
@@ -111,7 +111,7 @@ int nnue_init(
 *   Score relative to side to move in approximate centi-pawns
 */
 int nnue_evaluate_fen(
-  const char *fen /** FEN string to probe evaluation for */
+    const char *fen /** FEN string to probe evaluation for */
 );
 
 /**
@@ -133,9 +133,9 @@ int nnue_evaluate_fen(
 *   Score relative to side to move in approximate centi-pawns
 */
 int nnue_evaluate(
-  int player, /** Side to move: white=0 black=1 */
-  int *pieces, /** Array of pieces */
-  int *squares /** Corresponding array of squares each piece stands on */
+    int player, /** Side to move: white=0 black=1 */
+    int *pieces, /** Array of pieces */
+    int *squares /** Corresponding array of squares each piece stands on */
 );
 
 /**
@@ -149,10 +149,10 @@ int nnue_evaluate(
 *    nnue_data[2] is pointer to NNUEdata for ply - 2
 */
 int nnue_evaluate_incremental(
-  int player, /** Side to move: white=0 black=1 */
-  int *pieces, /** Array of pieces */
-  int *squares, /** Corresponding array of squares each piece stands on */
-  NNUEdata **nnue_data /** Pointer to NNUEdata* for current and previous plies */
+    int player, /** Side to move: white=0 black=1 */
+    int *pieces, /** Array of pieces */
+    int *squares, /** Corresponding array of squares each piece stands on */
+    NNUEdata **nnue_data /** Pointer to NNUEdata* for current and previous plies */
 );
 
 #endif

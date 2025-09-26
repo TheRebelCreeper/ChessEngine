@@ -18,20 +18,20 @@ extern uint32_t TT_SIZE;
 #define TT_GENERATION(entry) ((entry) & F8)
 
 typedef struct ttEntry {
-	U64 key;
-	unsigned char depth;
-	unsigned char bound;
-	Move move;
-	int score;
+    U64 key;
+    unsigned char depth;
+    unsigned char bound;
+    Move move;
+    int score;
 } TTEntry;
 
 typedef struct tt {
-	TTEntry *hashTable;
-	int numEntries;
-	int newWrite;
-	int overWrite;
-	int hit;
-	int cut;
+    TTEntry *hashTable;
+    int numEntries;
+    int newWrite;
+    int overWrite;
+    int hit;
+    int cut;
 } TT;
 
 extern TT GLOBAL_TT;

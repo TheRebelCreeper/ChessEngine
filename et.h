@@ -13,17 +13,17 @@ extern uint32_t ET_SIZE;
 #define INVALID_EVALUATION (INF + 100)
 
 typedef struct etEntry {
-	U64 key;
-	int eval;
+    U64 key;
+    int eval;
 } ETEntry;
 
 typedef struct et {
-	ETEntry *hashTable;
-	int numEntries;
-	int newWrite;
-	int overWrite;
-	int hit;
-	int cut;
+    ETEntry *hashTable;
+    int numEntries;
+    int newWrite;
+    int overWrite;
+    int hit;
+    int cut;
 } ET;
 
 extern ET GLOBAL_ET;

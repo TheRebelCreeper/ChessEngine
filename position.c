@@ -194,9 +194,9 @@ void loadFEN(GameState *state, char *fen)
     state->enpassantSquare = (token[0] == '-') ? none : getSquareFromNotation(token);
 
     token = strtok(NULL, DELIMS);
-    state->halfMoveClock = atoi(token);
+    state->halfMoveClock = (token) ? atoi(token) : 0;
     token = strtok(NULL, DELIMS);
-    state->fullMove = atoi(token);
+    state->fullMove = (token) ? atoi(token) : 1;
 
     setOccupancies(state);
 
