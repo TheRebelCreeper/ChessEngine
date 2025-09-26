@@ -257,6 +257,7 @@ void uciLoop()
             parseSEE(buf, &pos);
         }
         else if (strncmp(buf, "quit", 4) == 0) {
+            free(buf);
             return;
         }
         else if (strncmp(buf, "setoption name Hash", 19) == 0) {
