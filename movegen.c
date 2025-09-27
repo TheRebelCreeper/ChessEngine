@@ -29,7 +29,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
     while (doublePushTarget) {
         dst = getFirstBitSquare(doublePushTarget);
         src = dst - 16 + (32 * turn);
-        moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, NO_CAPTURE, 1, 0, 0);
+        moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, NO_CAPTURE, 1, 0, 0);
         clear_lsb(doublePushTarget);
     }
 
@@ -43,7 +43,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
             moveList->list[i++] = CREATE_MOVE(src, dst, piece, N, NO_CAPTURE, 0, 0, 0);
         }
         else {
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, NO_CAPTURE, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, NO_CAPTURE, 0, 0, 0);
         }
         clear_lsb(singlePushTarget);
     }
@@ -59,7 +59,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
             if (epAttacks) {
                 dst = pos->enpassantSquare;
 
-                moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, P, 0, 1, 0);
+                moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, P, 0, 1, 0);
             }
         }
 
@@ -82,7 +82,7 @@ void generatePawnMoves(GameState *pos, int turn, int offset, MoveList *moveList)
                 moveList->list[i++] = CREATE_MOVE(src, dst, piece, N, victim, 0, 0, 0);
             }
             else {
-                moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+                moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             }
             clear_lsb(pieceAttacks);
         }
@@ -105,26 +105,26 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
     if (turn == WHITE) {
         if (castlingRights & WHITE_OO && !get_square(occupancy, f1) && !get_square(occupancy, g1)) {
             if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, f1, BLACK))) {
-                moveList->list[i++] = CREATE_MOVE(src, src + 2, K, 0, NO_CAPTURE, 0, 0, 1);
+                moveList->list[i++] = CREATE_MOVE(src, src + 2, K, NO_PROMOTION, NO_CAPTURE, 0, 0, 1);
             }
         }
         if (castlingRights & WHITE_OOO && !get_square(occupancy, b1) && !get_square(occupancy, c1) && !
             get_square(occupancy, d1)) {
             if (!(isSquareAttacked(pos, e1, BLACK) || isSquareAttacked(pos, d1, BLACK))) {
-                moveList->list[i++] = CREATE_MOVE(src, src - 2, K, 0, NO_CAPTURE, 0, 0, 1);
+                moveList->list[i++] = CREATE_MOVE(src, src - 2, K, NO_PROMOTION, NO_CAPTURE, 0, 0, 1);
             }
         }
     }
     else {
         if (castlingRights & BLACK_OO && !get_square(occupancy, f8) && !get_square(occupancy, g8)) {
             if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, f8, WHITE))) {
-                moveList->list[i++] = CREATE_MOVE(src, src + 2, k, 0, NO_CAPTURE, 0, 0, 1);
+                moveList->list[i++] = CREATE_MOVE(src, src + 2, k, NO_PROMOTION, NO_CAPTURE, 0, 0, 1);
             }
         }
         if (castlingRights & BLACK_OOO && !get_square(occupancy, b8) && !get_square(occupancy, c8) && !
             get_square(occupancy, d8)) {
             if (!(isSquareAttacked(pos, e8, WHITE) || isSquareAttacked(pos, d8, WHITE))) {
-                moveList->list[i++] = CREATE_MOVE(src, src - 2, k, 0, NO_CAPTURE, 0, 0, 1);
+                moveList->list[i++] = CREATE_MOVE(src, src - 2, k, NO_PROMOTION, NO_CAPTURE, 0, 0, 1);
             }
         }
     }
@@ -145,7 +145,7 @@ void generateKingMoves(GameState *pos, int turn, int offset, MoveList *moveList)
                     }
                 }
             }
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
         clear_lsb(pieceBB);
@@ -178,7 +178,7 @@ void generateKnightMoves(GameState *pos, int turn, int offset, MoveList *moveLis
                     }
                 }
             }
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
         clear_lsb(pieceBB);
@@ -212,7 +212,7 @@ void generateBishopMoves(GameState *pos, int turn, int offset, MoveList *moveLis
                     }
                 }
             }
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
         clear_lsb(pieceBB);
@@ -246,7 +246,7 @@ void generateRookMoves(GameState *pos, int turn, int offset, MoveList *moveList)
                     }
                 }
             }
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
         clear_lsb(pieceBB);
@@ -280,7 +280,7 @@ void generateQueenMoves(GameState *pos, int turn, int offset, MoveList *moveList
                     }
                 }
             }
-            moveList->list[i++] = CREATE_MOVE(src, dst, piece, 0, victim, 0, 0, 0);
+            moveList->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
         clear_lsb(pieceBB);
@@ -303,6 +303,7 @@ MoveList generateMoves(GameState *pos, int *size)
     generateKingMoves(pos, turn, offset, &moveList);
     generateQueenMoves(pos, turn, offset, &moveList);
 
+    // Maybe add an assert to make sure size isn't greater than MAX_MOVES
     *size = moveList.nextOpen;
     return moveList;
 }
