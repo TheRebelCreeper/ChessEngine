@@ -41,7 +41,9 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
                               + KILLER_ONE;
 
             // Give bad score to results with negative SEE
-            if (use_see && see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
+            int see_score = (use_see) ? see(pos, GET_MOVE_DST(moves->list[i])) : 0;
+            moves->see_score[i] = see_score;
+            if (see_score < 0) {
                 moves->score[i] -= KILLER_ONE;
             }
         }
@@ -61,6 +63,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
                     HISTORY_SCORE_MIN,
                     HISTORY_SCORE_MAX);
             }
+            moves->see_score[i] = 0;
         }
     }
 }
@@ -253,8 +256,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         Move current = moveList.list[i];
         GameState newState = playMove(pos, current, &legal);
 
-        // Increment history index to next depth
-
         if (!legal)
             continue;
 
@@ -430,7 +431,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         // TODO Save SEE value when picking moves to avoid computing twice
         // Prune captures with bad SEE when not in check
-        if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
+        if (!inCheck && current & IS_CAPTURE && moveList.see_score[i] < 0) {
             continue;
         }
 
