@@ -398,7 +398,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     moveList = generateMoves(pos, &size);
     scoreMoves(&moveList, pos, 0, info, 1);
 
-    // TODO: use moves that give check within the first two ply of qsearch. Can do this by modifying moveList struct
+    // TODO: use moves that give check within the first two ply of qsearch
     for (i = 0; i < size; i++) {
         pickMove(&moveList, i);
         Move current = moveList.list[i];
@@ -428,7 +428,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             }
         }*/
 
-        // TODO Save SEE value when picking moves to avoid computing twice
         // Prune captures with bad SEE when not in check
         if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
             continue;
