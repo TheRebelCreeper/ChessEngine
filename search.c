@@ -98,7 +98,7 @@ inline int is_repetition(GameState *pos)
 
 inline int isTactical(Move move, int inCheck, int givesCheck)
 {
-    return GET_MOVE_CAPTURED(move) != NO_CAPTURE || GET_MOVE_PROMOTION(move) != 0 || inCheck || givesCheck;
+    return GET_MOVE_CAPTURED(move) != NO_CAPTURE || GET_MOVE_PROMOTION(move) != NO_PROMOTION || inCheck || givesCheck;
 }
 
 inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
@@ -403,7 +403,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         pickMove(&moveList, i);
         Move current = moveList.list[i];
 
-        if (!inCheck && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == 0) {
+        if (!inCheck && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
             continue;
         }
 

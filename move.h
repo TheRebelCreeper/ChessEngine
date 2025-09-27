@@ -6,6 +6,7 @@
 #define EN_PASSANT_SPECIAL 5
 #define NO_SPECIAL 0
 #define NO_CAPTURE -1
+#define NO_PROMOTION 0
 
 #define IS_CAPTURE 0xf00000
 #define IS_PAWN_PUSH 0x1000000
