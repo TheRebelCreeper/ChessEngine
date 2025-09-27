@@ -19,7 +19,6 @@ void checkTimeLeft(SearchInfo *info)
     if (info->timeset == 1 && GetTimeMs() > info->stoptime) {
         info->stopped = 1;
     }
-
     ReadInput(info);
 }
 
@@ -58,7 +57,8 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
             }
             else {
                 moves->score[i] = MIN(
-                    info->history[pos->turn][GET_MOVE_SRC(moves->list[i])][GET_MOVE_DST(moves->list[i])],
+                    info->history[pos->turn][GET_MOVE_SRC(moves->list[i])][GET_MOVE_DST(moves->list[i])] +
+                    HISTORY_SCORE_MIN,
                     HISTORY_SCORE_MAX);
             }
         }
@@ -320,12 +320,16 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
         if (eval >= beta) {
             saveTT(pos, current, beta, TT_CUT, depth, ply);
+            // If the move is not a capture, save as killer move
             if ((current & IS_CAPTURE) == 0) {
                 if (current != info->killerMoves[0][ply]) {
                     info->killerMoves[1][ply] = info->killerMoves[0][ply];
                     info->killerMoves[0][ply] = current;
                 }
-                info->history[newState.turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (depth * depth);
+                info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] += (depth * depth);
+                if (info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] > HISTORY_SCORE_MAX) {
+                    info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] >>= 1;
+                }
             }
             return beta;
         }
