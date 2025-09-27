@@ -303,6 +303,7 @@ MoveList generateMoves(GameState *pos, int *size)
     generateKingMoves(pos, turn, offset, &moveList);
     generateQueenMoves(pos, turn, offset, &moveList);
 
+    // Maybe add an assert to make sure size isn't greater than MAX_MOVES
     *size = moveList.nextOpen;
     return moveList;
 }

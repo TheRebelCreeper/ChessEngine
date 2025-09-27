@@ -129,7 +129,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         return staticEval;
     }
 
-    // TODO Shouldn't this return static eval?
     // Update time left
     if ((info->nodes & 2047) == 0) {
         checkTimeLeft(info);
@@ -388,7 +387,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return staticEval;
     }
 
-    // Should this return bestVal or beta?
     if (staticEval >= beta && !inCheck) {
         return beta;
     }
@@ -400,7 +398,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     moveList = generateMoves(pos, &size);
     scoreMoves(&moveList, pos, 0, info, 1);
 
-    // TODO: use moves that give check within the first two ply of qsearch
+    // TODO: use moves that give check within the first two ply of qsearch. Can do this by modifying moveList struct
     for (i = 0; i < size; i++) {
         pickMove(&moveList, i);
         Move current = moveList.list[i];
