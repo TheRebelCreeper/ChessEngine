@@ -177,9 +177,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     // Check hash table for best move
     // Do not cut if pv node
     Move ttMove = 0;
-    int eval = probeTT(pos, &ttMove, alpha, beta, depth, ply);
-    if (eval != INVALID_SCORE && !isRoot && !isPVNode) {
-        return eval;
+    int score = probeTT(pos, &ttMove, alpha, beta, depth, ply);
+    if (score != INVALID_SCORE && !isRoot && !isPVNode) {
+        return score;
     }
 
     // Static Null Move Pruning / Reverse Futility Pruning
@@ -189,7 +189,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
         if (staticEval - evalMargin >= beta)
-            return staticEval - evalMargin;
+            return staticEval;
     }
 
     // Razoring
@@ -226,17 +226,17 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         info->ply++;
 
         // Search resulting position with reduced depth
-        eval = -negaMax(-beta, -beta + 1, depth - 1 - r, &newPos, info, 0);
+        score = -negaMax(-beta, -beta + 1, depth - 1 - r, &newPos, info, 0);
 
         // Unmake null move
         info->ply--;
 
         // Ran out of time
         if (info->stopped)
-            return alpha;
+            return bestScore;
 
-        if (eval >= beta && abs(eval) < CHECKMATE)
-            return beta;
+        if (score >= beta && abs(score) < CHECKMATE)
+            return score;
     }
 
     // Check if move is eligible for futility pruning
@@ -282,7 +282,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
         // Do a full depth search on PV
         if (moveCount == 1) {
-            eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+            score = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
         }
         // LMR on non PV node
         else {
@@ -290,23 +290,23 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
             if (moveCount > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(
                     current, inCheck, givesCheck, isPVNode)) {
                 // Reduced search without null moves
-                eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
+                score = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
             }
             else {
-                eval = alpha + 1;
+                score = alpha + 1;
             }
 
-            if (eval > alpha) {
-                eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
-                if ((eval > alpha) && (eval < beta)) {
-                    eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+            if (score > alpha) {
+                score = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
+                if ((score > alpha) && (score < beta)) {
+                    score = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
                 }
             }
         }
 
         // Update bestMove whenever found so all-nodes can be stored in TT
-        if (eval > bestScore) {
-            bestScore = eval;
+        if (score > bestScore) {
+            bestScore = score;
             bestMove = current;
         }
 
@@ -315,10 +315,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         historyIndex--;
 
         if (info->stopped)
-            return alpha;
+            return ( bestScore == -INF) ? alpha : bestScore;
 
-        if (eval >= beta) {
-            saveTT(pos, current, beta, TT_CUT, depth, ply);
+        if (score >= beta) {
+            saveTT(pos, current, score, TT_CUT, depth, ply);
             // If the move is not a capture, save as killer move
             if ((current & IS_CAPTURE) == 0) {
                 if (current != info->killerMoves[0][ply]) {
@@ -330,10 +330,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
                     info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] >>= 1;
                 }
             }
-            return beta;
+            return score;
         }
 
-        if (eval > alpha) {
+        if (score > alpha) {
             nodeBound = TT_PV;
             info->pvTable[ply][ply] = current;
             if (depth > 1) {
@@ -342,7 +342,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
                        info->pvTableLength[ply + 1] * sizeof(Move));
                 info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
             }
-            alpha = eval;
+            alpha = score;
         }
     }
 
@@ -360,8 +360,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         return 0;
     }
 
-    saveTT(pos, bestMove, alpha, nodeBound, depth, ply);
-    return alpha;
+    saveTT(pos, bestMove, bestScore, nodeBound, depth, ply);
+    return bestScore;
 }
 
 // Cannot enter while in check initially
