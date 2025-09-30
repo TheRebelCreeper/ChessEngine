@@ -116,7 +116,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     int isPVNode = beta - alpha > 1;
     int isRoot = (ply == 0);
     int enableFutilityPruning = 0;
-    int staticEval = evaluation(pos);
+    int static_eval = evaluation(pos);
 
     MoveList moveList;
     Move bestMove = 0;
@@ -127,7 +127,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Search has exceeded max depth, return static eval
     if (ply > MAX_PLY) {
-        return staticEval;
+        return static_eval;
     }
 
     // Update time left
@@ -187,7 +187,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
-        if (staticEval >= beta + evalMargin)
+        if (static_eval >= beta + evalMargin)
             return beta;
     }
 
@@ -198,7 +198,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     // as much.
     if (!isPVNode && !inCheck
         && abs(alpha) < CHECKMATE
-        && depth <= 3 && staticEval <= alpha - RAZOR_MARGIN[depth]) {
+        && depth <= 3 && static_eval <= alpha - RAZOR_MARGIN[depth]) {
         if (depth == 1)
             return quiescence(alpha, beta, 0, pos, info);
 
@@ -210,7 +210,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 
     // Null move pruning
-    if (!inCheck && !isPVNode && pruneNull && staticEval >= beta && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
+    if (!inCheck && !isPVNode && pruneNull && static_eval >= beta && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
         // Reduce by either 3 or 4 ply depending on depth
         int r = (depth <= 6) ? 3 : 4;
 
@@ -234,7 +234,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Check if move is eligible for futility pruning
     if (depth < 9 && !isPVNode && !inCheck && alpha < CHECKMATE) {
-        if (staticEval + futilityMargins[depth] <= alpha)
+        if (static_eval + futilityMargins[depth] <= alpha)
             enableFutilityPruning = 1;
     }
 
@@ -360,9 +360,9 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 // Cannot enter while in check initially
 int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
-    MoveList moveList;
-    int size, i, legal, moveCount = 0;
-    int inCheck = isInCheck(pos);
+    MoveList move_list;
+    int size, i, legal, move_count = 0;
+    int in_check = isInCheck(pos);
 
     info->nodes++;
 
@@ -373,61 +373,64 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             return alpha;
     }
 
-    int staticEval = evaluation(pos);
-    int eval = staticEval;
+    int static_eval = evaluation(pos);
+    int best_score = static_eval;
 
     if (info->ply > MAX_PLY) {
-        return staticEval;
+        return static_eval;
     }
 
-    if (staticEval >= beta && !inCheck) {
-        return beta;
+    if (static_eval >= beta && !in_check) {
+        return best_score;
     }
 
-    if (staticEval > alpha && !inCheck) {
-        alpha = staticEval;
+    if (static_eval > alpha && !in_check) {
+        alpha = best_score;
     }
 
-    moveList = generateMoves(pos, &size);
-    scoreMoves(&moveList, pos, 0, info, 1);
+    move_list = generateMoves(pos, &size);
+    scoreMoves(&move_list, pos, 0, info, 1);
 
     // TODO: use moves that give check within the first two ply of qsearch
     for (i = 0; i < size; i++) {
-        pickMove(&moveList, i);
-        Move current = moveList.list[i];
+        pickMove(&move_list, i);
+        Move current = move_list.list[i];
 
-        if (!inCheck && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
+        if (!in_check && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
             continue;
         }
 
         // Prune captures with bad SEE when not in check
-        if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
+        if (!in_check && see(pos, GET_MOVE_DST(current)) < 0) {
             continue;
         }
 
-        GameState newState = playMove(pos, current, &legal);
+        GameState new_pos = playMove(pos, current, &legal);
         if (!legal)
             continue;
-        moveCount++;
+        move_count++;
 
         info->ply++;
-        eval = -quiescence(-beta, -alpha, depth, &newState, info);
+        int score = -quiescence(-beta, -alpha, depth, &new_pos, info);
         info->ply--;
 
         if (info->stopped)
-            return alpha;
+            return best_score;
 
         // Should this return best eval found or beta?
-        if (eval >= beta) {
-            return beta;
+        if (score >= beta) {
+            return score;
         }
-        if (eval > alpha) {
-            alpha = eval;
+        if (score > best_score) {
+            best_score = score;
+        }
+        if (score > alpha) {
+            alpha = score;
         }
     }
 
     // If no more legal moves and we are in check checkmate
-    if (moveCount == 0 && inCheck) {
+    if (move_count == 0 && in_check) {
         return -INF + info->ply;
     }
 
@@ -436,7 +439,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return 0;
     }
 
-    return alpha;
+    return best_score;
 }
 
 void search(GameState *pos, SearchInfo *rootInfo)
