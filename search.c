@@ -9,8 +9,6 @@
 #include "tt.h"
 #include "util.h"
 
-//static U64 deltaPruneCount = 0;
-//static U64 deltaPruneTotal = 0;
 int followingPV = 0;
 
 void checkTimeLeft(SearchInfo *info)
@@ -109,18 +107,18 @@ inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
 // TODO Change to fail-soft
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
 {
-    char nodeBound = TT_ALL;
+    char node_bound = TT_ALL;
     int size, i, legal, moveCount = 0;
     int ply = info->ply;
-    int inCheck = isInCheck(pos);
-    int isPVNode = beta - alpha > 1;
-    int isRoot = (ply == 0);
-    int enableFutilityPruning = 0;
+    int in_check = isInCheck(pos);
+    int is_pv_node = beta - alpha > 1;
+    int is_root = (ply == 0);
+    int enable_futility_pruning = 0;
     int static_eval = evaluation(pos);
 
-    MoveList moveList;
-    Move bestMove = 0;
-    int bestScore = -INF;
+    MoveList move_list;
+    Move best_move = 0;
+    int best_score = -INF;
 
     info->pvTableLength[ply] = depth;
     info->nodes++;
@@ -139,7 +137,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 
     // Increase depth if currently in check since there are few replies
-    if (inCheck)
+    if (in_check)
         depth++;
 
     // Enter quiescence if not in check
@@ -150,7 +148,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Mate distance pruning
     // Stops from searching for mate when faster mate already found
-    if (!isRoot) {
+    if (!is_root) {
         int distance = INF - ply;
         if (distance < beta) {
             beta = distance;
@@ -168,8 +166,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Search for draws and repetitions
     // Don't need to search for repetition if halfMoveClock is low
-    if (!isRoot && ((pos->halfMoveClock > 4 && isRepetition(pos)) || pos->halfMoveClock == 100 ||
-                    insufficientMaterial(pos))) {
+    if (!is_root && ((pos->halfMoveClock > 4 && isRepetition(pos)) || pos->halfMoveClock == 100 ||
+                     insufficientMaterial(pos))) {
         // Cut the pv line if this is a draw
         info->pvTableLength[ply] = 0;
         return 0;
@@ -178,17 +176,17 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     // Check hash table for best move
     // Do not cut if pv node
     Move ttMove = 0;
-    int eval = probeTT(pos, &ttMove, alpha, beta, depth, ply);
-    if (eval != INVALID_SCORE && !isRoot && !isPVNode) {
-        return eval;
+    int score = probeTT(pos, &ttMove, alpha, beta, depth, ply);
+    if (score != INVALID_SCORE && !is_root && !is_pv_node) {
+        return score;
     }
 
     // Static Null Move Pruning / Reverse Futility Pruning
-    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
+    if (depth < 3 && !is_pv_node && !in_check && abs(beta) < CHECKMATE) {
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
         if (static_eval >= beta + evalMargin)
-            return beta;
+            return static_eval;
     }
 
     // Razoring
@@ -196,7 +194,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     // Do a qsearch just to confirm. If the qsearch fails high, a capture gained back
     // the material and trust its result since a quiet move probably can't gain
     // as much.
-    if (!isPVNode && !inCheck
+    if (!is_pv_node && !in_check
         && abs(alpha) < CHECKMATE
         && depth <= 3 && static_eval <= alpha - RAZOR_MARGIN[depth]) {
         if (depth == 1)
@@ -205,12 +203,13 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         int rWindow = alpha - RAZOR_MARGIN[depth];
         int value = quiescence(rWindow, rWindow + 1, 0, pos, info);
         // Fail hard here to be safe
+        // Not sure how to change this to soft fail
         if (value <= rWindow)
             return value;
     }
 
     // Null move pruning
-    if (!inCheck && !isPVNode && pruneNull && static_eval >= beta && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
+    if (!in_check && !is_pv_node && pruneNull && static_eval >= beta && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
         // Reduce by either 3 or 4 ply depending on depth
         int r = (depth <= 6) ? 3 : 4;
 
@@ -219,31 +218,32 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         info->ply++;
 
         // Search resulting position with reduced depth
-        eval = -negaMax(-beta, -beta + 1, depth - 1 - r, &newPos, info, 0);
+        score = -negaMax(-beta, -beta + 1, depth - 1 - r, &newPos, info, 0);
 
         // Unmake null move
         info->ply--;
 
         // Ran out of time
         if (info->stopped)
-            return alpha;
+            return best_score;
 
-        if (eval >= beta && abs(eval) < CHECKMATE)
-            return beta;
+        // Fail soft
+        if (score >= beta && abs(score) < CHECKMATE)
+            return score;
     }
 
     // Check if move is eligible for futility pruning
-    if (depth < 9 && !isPVNode && !inCheck && alpha < CHECKMATE) {
+    if (depth < 9 && !is_pv_node && !in_check && alpha < CHECKMATE) {
         if (static_eval + futilityMargins[depth] <= alpha)
-            enableFutilityPruning = 1;
+            enable_futility_pruning = 1;
     }
 
-    moveList = generateMoves(pos, &size);
-    scoreMoves(&moveList, pos, ttMove, info, 1);
+    move_list = generateMoves(pos, &size);
+    scoreMoves(&move_list, pos, ttMove, info, 1);
 
     for (i = 0; i < size; i++) {
-        pickMove(&moveList, i);
-        Move current = moveList.list[i];
+        pickMove(&move_list, i);
+        Move current = move_list.list[i];
         GameState newState = playMove(pos, current, &legal);
 
         // Increment history index to next depth
@@ -262,8 +262,8 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         int givesCheck = isInCheck(&newState);
 
         // Futility Pruning
-        if (enableFutilityPruning && moveCount > 1) {
-            if (!isTactical(current, inCheck, givesCheck)) {
+        if (enable_futility_pruning && moveCount > 1) {
+            if (!isTactical(current, in_check, givesCheck)) {
                 info->ply--;
                 historyIndex--;
                 continue;
@@ -275,43 +275,47 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
         // Do a full depth search on PV
         if (moveCount == 1) {
-            eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+            score = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
         }
         // LMR on non PV node
         else {
             int r = 0.99 + log(depth) * log(moveCount) / 3.14;
             if (moveCount > FULL_DEPTH_MOVES && (depth - r - 1 > 0) && okToReduce(
-                    current, inCheck, givesCheck, isPVNode)) {
+                    current, in_check, givesCheck, is_pv_node)) {
                 // Reduced search without null moves
-                eval = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
+                score = -negaMax(-alpha - 1, -alpha, depth - r - 1, &newState, info, 1);
             }
             else {
-                eval = alpha + 1;
+                score = alpha + 1;
             }
 
-            if (eval > alpha) {
-                eval = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
-                if ((eval > alpha) && (eval < beta)) {
-                    eval = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
+            if (score > alpha) {
+                score = -negaMax(-alpha - 1, -alpha, depth - 1, &newState, info, 1);
+                if ((score > alpha) && (score < beta)) {
+                    score = -negaMax(-beta, -alpha, depth - 1, &newState, info, 1);
                 }
             }
         }
 
-        // Update bestMove whenever found so all-nodes can be stored in TT
-        if (eval > bestScore) {
-            bestScore = eval;
-            bestMove = current;
+        // Update best_move and best_score whenever found so all-nodes can be stored in TT
+        if (score > best_score) {
+            best_score = score;
+            best_move = current;
         }
 
         // Unmake move by removing current move from history
         info->ply--;
         historyIndex--;
 
-        if (info->stopped)
-            return alpha;
+        // What should I return when no time
+        if (info->stopped) {
+            if (best_score == -INF)
+                return alpha;
+            return best_score;
+        }
 
-        if (eval >= beta) {
-            saveTT(pos, current, beta, TT_CUT, depth, ply);
+        if (score >= beta) {
+            saveTT(pos, current, score, TT_CUT, depth, ply);
             // If the move is not a capture, save as killer move
             if ((current & IS_CAPTURE) == 0) {
                 if (current != info->killerMoves[0][ply]) {
@@ -323,11 +327,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
                     info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] >>= 1;
                 }
             }
-            return beta;
+            return score;
         }
 
-        if (eval > alpha) {
-            nodeBound = TT_PV;
+        if (score > alpha) {
+            node_bound = TT_PV;
             info->pvTable[ply][ply] = current;
             if (depth > 1) {
                 // Crazy memcpy which copies PV from lower depth to current depth
@@ -335,26 +339,26 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
                        info->pvTableLength[ply + 1] * sizeof(Move));
                 info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
             }
-            alpha = eval;
+            alpha = score;
         }
     }
 
     // If only one legal move make the move right away
-    if (moveCount == 1 && isRoot && info->timeset == 1 && depth > 2) {
+    if (moveCount == 1 && is_root && info->timeset == 1 && depth > 2) {
         info->stopped = 1;
     }
 
     if (moveCount == 0) {
         // When no more legal moves, the pv does not exist
         info->pvTableLength[ply] = 0;
-        if (inCheck) {
+        if (in_check) {
             return -INF + ply;
         }
         return 0;
     }
 
-    saveTT(pos, bestMove, alpha, nodeBound, depth, ply);
-    return alpha;
+    saveTT(pos, best_move, best_score, node_bound, depth, ply);
+    return best_score;
 }
 
 // Cannot enter while in check initially
@@ -366,15 +370,15 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
     info->nodes++;
 
+    int static_eval = evaluation(pos);
+    int best_score = static_eval;
+
     // Check if time is up every 2048 nodes
     if ((info->nodes & 2047) == 0) {
         checkTimeLeft(info);
         if (info->stopped)
-            return alpha;
+            return static_eval;
     }
-
-    int static_eval = evaluation(pos);
-    int best_score = static_eval;
 
     if (info->ply > MAX_PLY) {
         return static_eval;
@@ -470,7 +474,6 @@ void search(GameState *pos, SearchInfo *rootInfo)
             break;
         bestScore = score;
 
-#ifdef ASPIRATION_WINDOW
         if (bestScore <= alpha || bestScore >= beta) {
             alpha = -INF;
             beta = INF;
@@ -480,7 +483,6 @@ void search(GameState *pos, SearchInfo *rootInfo)
 
         alpha = MAX(bestScore - 50, -INF);
         beta = MIN(bestScore + 50, INF);
-#endif
 
         bestMove = rootInfo->pvTable[0][0];
 
@@ -518,9 +520,4 @@ void search(GameState *pos, SearchInfo *rootInfo)
     printf("bestmove ");
     printMove(bestMove);
     printf("\n");
-    //printf("Delta pruning: %llu pruned out of %llu captures (%.2f%%)\n",
-    //   deltaPruneCount, deltaPruneTotal,
-    //   (deltaPruneTotal > 0) ? (100.0 * deltaPruneCount / deltaPruneTotal) : 0.0);
-    //deltaPruneCount = 0;
-    //deltaPruneTotal = 0;
 }
