@@ -373,22 +373,22 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
     info->nodes++;
 
+    int staticEval = evaluation(pos);
+    int bestScore = staticEval;
+
     // Check if time is up every 2048 nodes
     if ((info->nodes & 2047) == 0) {
         checkTimeLeft(info);
         if (info->stopped)
-            return alpha;
+            return staticEval;
     }
-
-    int staticEval = evaluation(pos);
-    int eval = staticEval;
 
     if (info->ply > MAX_PLY) {
         return staticEval;
     }
 
     if (staticEval >= beta && !inCheck) {
-        return beta;
+        return staticEval;
     }
 
     if (staticEval > alpha && !inCheck) {
@@ -407,27 +407,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             continue;
         }
 
-
-        /* Delta Pruning
-        if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && !isEndgame(pos))
-        {
-            int piece = GET_MOVE_CAPTURED(current);
-            int margin = 250;
-            int vic = pieceValue[piece];
-
-            if (piece == R)
-                margin = 400;
-            else if (piece == Q)
-                margin = 800;
-
-            deltaPruneTotal++;
-            if (eval + vic + margin < alpha)
-            {
-                deltaPruneCount++;
-                continue;
-            }
-        }*/
-
         // Prune captures with bad SEE when not in check
         if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
             continue;
@@ -439,18 +418,22 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         moveCount++;
 
         info->ply++;
-        eval = -quiescence(-beta, -alpha, depth, &newState, info);
+        int score = -quiescence(-beta, -alpha, depth, &newState, info);
         info->ply--;
 
+        if (score > bestScore) {
+            bestScore = score;
+        }
+
         if (info->stopped)
-            return alpha;
+            return bestScore;
 
         // Should this return best eval found or beta?
-        if (eval >= beta) {
-            return beta;
+        if (score >= beta) {
+            return score;
         }
-        if (eval > alpha) {
-            alpha = eval;
+        if (score > alpha) {
+            alpha = score;
         }
     }
 
@@ -464,7 +447,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return 0;
     }
 
-    return alpha;
+    return bestScore;
 }
 
 void search(GameState *pos, SearchInfo *rootInfo)
