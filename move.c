@@ -49,11 +49,16 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     int src = GET_MOVE_SRC(move);
     int dst = GET_MOVE_DST(move);
     int promotion = GET_MOVE_PROMOTION(move);
-    int offset = 6 * turn;
+    int piece_offset = 6 * turn;
     U64 hashKey = pos->key;
 
-    // Clear Source
+    // Update newPos
+    newPos.turn ^= 1;
+    newPos.halfMoveClock += 1;
+    newPos.enpassantSquare = no_square;
     hashKey ^= sideKey;
+
+    // Clear Source
     hashKey ^= pieceKeys[piece][src];
     clear_square(newPos.pieceBitboards[piece], src);
     clear_square(newPos.occupancies[turn], src);
@@ -76,34 +81,29 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     // Clear Destination
     if (turn == WHITE) {
         clear_square(newPos.occupancies[BLACK], dst);
-
         int victim = GET_MOVE_CAPTURED(move);
         if (victim != NO_CAPTURE) {
-            clear_square(newPos.pieceBitboards[victim + 6], dst);
             hashKey ^= pieceKeys[victim + 6][dst];
+            clear_square(newPos.pieceBitboards[victim + 6], dst);
         }
-
-        newPos.turn = BLACK;
     }
     else {
         clear_square(newPos.occupancies[WHITE], dst);
-
         int victim = GET_MOVE_CAPTURED(move);
         if (victim != NO_CAPTURE) {
-            clear_square(newPos.pieceBitboards[victim], dst);
             hashKey ^= pieceKeys[victim][dst];
+            clear_square(newPos.pieceBitboards[victim], dst);
         }
-
-        newPos.turn = WHITE;
         newPos.fullMove += 1;
     }
 
     // Set destination
-    // If pawn promotion
     set_square(newPos.occupancies[turn], dst);
-    if (piece == (P + offset) && promotion) {
-        hashKey ^= pieceKeys[promotion + offset][dst];
-        set_square(newPos.pieceBitboards[promotion + offset], dst);
+
+    // If pawn promotion
+    if (piece == (P + piece_offset) && promotion) {
+        hashKey ^= pieceKeys[promotion + piece_offset][dst];
+        set_square(newPos.pieceBitboards[promotion + piece_offset], dst);
     }
     else {
         hashKey ^= pieceKeys[piece][dst];
@@ -111,29 +111,30 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     }
 
     // Castling
-    if (piece == (K + offset) && IS_MOVE_CASTLES(move)) {
+    if (piece == (K + piece_offset) && IS_MOVE_CASTLES(move)) {
         //Short Castling
         if (src < dst) {
-            hashKey ^= pieceKeys[R + offset][dst + 1];
-            clear_square(newPos.pieceBitboards[R + offset], dst + 1);
+            hashKey ^= pieceKeys[R + piece_offset][dst + 1];
+            clear_square(newPos.pieceBitboards[R + piece_offset], dst + 1);
             clear_square(newPos.occupancies[turn], dst + 1);
 
-            hashKey ^= pieceKeys[R + offset][dst - 1];
-            set_square(newPos.pieceBitboards[R + offset], dst - 1);
+            hashKey ^= pieceKeys[R + piece_offset][dst - 1];
+            set_square(newPos.pieceBitboards[R + piece_offset], dst - 1);
             set_square(newPos.occupancies[turn], dst - 1);
         }
         // Long Castling
         else if (src > dst) {
-            hashKey ^= pieceKeys[R + offset][dst - 2];
-            clear_square(newPos.pieceBitboards[R + offset], dst - 2);
+            hashKey ^= pieceKeys[R + piece_offset][dst - 2];
+            clear_square(newPos.pieceBitboards[R + piece_offset], dst - 2);
             clear_square(newPos.occupancies[turn], dst - 2);
 
-            hashKey ^= pieceKeys[R + offset][dst + 1];
-            set_square(newPos.pieceBitboards[R + offset], dst + 1);
+            hashKey ^= pieceKeys[R + piece_offset][dst + 1];
+            set_square(newPos.pieceBitboards[R + piece_offset], dst + 1);
             set_square(newPos.occupancies[turn], dst + 1);
         }
     }
 
+    // Unset castle key, recalculate castling rights, set new castle key
     hashKey ^= castleKeys[newPos.castlingRights];
     newPos.occupancies[BOTH] = newPos.occupancies[WHITE] | newPos.occupancies[BLACK];
     newPos.castlingRights = (pos->castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
@@ -143,28 +144,33 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     if (GET_MOVE_CAPTURED(move) != NO_CAPTURE || piece == P || piece == p) {
         newPos.halfMoveClock = 0;
     }
-    else {
-        newPos.halfMoveClock += 1;
-    }
-
-    newPos.enpassantSquare = none;
-    // Might be wrong turn here if perft fails
+    // Set EP square when a pawn moves 2 squares
     if (IS_MOVE_DPP(move)) {
         newPos.enpassantSquare = src + 8 - (16 * turn);
         hashKey ^= epKey[newPos.enpassantSquare & 7];
     }
 
-    // Legality Check
-    int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
-    if (isSquareAttacked(&newPos, kingLocation, newPos.turn) != 0) {
-        *isLegal = 0;
-    }
-    else {
-        *isLegal = 1;
-    }
-
     newPos.key = hashKey;
 
+    // Legality Check
+    int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + piece_offset]);
+    *isLegal = !isSquareAttacked(&newPos, kingLocation, newPos.turn);
+
+    return newPos;
+}
+
+inline GameState playNullMove(GameState *pos)
+{
+    GameState newPos;
+    memcpy(&newPos, pos, sizeof(GameState));
+    newPos.turn ^= 1;
+    newPos.key ^= sideKey;
+
+    // En Passant Moves
+    if (pos->enpassantSquare != no_square) {
+        newPos.enpassantSquare = no_square;
+        newPos.key ^= epKey[pos->enpassantSquare & 7];
+    }
     return newPos;
 }
 

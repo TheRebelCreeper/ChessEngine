@@ -118,7 +118,7 @@ U64 generatePosKey(GameState *pos)
         finalKey ^= sideKey;
     }
 
-    if (pos->enpassantSquare != none) {
+    if (pos->enpassantSquare != no_square) {
         finalKey ^= epKey[pos->enpassantSquare & 7];
     }
 
@@ -147,7 +147,7 @@ void loadFEN(GameState *state, char *fen)
     memset(state->occupancies, 0ULL, sizeof(state->occupancies));
     state->turn = 0;
     state->castlingRights = 0;
-    state->enpassantSquare = none;
+    state->enpassantSquare = no_square;
     state->halfMoveClock = 0;
     state->fullMove = 1;
 
@@ -191,7 +191,7 @@ void loadFEN(GameState *state, char *fen)
 
     // Get enpassantSquare
     token = strtok(NULL, DELIMS);
-    state->enpassantSquare = (token[0] == '-') ? none : getSquareFromNotation(token);
+    state->enpassantSquare = (token[0] == '-') ? no_square : getSquareFromNotation(token);
 
     token = strtok(NULL, DELIMS);
     state->halfMoveClock = (token) ? atoi(token) : 0;

@@ -82,7 +82,7 @@ void pickMove(MoveList *moves, int startIndex)
     moves->score[bestIndex] = tempScore;
 }
 
-inline int is_repetition(GameState *pos)
+inline int isRepetition(GameState *pos)
 {
     int reps = 0;
     for (int i = 1; i < pos->halfMoveClock; i++) {
@@ -106,6 +106,7 @@ inline int okToReduce(Move move, int inCheck, int givesCheck, int pv)
     return !isTactical(move, inCheck, givesCheck) && !pv;
 }
 
+// TODO Change to fail-soft
 int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int pruneNull)
 {
     char nodeBound = TT_ALL;
@@ -167,7 +168,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Search for draws and repetitions
     // Don't need to search for repetition if halfMoveClock is low
-    if (!isRoot && ((pos->halfMoveClock > 4 && is_repetition(pos)) || pos->halfMoveClock == 100 ||
+    if (!isRoot && ((pos->halfMoveClock > 4 && isRepetition(pos)) || pos->halfMoveClock == 100 ||
                     insufficientMaterial(pos))) {
         // Cut the pv line if this is a draw
         info->pvTableLength[ply] = 0;
@@ -183,13 +184,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 
     // Static Null Move Pruning / Reverse Futility Pruning
-    // TODO test out this version
-    // if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
-    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn)) {
+    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
-        if (staticEval - evalMargin >= beta)
-            return staticEval - evalMargin;
+        if (staticEval >= beta + evalMargin)
+            return beta;
     }
 
     // Razoring
@@ -211,18 +210,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 
     // Null move pruning
-    if (pruneNull && staticEval >= beta && !isPVNode && !inCheck && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
+    if (!inCheck && !isPVNode && pruneNull && staticEval >= beta && depth >= 3 && !onlyHasPawns(pos, pos->turn)) {
         // Reduce by either 3 or 4 ply depending on depth
         int r = (depth <= 6) ? 3 : 4;
 
         // Make the null move
-        GameState newPos;
-        memcpy(&newPos, pos, sizeof(GameState));
-        newPos.turn ^= 1;
-        newPos.enpassantSquare = none;
-        newPos.key ^= sideKey;
-        if (pos->enpassantSquare != none)
-            newPos.key ^= epKey[pos->enpassantSquare & 7];
+        GameState newPos = playNullMove(pos);
         info->ply++;
 
         // Search resulting position with reduced depth
@@ -406,27 +399,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         if (!inCheck && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
             continue;
         }
-
-
-        /* Delta Pruning
-        if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && !isEndgame(pos))
-        {
-            int piece = GET_MOVE_CAPTURED(current);
-            int margin = 250;
-            int vic = pieceValue[piece];
-
-            if (piece == R)
-                margin = 400;
-            else if (piece == Q)
-                margin = 800;
-
-            deltaPruneTotal++;
-            if (eval + vic + margin < alpha)
-            {
-                deltaPruneCount++;
-                continue;
-            }
-        }*/
 
         // Prune captures with bad SEE when not in check
         if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {

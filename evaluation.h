@@ -79,7 +79,7 @@ static const int mirroredSquare[65] =
     a4, b4, c4, d4, e4, f4, g4, h4,
     a3, b3, c3, d3, e3, f3, g3, h3,
     a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1, none
+    a1, b1, c1, d1, e1, f1, g1, h1, no_square
 };
 
 static const int nnue_pieces[12] =

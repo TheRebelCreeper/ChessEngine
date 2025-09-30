@@ -45,6 +45,7 @@ typedef uint32_t Move;
 #define IS_MOVE_CASTLES(move) (((move) & 0x4000000) >> 26)
 
 GameState playMove(GameState *pos, Move move, int *isLegal);
+GameState playNullMove(GameState *pos);
 void printMove(Move m);
 
 #endif
