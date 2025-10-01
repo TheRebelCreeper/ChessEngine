@@ -189,7 +189,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
         if (staticEval - evalMargin >= beta)
-            return staticEval;
+            return staticEval - evalMargin;
     }
 
     // Razoring
@@ -315,7 +315,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         historyIndex--;
 
         if (info->stopped)
-            return ( bestScore == -INF) ? alpha : bestScore;
+            return (bestScore == -INF) ? alpha : bestScore;
 
         if (score >= beta) {
             saveTT(pos, current, score, TT_CUT, depth, ply);
@@ -474,8 +474,9 @@ void search(GameState *pos, SearchInfo *rootInfo)
 
         score = negaMax(alpha, beta, ID, pos, rootInfo, 1);
 
-        if (rootInfo->stopped == 1)
+        if (rootInfo->stopped == 1 && ID > 1) {
             break;
+        }
         bestScore = score;
 
 #ifdef ASPIRATION_WINDOW

@@ -65,6 +65,7 @@ inline void setOccupancies(GameState *pos)
     pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
+// TODO replace with a 8x8 mailbox to keep track of all piece positions
 inline int getPieceAtSquare(GameState *pos, int square)
 {
     for (int i = P; i <= k; i++) {
