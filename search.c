@@ -491,7 +491,7 @@ void search(GameState *pos, SearchInfo *rootInfo)
 
         score = negaMax(alpha, beta, ID, pos, rootInfo, 1);
 
-        if (rootInfo->stopped == 1)
+        if (rootInfo->stopped == 1 && ID > 1)
             break;
         bestScore = score;
 
