@@ -58,6 +58,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     }
 
     newPos.turn ^= 1;
+    newPos.halfMoveClock += 1;
 
     // Clear Source
     hashKey ^= sideKey;
@@ -85,7 +86,6 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 
     // Clear Destination
     clear_square(newPos.occupancies[newPos.turn], dst);
-
     int victim = GET_MOVE_CAPTURED(move);
     if (victim != NO_CAPTURE) {
         clear_square(newPos.pieceBitboards[victim], dst);
@@ -143,9 +143,6 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     if (GET_MOVE_CAPTURED(move) != NO_CAPTURE || piece == P || piece == p) {
         newPos.halfMoveClock = 0;
     }
-    else {
-        newPos.halfMoveClock += 1;
-    }
 
     newPos.enpassantSquare = none;
     // Might be wrong turn here if perft fails
@@ -156,12 +153,7 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 
     // Legality Check
     int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
-    if (isSquareAttacked(&newPos, kingLocation, newPos.turn) != 0) {
-        *isLegal = 0;
-    }
-    else {
-        *isLegal = 1;
-    }
+    *isLegal = !isSquareAttacked(&newPos, kingLocation, newPos.turn);
 
     newPos.key = hashKey;
 
