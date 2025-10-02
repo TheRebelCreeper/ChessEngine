@@ -58,17 +58,16 @@ void generatePawnMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
             U64 epAttacks = pawnAttacks[turn][src] & (1ULL << pos->enpassantSquare);
             if (epAttacks) {
                 dst = pos->enpassantSquare;
-                move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, P, 0, 1, 0);
+                move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, p - piece_offset, 0, 1, 0);
             }
         }
 
         while (pieceAttacks) {
             dst = getFirstBitSquare(pieceAttacks);
             int victim = NO_CAPTURE;
-            int offset2 = (piece_offset == 0) ? 6 : 0;
-            for (int j = P; j <= K; j++) {
-                if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                    victim = j;
+            for (int j = p; j <= k; j++) {
+                if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                    victim = j - piece_offset;
                     break;
                 }
             }
@@ -136,10 +135,9 @@ void generateKingMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
             dst = getFirstBitSquare(pieceAttacks);
             int victim = NO_CAPTURE;
             if (get_square(pos->occupancies[BOTH], dst)) {
-                int offset2 = (piece_offset == 0) ? 6 : 0;
-                for (int j = P; j <= K; j++) {
-                    if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                        victim = j;
+                for (int j = p; j <= k; j++) {
+                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                        victim = j - piece_offset;
                         break;
                     }
                 }
@@ -168,11 +166,10 @@ void generateKnightMoves(GameState *pos, int turn, int piece_offset, MoveList *m
         while (pieceAttacks) {
             int victim = NO_CAPTURE;
             dst = getFirstBitSquare(pieceAttacks);
-            if (get_square(pos->occupancies[2], dst)) {
-                int offset2 = (piece_offset == 0) ? 6 : 0;
-                for (int j = P; j <= K; j++) {
-                    if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                        victim = j;
+            if (get_square(pos->occupancies[BOTH], dst)) {
+                for (int j = p; j <= k; j++) {
+                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                        victim = j - piece_offset;
                         break;
                     }
                 }
@@ -202,11 +199,10 @@ void generateBishopMoves(GameState *pos, int turn, int piece_offset, MoveList *m
         while (pieceAttacks) {
             int victim = NO_CAPTURE;
             dst = getFirstBitSquare(pieceAttacks);
-            if (get_square(pos->occupancies[2], dst)) {
-                int offset2 = (piece_offset == 0) ? 6 : 0;
-                for (int j = P; j <= K; j++) {
-                    if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                        victim = j;
+            if (get_square(pos->occupancies[BOTH], dst)) {
+                for (int j = p; j <= k; j++) {
+                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                        victim = j - piece_offset;
                         break;
                     }
                 }
@@ -236,11 +232,10 @@ void generateRookMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
         while (pieceAttacks) {
             dst = getFirstBitSquare(pieceAttacks);
             int victim = NO_CAPTURE;
-            if (get_square(pos->occupancies[2], dst)) {
-                int offset2 = (piece_offset == 0) ? 6 : 0;
-                for (int j = P; j <= K; j++) {
-                    if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                        victim = j;
+            if (get_square(pos->occupancies[BOTH], dst)) {
+                for (int j = p; j <= k; j++) {
+                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                        victim = j - piece_offset;
                         break;
                     }
                 }
@@ -271,10 +266,9 @@ void generateQueenMoves(GameState *pos, int turn, int piece_offset, MoveList *mo
             int victim = NO_CAPTURE;
             dst = getFirstBitSquare(pieceAttacks);
             if (get_square(pos->occupancies[2], dst)) {
-                int offset2 = (piece_offset == 0) ? 6 : 0;
-                for (int j = P; j <= K; j++) {
-                    if (get_square(pos->pieceBitboards[j + offset2], dst)) {
-                        victim = j;
+                for (int j = p; j <= k; j++) {
+                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
+                        victim = j - piece_offset;
                         break;
                     }
                 }

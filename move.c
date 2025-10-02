@@ -79,8 +79,8 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
 
         int victim = GET_MOVE_CAPTURED(move);
         if (victim != NO_CAPTURE) {
-            clear_square(newPos.pieceBitboards[victim + 6], dst);
-            hashKey ^= pieceKeys[victim + 6][dst];
+            clear_square(newPos.pieceBitboards[victim], dst);
+            hashKey ^= pieceKeys[victim][dst];
         }
 
         newPos.turn = BLACK;
