@@ -80,6 +80,28 @@ char getCastlingRights(char *str)
     return rights;
 }
 
+void setOccupancies(GameState *pos)
+{
+    pos->occupancies[WHITE] = 0ULL;
+    pos->occupancies[BLACK] = 0ULL;
+
+    pos->occupancies[WHITE] |= pos->pieceBitboards[P];
+    pos->occupancies[WHITE] |= pos->pieceBitboards[N];
+    pos->occupancies[WHITE] |= pos->pieceBitboards[B];
+    pos->occupancies[WHITE] |= pos->pieceBitboards[R];
+    pos->occupancies[WHITE] |= pos->pieceBitboards[Q];
+    pos->occupancies[WHITE] |= pos->pieceBitboards[K];
+
+    pos->occupancies[BLACK] |= pos->pieceBitboards[p];
+    pos->occupancies[BLACK] |= pos->pieceBitboards[n];
+    pos->occupancies[BLACK] |= pos->pieceBitboards[b];
+    pos->occupancies[BLACK] |= pos->pieceBitboards[r];
+    pos->occupancies[BLACK] |= pos->pieceBitboards[q];
+    pos->occupancies[BLACK] |= pos->pieceBitboards[k];
+
+    pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
+}
+
 void initKeys()
 {
     sideKey = random_u64();
