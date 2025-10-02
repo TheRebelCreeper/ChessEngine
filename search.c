@@ -27,7 +27,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
     int i;
     int ply = info->ply;
 
-    for (i = 0; i < moves->nextOpen; i++) {
+    for (i = 0; i < moves->next_open; i++) {
         // Score TT hits
         if (moves->list[i] == ttMove) {
             moves->score[i] = TT_HIT_SCORE;
@@ -69,7 +69,7 @@ void pickMove(MoveList *moves, int startIndex)
 {
     int bestIndex = startIndex;
     int i;
-    for (i = startIndex; i < moves->nextOpen; i++) {
+    for (i = startIndex; i < moves->next_open; i++) {
         if (moves->score[i] > moves->score[bestIndex])
             bestIndex = i;
     }
