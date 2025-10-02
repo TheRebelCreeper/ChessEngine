@@ -17,9 +17,6 @@ DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
 ifeq ($(OS), Windows_NT)
-	CFLAGS += -fstrict-aliasing
-	CFLAGS += -fno-exceptions
-	CFLAGS += -fomit-frame-pointer
 	DEFINES += -Drandom=rand
 	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
 	EXEEXT = .exe

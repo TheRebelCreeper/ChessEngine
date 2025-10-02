@@ -27,7 +27,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
     int i;
     int ply = info->ply;
 
-    for (i = 0; i < moves->nextOpen; i++) {
+    for (i = 0; i < moves->next_open; i++) {
         // Score TT hits
         if (moves->list[i] == ttMove) {
             moves->score[i] = TT_HIT_SCORE;
@@ -36,9 +36,9 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
 
         // Score captures
         if (moves->list[i] & IS_CAPTURE) {
-            int offset = 6 * pos->turn;
-            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i])]
-                              + KILLER_ONE;
+            int piece_offset = 6 * pos->turn;
+            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - piece_offset][
+                                  GET_MOVE_CAPTURED(moves->list[i])] + KILLER_ONE;
 
             // Give bad score to results with negative SEE
             if (use_see && see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
@@ -69,7 +69,7 @@ void pickMove(MoveList *moves, int startIndex)
 {
     int bestIndex = startIndex;
     int i;
-    for (i = startIndex; i < moves->nextOpen; i++) {
+    for (i = startIndex; i < moves->next_open; i++) {
         if (moves->score[i] > moves->score[bestIndex])
             bestIndex = i;
     }

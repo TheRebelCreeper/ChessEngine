@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "et.h"
+#include "perft.h"
 #include "search.h"
 #include "tt.h"
 #include "uci.h"
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
     initET(&GLOBAL_ET);
 
 #ifdef VALIDATE
-    //moveGeneratorValidator();
+    moveGeneratorValidator();
 #else
     uciLoop();
 #endif
