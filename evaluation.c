@@ -66,7 +66,7 @@ int see(GameState *pos, int square)
     int depth = 0;
 
     // piece on the target square (initial capture value)
-    int captured = getPieceAtSquare(pos, square);
+    int captured = pos->mailbox[square];
     if (captured == NO_PIECE)
         return 0;
 
@@ -122,12 +122,16 @@ int see(GameState *pos, int square)
 
         // update attackers (sliders may now attack through)
         attackers[WHITE] = (attackers[WHITE] & occupied) |
-                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[B] | pos->pieceBitboards[Q]) & occupied) |
-                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[R] | pos->pieceBitboards[Q]) & occupied);
+                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[B] | pos->pieceBitboards[Q]) &
+                            occupied) |
+                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[R] | pos->pieceBitboards[Q]) &
+                            occupied);
 
         attackers[BLACK] = (attackers[BLACK] & occupied) |
-                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[b] | pos->pieceBitboards[q]) & occupied) |
-                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[r] | pos->pieceBitboards[q]) & occupied);
+                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[b] | pos->pieceBitboards[q]) &
+                            occupied) |
+                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[r] | pos->pieceBitboards[q]) &
+                            occupied);
 
         stm = !stm; // switch side
     }

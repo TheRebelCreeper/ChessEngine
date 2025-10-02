@@ -145,6 +145,7 @@ void loadFEN(GameState *state, char *fen)
 
     memset(state->pieceBitboards, 0ULL, sizeof(state->pieceBitboards));
     memset(state->occupancies, 0ULL, sizeof(state->occupancies));
+    memset(state->mailbox, NO_PIECE, sizeof(state->mailbox));
     state->turn = 0;
     state->castlingRights = 0;
     state->enpassantSquare = none;
@@ -167,6 +168,7 @@ void loadFEN(GameState *state, char *fen)
                 }
                 square = rank * 8 + file;
                 set_square(state->pieceBitboards[piece], square);
+                state->mailbox[square] = piece;
             }
             index++;
         }
@@ -218,7 +220,7 @@ void printBoard(GameState state)
 
         for (file = 0; file < 8; file++) {
             square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-            piece = pieceChars[getPieceAtSquare(&state, square)];
+            piece = pieceChars[state.mailbox[square]];
 
             printf("|");
 #ifndef _WIN32

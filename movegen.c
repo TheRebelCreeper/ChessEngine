@@ -64,13 +64,7 @@ void generatePawnMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
 
         while (pieceAttacks) {
             dst = getFirstBitSquare(pieceAttacks);
-            int victim = NO_CAPTURE;
-            for (int j = p; j <= k; j++) {
-                if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                    victim = j - piece_offset;
-                    break;
-                }
-            }
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
 
             // Promotion
             if ((dst <= h8 && dst >= a8) || (dst >= a1 && dst <= h1)) {
@@ -92,7 +86,7 @@ void generatePawnMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
 void generateKingMoves(GameState *pos, int turn, int piece_offset, MoveList *move_list)
 {
     int i = move_list->next_open;
-    int src, dst, piece = K + piece_offset;
+    int src, piece = K + piece_offset;
     U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
     occupancy = pos->occupancies[BOTH];
     friendlyPieces = pos->occupancies[turn];
@@ -132,16 +126,8 @@ void generateKingMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
         src = getFirstBitSquare(pieceBB);
         pieceAttacks = kingAttacks[src] & ~friendlyPieces;
         while (pieceAttacks) {
-            dst = getFirstBitSquare(pieceAttacks);
-            int victim = NO_CAPTURE;
-            if (get_square(pos->occupancies[BOTH], dst)) {
-                for (int j = p; j <= k; j++) {
-                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                        victim = j - piece_offset;
-                        break;
-                    }
-                }
-            }
+            int dst = getFirstBitSquare(pieceAttacks);
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
             move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
@@ -153,7 +139,7 @@ void generateKingMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
 void generateKnightMoves(GameState *pos, int turn, int piece_offset, MoveList *move_list)
 {
     int i = move_list->next_open;
-    int src, dst, piece = N + piece_offset;
+    int src, piece = N + piece_offset;
 
     U64 pieceBB, pieceAttacks, friendlyPieces;
     friendlyPieces = pos->occupancies[turn];
@@ -164,16 +150,8 @@ void generateKnightMoves(GameState *pos, int turn, int piece_offset, MoveList *m
         src = getFirstBitSquare(pieceBB);
         pieceAttacks = knightAttacks[src] & ~friendlyPieces;
         while (pieceAttacks) {
-            int victim = NO_CAPTURE;
-            dst = getFirstBitSquare(pieceAttacks);
-            if (get_square(pos->occupancies[BOTH], dst)) {
-                for (int j = p; j <= k; j++) {
-                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                        victim = j - piece_offset;
-                        break;
-                    }
-                }
-            }
+            int dst = getFirstBitSquare(pieceAttacks);
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
             move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
@@ -185,7 +163,7 @@ void generateKnightMoves(GameState *pos, int turn, int piece_offset, MoveList *m
 void generateBishopMoves(GameState *pos, int turn, int piece_offset, MoveList *move_list)
 {
     int i = move_list->next_open;
-    int src, dst, piece = B + piece_offset;
+    int src, piece = B + piece_offset;
 
     U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
     occupancy = pos->occupancies[BOTH];
@@ -197,16 +175,8 @@ void generateBishopMoves(GameState *pos, int turn, int piece_offset, MoveList *m
         src = getFirstBitSquare(pieceBB);
         pieceAttacks = getBishopAttacks(src, occupancy) & ~friendlyPieces;
         while (pieceAttacks) {
-            int victim = NO_CAPTURE;
-            dst = getFirstBitSquare(pieceAttacks);
-            if (get_square(pos->occupancies[BOTH], dst)) {
-                for (int j = p; j <= k; j++) {
-                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                        victim = j - piece_offset;
-                        break;
-                    }
-                }
-            }
+            int dst = getFirstBitSquare(pieceAttacks);
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
             move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
@@ -218,7 +188,7 @@ void generateBishopMoves(GameState *pos, int turn, int piece_offset, MoveList *m
 void generateRookMoves(GameState *pos, int turn, int piece_offset, MoveList *move_list)
 {
     int i = move_list->next_open;
-    int src, dst, piece = R + piece_offset;
+    int src, piece = R + piece_offset;
 
     U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
     occupancy = pos->occupancies[BOTH];
@@ -230,16 +200,8 @@ void generateRookMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
         src = getFirstBitSquare(pieceBB);
         pieceAttacks = getRookAttacks(src, occupancy) & ~friendlyPieces;
         while (pieceAttacks) {
-            dst = getFirstBitSquare(pieceAttacks);
-            int victim = NO_CAPTURE;
-            if (get_square(pos->occupancies[BOTH], dst)) {
-                for (int j = p; j <= k; j++) {
-                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                        victim = j - piece_offset;
-                        break;
-                    }
-                }
-            }
+            int dst = getFirstBitSquare(pieceAttacks);
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
             move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }
@@ -251,7 +213,7 @@ void generateRookMoves(GameState *pos, int turn, int piece_offset, MoveList *mov
 void generateQueenMoves(GameState *pos, int turn, int piece_offset, MoveList *move_list)
 {
     int i = move_list->next_open;
-    int src, dst, piece = Q + piece_offset;
+    int src, piece = Q + piece_offset;
 
     U64 pieceBB, pieceAttacks, friendlyPieces, occupancy;
     occupancy = pos->occupancies[BOTH];
@@ -263,16 +225,8 @@ void generateQueenMoves(GameState *pos, int turn, int piece_offset, MoveList *mo
         src = getFirstBitSquare(pieceBB);
         pieceAttacks = getQueenAttacks(src, occupancy) & ~friendlyPieces;
         while (pieceAttacks) {
-            int victim = NO_CAPTURE;
-            dst = getFirstBitSquare(pieceAttacks);
-            if (get_square(pos->occupancies[2], dst)) {
-                for (int j = p; j <= k; j++) {
-                    if (get_square(pos->pieceBitboards[j - piece_offset], dst)) {
-                        victim = j - piece_offset;
-                        break;
-                    }
-                }
-            }
+            int dst = getFirstBitSquare(pieceAttacks);
+            int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
             move_list->list[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, victim, 0, 0, 0);
             clear_lsb(pieceAttacks);
         }

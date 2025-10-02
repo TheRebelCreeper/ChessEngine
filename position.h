@@ -19,6 +19,7 @@ typedef struct gameState {
     U64 key;
     int turn;
     unsigned char castlingRights;
+    unsigned char mailbox[64];
     int enpassantSquare;
     int halfMoveClock;
     int fullMove;

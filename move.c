@@ -49,14 +49,22 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     int src = GET_MOVE_SRC(move);
     int dst = GET_MOVE_DST(move);
     int promotion = GET_MOVE_PROMOTION(move);
-    int offset = 6 * turn;
+    int offset = 0;
     U64 hashKey = pos->key;
+
+    if (turn == BLACK) {
+        offset = 6;
+        newPos.fullMove += 1;
+    }
+
+    newPos.turn ^= 1;
 
     // Clear Source
     hashKey ^= sideKey;
     hashKey ^= pieceKeys[piece][src];
     clear_square(newPos.pieceBitboards[piece], src);
     clear_square(newPos.occupancies[turn], src);
+    newPos.mailbox[src] = NO_PIECE;
 
     // En Passant Moves
     if ((piece == P || piece == p) && IS_MOVE_EP(move)) {
@@ -65,37 +73,23 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
             hashKey ^= pieceKeys[p][dst - 8];
             clear_square(newPos.pieceBitboards[p], dst - 8);
             clear_square(newPos.occupancies[BLACK], dst - 8);
+            newPos.mailbox[dst - 8] = NO_PIECE;
         }
         else {
             hashKey ^= pieceKeys[P][dst + 8];
             clear_square(newPos.pieceBitboards[P], dst + 8);
             clear_square(newPos.occupancies[WHITE], dst + 8);
+            newPos.mailbox[dst + 8] = NO_PIECE;
         }
     }
 
     // Clear Destination
-    if (turn == WHITE) {
-        clear_square(newPos.occupancies[BLACK], dst);
+    clear_square(newPos.occupancies[newPos.turn], dst);
 
-        int victim = GET_MOVE_CAPTURED(move);
-        if (victim != NO_CAPTURE) {
-            clear_square(newPos.pieceBitboards[victim], dst);
-            hashKey ^= pieceKeys[victim][dst];
-        }
-
-        newPos.turn = BLACK;
-    }
-    else {
-        clear_square(newPos.occupancies[WHITE], dst);
-
-        int victim = GET_MOVE_CAPTURED(move);
-        if (victim != NO_CAPTURE) {
-            clear_square(newPos.pieceBitboards[victim], dst);
-            hashKey ^= pieceKeys[victim][dst];
-        }
-
-        newPos.turn = WHITE;
-        newPos.fullMove += 1;
+    int victim = GET_MOVE_CAPTURED(move);
+    if (victim != NO_CAPTURE) {
+        clear_square(newPos.pieceBitboards[victim], dst);
+        hashKey ^= pieceKeys[victim][dst];
     }
 
     // Set destination
@@ -104,10 +98,12 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
     if (piece == (P + offset) && promotion) {
         hashKey ^= pieceKeys[promotion + offset][dst];
         set_square(newPos.pieceBitboards[promotion + offset], dst);
+        newPos.mailbox[dst] = promotion + offset;
     }
     else {
         hashKey ^= pieceKeys[piece][dst];
         set_square(newPos.pieceBitboards[piece], dst);
+        newPos.mailbox[dst] = piece;
     }
 
     // Castling
@@ -117,20 +113,24 @@ GameState playMove(GameState *pos, Move move, int *isLegal)
             hashKey ^= pieceKeys[R + offset][dst + 1];
             clear_square(newPos.pieceBitboards[R + offset], dst + 1);
             clear_square(newPos.occupancies[turn], dst + 1);
+            newPos.mailbox[dst + 1] = NO_PIECE;
 
             hashKey ^= pieceKeys[R + offset][dst - 1];
             set_square(newPos.pieceBitboards[R + offset], dst - 1);
             set_square(newPos.occupancies[turn], dst - 1);
+            newPos.mailbox[dst - 1] = R + offset;
         }
         // Long Castling
         else if (src > dst) {
             hashKey ^= pieceKeys[R + offset][dst - 2];
             clear_square(newPos.pieceBitboards[R + offset], dst - 2);
             clear_square(newPos.occupancies[turn], dst - 2);
+            newPos.mailbox[dst - 2] = NO_PIECE;
 
             hashKey ^= pieceKeys[R + offset][dst + 1];
             set_square(newPos.pieceBitboards[R + offset], dst + 1);
             set_square(newPos.occupancies[turn], dst + 1);
+            newPos.mailbox[dst + 1] = R + offset;
         }
     }
 
