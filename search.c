@@ -183,13 +183,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     }
 
     // Static Null Move Pruning / Reverse Futility Pruning
-    // TODO test out this version
-    // if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
-    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn)) {
+    if (depth < 4 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
         // Try margin of 180 after working on TT-bug
         int evalMargin = 120 * depth;
         if (staticEval - evalMargin >= beta)
-            return staticEval - evalMargin;
+            return beta;
     }
 
     // Razoring
