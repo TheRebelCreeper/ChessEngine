@@ -34,8 +34,8 @@ typedef struct info {
     U64 nodes;
     Move killerMoves[2][MAX_PLY];
     int history[2][64][64];
-    int pvTableLength[MAX_PLY];
-    Move pvTable[MAX_PLY][MAX_PLY];
+    int pvTableLength[MAX_PLY + 1];
+    Move pvTable[MAX_PLY + 1][MAX_PLY + 1];
 } SearchInfo;
 
 /*
