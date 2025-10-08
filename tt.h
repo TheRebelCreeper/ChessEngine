@@ -13,10 +13,6 @@ extern uint32_t TT_SIZE;
 #define TT_ALL 0x2
 #define TT_CUT 0x1
 
-#define TT_BOUND(entry) ((entry) & 0x3)
-#define TT_IS_PV(entry) ((entry) & TT_PV)
-#define TT_GENERATION(entry) ((entry) & F8)
-
 typedef struct ttEntry {
     U64 key;
     unsigned char depth;

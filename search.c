@@ -9,13 +9,11 @@
 #include "tt.h"
 #include "util.h"
 
-//static U64 deltaPruneCount = 0;
-//static U64 deltaPruneTotal = 0;
 int followingPV = 0;
 
 void checkTimeLeft(SearchInfo *info)
 {
-    // .. check if time up, or interrupt from GUI
+    // Check if time up, or interrupt from GUI
     if (info->timeset == 1 && GetTimeMs() > info->stoptime) {
         info->stopped = 1;
     }
@@ -182,14 +180,12 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         return eval;
     }
 
-    // Static Null Move Pruning / Reverse Futility Pruning
-    // TODO test out this version
-    // if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
-    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn)) {
+    // Reverse Futility Pruning
+    if (depth < 4 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
         // Try margin of 180 after working on TT-bug
-        int evalMargin = 120 * depth;
+        int evalMargin = 80 * depth;
         if (staticEval - evalMargin >= beta)
-            return staticEval - evalMargin;
+            return beta;
     }
 
     // Razoring
@@ -407,27 +403,6 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             continue;
         }
 
-
-        /* Delta Pruning
-        if (!inCheck && GET_MOVE_CAPTURED(current) != NO_CAPTURE && !isEndgame(pos))
-        {
-            int piece = GET_MOVE_CAPTURED(current);
-            int margin = 250;
-            int vic = pieceValue[piece];
-
-            if (piece == R)
-                margin = 400;
-            else if (piece == Q)
-                margin = 800;
-
-            deltaPruneTotal++;
-            if (eval + vic + margin < alpha)
-            {
-                deltaPruneCount++;
-                continue;
-            }
-        }*/
-
         // Prune captures with bad SEE when not in check
         if (!inCheck && see(pos, GET_MOVE_DST(current)) < 0) {
             continue;
@@ -543,9 +518,4 @@ void search(GameState *pos, SearchInfo *rootInfo)
     printf("bestmove ");
     printMove(bestMove);
     printf("\n");
-    //printf("Delta pruning: %llu pruned out of %llu captures (%.2f%%)\n",
-    //   deltaPruneCount, deltaPruneTotal,
-    //   (deltaPruneTotal > 0) ? (100.0 * deltaPruneCount / deltaPruneTotal) : 0.0);
-    //deltaPruneCount = 0;
-    //deltaPruneTotal = 0;
 }
