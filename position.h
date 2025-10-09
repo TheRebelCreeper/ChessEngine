@@ -19,6 +19,7 @@ typedef struct gameState {
     U64 key;
     int turn;
     unsigned char castlingRights;
+    unsigned char mailbox[64];
     int enpassantSquare;
     int halfMoveClock;
     int fullMove;
@@ -41,38 +42,12 @@ U64 sideKey;
 U64 generatePosKey(GameState *pos);
 int getSquareFromNotation(char *str);
 void loadFEN(GameState *state, char *fen);
+void setOccupancies(GameState *pos);
 void initKeys();
 
-inline void setOccupancies(GameState *pos)
-{
-    pos->occupancies[WHITE] = 0ULL;
-    pos->occupancies[BLACK] = 0ULL;
-
-    pos->occupancies[WHITE] |= pos->pieceBitboards[P];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[N];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[B];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[R];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[Q];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[K];
-
-    pos->occupancies[BLACK] |= pos->pieceBitboards[p];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[n];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[b];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[r];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[q];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[k];
-
-    pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
-}
-
-// TODO replace with a 8x8 mailbox to keep track of all piece positions
 inline int getPieceAtSquare(GameState *pos, int square)
 {
-    for (int i = P; i <= k; i++) {
-        if (get_square(pos->pieceBitboards[i], square))
-            return i;
-    }
-    return NO_PIECE;
+    return pos->mailbox[square];
 }
 
 /*

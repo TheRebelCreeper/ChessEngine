@@ -8,7 +8,7 @@
 #define MAX_MOVES 256
 
 typedef struct movelist {
-    int nextOpen;
+    int next_open;
     Move list[MAX_MOVES];
     int score[MAX_MOVES];
 } MoveList;

@@ -19,7 +19,7 @@ int parseMove(char *inputString, MoveList *moveList)
     int dst = (inputString[3] - '0' - 1) * 8 + (tolower(inputString[2]) - 'a');
     int promotionPiece = 0;
 
-    for (int i = 0; i < moveList->nextOpen; i++) {
+    for (int i = 0; i < moveList->next_open; i++) {
         Move move = moveList->list[i];
         promotionPiece = GET_MOVE_PROMOTION(move);
 
@@ -204,7 +204,7 @@ void parseGo(char *line, GameState *pos)
     }
 
     if (depth == -1) {
-        info.depth = MAX_PLY - 1;
+        info.depth = MAX_PLY;
     }
     else {
         info.depth = depth;

@@ -34,8 +34,8 @@ typedef struct info {
     U64 nodes;
     Move killerMoves[2][MAX_PLY];
     int history[2][64][64];
-    int pvTableLength[MAX_PLY];
-    Move pvTable[MAX_PLY][MAX_PLY];
+    int pvTableLength[MAX_PLY + 1];
+    Move pvTable[MAX_PLY + 1][MAX_PLY + 1];
 } SearchInfo;
 
 /*
@@ -46,14 +46,14 @@ typedef struct info {
 	QxP QxN QxB QxR QxQ QxK
 	KxP KxN KxB KxR KxQ KxK
 */
-static const int MVV_LVA_TABLE[6][6] =
+static const int MVV_LVA_TABLE[6][12] =
 {
-    {105, 205, 305, 405, 505, 0},
-    {104, 204, 304, 404, 504, 0},
-    {103, 203, 303, 403, 503, 0},
-    {102, 202, 302, 402, 502, 0},
-    {101, 201, 301, 401, 501, 0},
-    {100, 200, 300, 400, 500, 0}
+    {105, 205, 305, 405, 505, 0, 105, 205, 305, 405, 505, 0},
+    {104, 204, 304, 404, 504, 0, 104, 204, 304, 404, 504, 0},
+    {103, 203, 303, 403, 503, 0, 103, 203, 303, 403, 503, 0},
+    {102, 202, 302, 402, 502, 0, 102, 202, 302, 402, 502, 0},
+    {101, 201, 301, 401, 501, 0, 101, 201, 301, 401, 501, 0},
+    {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
 static const int RAZOR_MARGIN[4] = {

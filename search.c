@@ -9,13 +9,11 @@
 #include "tt.h"
 #include "util.h"
 
-//static U64 deltaPruneCount = 0;
-//static U64 deltaPruneTotal = 0;
 int followingPV = 0;
 
 void checkTimeLeft(SearchInfo *info)
 {
-    // .. check if time up, or interrupt from GUI
+    // Check if time up, or interrupt from GUI
     if (info->timeset == 1 && GetTimeMs() > info->stoptime) {
         info->stopped = 1;
     }
@@ -27,7 +25,7 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
     int i;
     int ply = info->ply;
 
-    for (i = 0; i < moves->nextOpen; i++) {
+    for (i = 0; i < moves->next_open; i++) {
         // Score TT hits
         if (moves->list[i] == ttMove) {
             moves->score[i] = TT_HIT_SCORE;
@@ -36,9 +34,9 @@ void scoreMoves(MoveList *moves, GameState *pos, Move ttMove, SearchInfo *info, 
 
         // Score captures
         if (moves->list[i] & IS_CAPTURE) {
-            int offset = 6 * pos->turn;
-            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - offset][GET_MOVE_CAPTURED(moves->list[i])]
-                              + KILLER_ONE;
+            int piece_offset = 6 * pos->turn;
+            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->list[i]) - piece_offset][
+                                  GET_MOVE_CAPTURED(moves->list[i])] + KILLER_ONE;
 
             // Give bad score to results with negative SEE
             if (use_see && see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
@@ -69,7 +67,7 @@ void pickMove(MoveList *moves, int startIndex)
 {
     int bestIndex = startIndex;
     int i;
-    for (i = startIndex; i < moves->nextOpen; i++) {
+    for (i = startIndex; i < moves->next_open; i++) {
         if (moves->score[i] > moves->score[bestIndex])
             bestIndex = i;
     }
@@ -121,11 +119,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     Move bestMove = 0;
     int bestScore = -INF;
 
-    info->pvTableLength[ply] = depth;
     info->nodes++;
 
     // Search has exceeded max depth, return static eval
-    if (ply > MAX_PLY) {
+    if (ply >= MAX_PLY) {
         return staticEval;
     }
 
@@ -143,6 +140,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Enter quiescence if not in check
     if (depth <= 0) {
+        info->pvTableLength[ply] = 0;
         info->nodes--;
         return quiescence(alpha, beta, depth, pos, info);
     }
@@ -182,14 +180,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         return score;
     }
 
-    // Static Null Move Pruning / Reverse Futility Pruning
-    // TODO test out this version
-    // if (depth < 3 && !isPVNode && pruneNull && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn))
-    if (depth < 3 && !isPVNode && !inCheck && abs(beta) < CHECKMATE && !onlyHasPawns(pos, pos->turn)) {
-        // Try margin of 180 after working on TT-bug
-        int evalMargin = 120 * depth;
+    // Reverse Futility Pruning
+    if (depth < 4 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
+        int evalMargin = 80 * depth;
         if (staticEval - evalMargin >= beta)
-            return staticEval - evalMargin;
+            return beta;
     }
 
     // Razoring
@@ -336,12 +331,11 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         if (score > alpha) {
             nodeBound = TT_PV;
             info->pvTable[ply][ply] = current;
-            if (depth > 1) {
-                // Crazy memcpy which copies PV from lower depth to current depth
-                memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1,
-                       info->pvTableLength[ply + 1] * sizeof(Move));
-                info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
-            }
+
+            // Crazy memcpy which copies PV from lower depth to current depth
+            memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1,
+                   info->pvTableLength[ply + 1] * sizeof(Move));
+            info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
             alpha = score;
         }
     }
@@ -383,7 +377,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             return staticEval;
     }
 
-    if (info->ply > MAX_PLY) {
+    if (info->ply >= MAX_PLY) {
         return staticEval;
     }
 
@@ -465,10 +459,10 @@ void search(GameState *pos, SearchInfo *rootInfo)
     rootInfo->ply = 0;
     memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
     memset(rootInfo->history, 0, sizeof(rootInfo->history));
-    memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
-    memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
 
     for (int ID = 1; ID <= searchDepth; ID++) {
+        memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
+        memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
         rootInfo->depth = ID;
         followingPV = 1;
 
@@ -527,9 +521,4 @@ void search(GameState *pos, SearchInfo *rootInfo)
     printf("bestmove ");
     printMove(bestMove);
     printf("\n");
-    //printf("Delta pruning: %llu pruned out of %llu captures (%.2f%%)\n",
-    //   deltaPruneCount, deltaPruneTotal,
-    //   (deltaPruneTotal > 0) ? (100.0 * deltaPruneCount / deltaPruneTotal) : 0.0);
-    //deltaPruneCount = 0;
-    //deltaPruneTotal = 0;
 }
