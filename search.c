@@ -119,11 +119,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
     Move bestMove = 0;
     int bestScore = -INF;
 
-    info->pvTableLength[ply] = depth;
     info->nodes++;
 
     // Search has exceeded max depth, return static eval
-    if (ply > MAX_PLY) {
+    if (ply >= MAX_PLY) {
         return staticEval;
     }
 
@@ -141,6 +140,7 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Enter quiescence if not in check
     if (depth <= 0) {
+        info->pvTableLength[ply] = 0;
         info->nodes--;
         return quiescence(alpha, beta, depth, pos, info);
     }
@@ -182,7 +182,6 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
 
     // Reverse Futility Pruning
     if (depth < 4 && !isPVNode && !inCheck && abs(beta) < CHECKMATE) {
-        // Try margin of 180 after working on TT-bug
         int evalMargin = 80 * depth;
         if (staticEval - evalMargin >= beta)
             return beta;
@@ -332,12 +331,10 @@ int negaMax(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, in
         if (eval > alpha) {
             nodeBound = TT_PV;
             info->pvTable[ply][ply] = current;
-            if (depth > 1) {
-                // Crazy memcpy which copies PV from lower depth to current depth
-                memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1,
-                       info->pvTableLength[ply + 1] * sizeof(Move));
-                info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
-            }
+            // Crazy memcpy which copies PV from lower depth to current depth
+            memcpy((info->pvTable[ply]) + ply + 1, (info->pvTable[ply + 1]) + ply + 1,
+                   info->pvTableLength[ply + 1] * sizeof(Move));
+            info->pvTableLength[ply] = info->pvTableLength[ply + 1] + 1;
             alpha = eval;
         }
     }
@@ -379,7 +376,7 @@ int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     int staticEval = evaluation(pos);
     int eval = staticEval;
 
-    if (info->ply > MAX_PLY) {
+    if (info->ply >= MAX_PLY) {
         return staticEval;
     }
 
@@ -457,10 +454,10 @@ void search(GameState *pos, SearchInfo *rootInfo)
     rootInfo->ply = 0;
     memset(rootInfo->killerMoves, 0, sizeof(rootInfo->killerMoves));
     memset(rootInfo->history, 0, sizeof(rootInfo->history));
-    memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
-    memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
 
     for (int ID = 1; ID <= searchDepth; ID++) {
+        memset(rootInfo->pvTable, 0, sizeof(rootInfo->pvTable));
+        memset(rootInfo->pvTableLength, 0, sizeof(rootInfo->pvTableLength));
         rootInfo->depth = ID;
         followingPV = 1;
 
