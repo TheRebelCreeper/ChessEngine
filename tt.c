@@ -35,9 +35,8 @@ void clearTT(TT *table)
 }
 
 // Should return a score
-int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
+int probeTT(const GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
 {
-    int finalScore = INVALID_SCORE;
     int index = pos->key % GLOBAL_TT.numEntries;
     TTEntry entry = GLOBAL_TT.hashTable[index];
 
@@ -47,26 +46,24 @@ int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
             GLOBAL_TT.hit++;
 
             int score = entry.score;
-            if (score > CHECKMATE)
+            if (score > CHECKMATE) {
                 score -= ply;
-            else if (score < -CHECKMATE)
+            }
+            else if (score < -CHECKMATE) {
                 score += ply;
+            }
 
-            if (entry.bound == TT_ALL && score <= alpha) {
-                return score;
-            }
-            if (entry.bound == TT_CUT && score >= beta) {
-                return score;
-            }
-            if (entry.bound == TT_PV) {
+            if ((entry.bound == TT_CUT && score >= beta) ||
+                (entry.bound == TT_ALL && score <= alpha) ||
+                entry.bound == TT_PV) {
                 return score;
             }
         }
     }
-    return finalScore;
+    return INVALID_SCORE;
 }
 
-void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
+void saveTT(const GameState *pos, Move move, int score, int bound, int depth, int ply)
 {
     int index = pos->key % GLOBAL_TT.numEntries;
 
@@ -81,10 +78,12 @@ void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
         GLOBAL_TT.overWrite++;
     }*/
 
-    if (score > CHECKMATE)
+    if (score > CHECKMATE) {
         score += ply;
-    else if (score < -CHECKMATE)
+    }
+    else if (score < -CHECKMATE) {
         score -= ply;
+    }
 
     GLOBAL_TT.hashTable[index].move = move;
     GLOBAL_TT.hashTable[index].key = pos->key;
