@@ -53,13 +53,13 @@ int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
                 score += ply;
 
             if (entry.bound == TT_ALL && score <= alpha) {
-                finalScore = alpha;
+                return score;
             }
-            else if (entry.bound == TT_CUT && score >= beta) {
-                finalScore = beta;
+            if (entry.bound == TT_CUT && score >= beta) {
+                return score;
             }
-            else if (entry.bound == TT_PV) {
-                finalScore = score;
+            if (entry.bound == TT_PV) {
+                return score;
             }
         }
     }
