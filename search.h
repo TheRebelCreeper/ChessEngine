@@ -29,13 +29,13 @@ typedef struct info {
     int stopped;
     unsigned int ms;
     unsigned int nps;
-    int bestScore;
+    int best_score;
     int ply;
     U64 nodes;
-    Move killerMoves[2][MAX_PLY];
+    Move killer_moves[2][MAX_PLY];
     int history[2][64][64];
-    int pvTableLength[MAX_PLY + 1];
-    Move pvTable[MAX_PLY + 1][MAX_PLY + 1];
+    int pv_table_length[MAX_PLY + 1];
+    Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
 } SearchInfo;
 
 /*
@@ -64,10 +64,10 @@ static const int RAZOR_MARGIN[4] = {
 };
 
 // Original values were multiplied by 1.5
-static const int futilityMargins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780};
+static const int futility_margins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780};
 
-int quiescence(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
-void search(GameState *pos, SearchInfo *info);
-void ReadInput(SearchInfo *info);
+int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
+void search_root(GameState *pos, SearchInfo *info);
+void read_input(SearchInfo *info);
 
 #endif

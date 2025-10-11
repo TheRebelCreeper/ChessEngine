@@ -18,19 +18,19 @@ typedef struct etEntry {
 } ETEntry;
 
 typedef struct et {
-    ETEntry *hashTable;
-    int numEntries;
-    int newWrite;
-    int overWrite;
+    ETEntry *hash_table;
+    int num_entries;
+    int new_write;
+    int over_write;
     int hit;
     int cut;
 } ET;
 
 extern ET GLOBAL_ET;
 
-void initET(ET *table);
-void clearET(ET *table);
-int probeET(GameState *pos);
-void saveET(GameState *pos, int eval);
+void init_et(ET *table);
+void clear_et(ET *table);
+int probe_et(const GameState *pos);
+void save_et(GameState *pos, int eval);
 
 #endif

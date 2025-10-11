@@ -13,28 +13,28 @@
 
 // The code is to allow the engine to connect to GUI's via UCI protocol
 
-int parseMove(char *inputString, MoveList *moveList)
+int parse_move(char *input_string, MoveList *move_list)
 {
-    int src = (inputString[1] - '0' - 1) * 8 + (tolower(inputString[0]) - 'a');
-    int dst = (inputString[3] - '0' - 1) * 8 + (tolower(inputString[2]) - 'a');
-    int promotionPiece = 0;
+    int src = (input_string[1] - '0' - 1) * 8 + (tolower(input_string[0]) - 'a');
+    int dst = (input_string[3] - '0' - 1) * 8 + (tolower(input_string[2]) - 'a');
+    int promotion_piece = 0;
 
-    for (int i = 0; i < moveList->next_open; i++) {
-        Move move = moveList->list[i];
-        promotionPiece = GET_MOVE_PROMOTION(move);
+    for (int i = 0; i < move_list->next_open; i++) {
+        Move move = move_list->list[i];
+        promotion_piece = GET_MOVE_PROMOTION(move);
 
         if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst) {
-            if (promotionPiece) {
-                if (promotionPiece == Q && tolower(inputString[4]) == 'q') {
+            if (promotion_piece) {
+                if (promotion_piece == Q && tolower(input_string[4]) == 'q') {
                     return i;
                 }
-                if (promotionPiece == N && tolower(inputString[4]) == 'n') {
+                if (promotion_piece == N && tolower(input_string[4]) == 'n') {
                     return i;
                 }
-                if (promotionPiece == B && tolower(inputString[4]) == 'b') {
+                if (promotion_piece == B && tolower(input_string[4]) == 'b') {
                     return i;
                 }
-                if (promotionPiece == R && tolower(inputString[4]) == 'r') {
+                if (promotion_piece == R && tolower(input_string[4]) == 'r') {
                     return i;
                 }
                 continue;
@@ -47,56 +47,54 @@ int parseMove(char *inputString, MoveList *moveList)
 
 // Example command
 // position fen r2qkbnr/ppp2ppp/2np4/4N3/2B1P3/2N5/PPPP1PPP/R1BbK2R w KQkq - 0 6 moves c4f7 e8e7 c3d5
-void parsePosition(char *line, GameState *pos)
+void parse_position(char *line, GameState *pos)
 {
-    char *temp;
-
     line += 9; // Start the line after the word "position"
-    temp = line;
-    historyIndex = 0;
-    memset(posHistory, 0, sizeof(posHistory));
+    char *temp = line;
+    history_index = 0;
+    memset(pos_history, 0, sizeof(pos_history));
 
     if (strncmp(line, "startpos", 8) == 0) {
-        loadFEN(pos, STARTING_FEN);
+        load_fen(pos, STARTING_FEN);
     }
     else if (strncmp(line, "fen", 3) == 0) {
         temp += 4; // Start temp after the word "fen"
-        loadFEN(pos, temp);
+        load_fen(pos, temp);
     }
     else {
-        loadFEN(pos, STARTING_FEN);
+        load_fen(pos, STARTING_FEN);
     }
 
     temp = strstr(line, "moves");
     if (temp != NULL) {
         int size, legal;
-        MoveList moveList;
+        MoveList move_list;
         temp += 6; // Length of "moves "
 
         while (*temp) {
-            moveList = generateMoves(pos, &size);
-            int idx = parseMove(temp, &moveList);
-            int piece = GET_MOVE_PIECE(moveList.list[idx]);
+            move_list = generate_moves(pos, &size);
+            int idx = parse_move(temp, &move_list);
+            int piece = GET_MOVE_PIECE(move_list.list[idx]);
 
             if (idx == -1) {
                 break;
             }
 
-            GameState tempState = playMove(pos, moveList.list[idx], &legal);
+            GameState temp_pos = play_move(pos, move_list.list[idx], &legal);
             if (!legal) {
                 break;
             }
 
             // If the move is a pawn push or capture, reset history list
-            if (GET_MOVE_CAPTURED(moveList.list[idx]) != NO_CAPTURE || piece == P || piece == p) {
-                historyIndex = 0;
+            if (GET_MOVE_CAPTURED(move_list.list[idx]) != NO_CAPTURE || piece == P || piece == p) {
+                history_index = 0;
             }
 
             // Add the legal move to history
-            posHistory[historyIndex] = tempState.key;
-            historyIndex++;
+            pos_history[history_index] = temp_pos.key;
+            history_index++;
 
-            *pos = tempState;
+            *pos = temp_pos;
             // Increment temp till the next move
             while (*temp && *temp != ' ') {
                 temp++;
@@ -106,12 +104,10 @@ void parsePosition(char *line, GameState *pos)
     }
 }
 
-void parseSEE(char *line, GameState *pos)
+void parse_see(char *line, const GameState *pos)
 {
-    char *temp;
-
     line += 4; // Start the line after the word "see"
-    temp = line;
+    char *temp = line;
 
     if (temp != NULL) {
         int src = (temp[1] - '0' - 1) * 8 + (tolower(temp[0]) - 'a');
@@ -119,7 +115,7 @@ void parseSEE(char *line, GameState *pos)
     }
 }
 
-void parseGo(char *line, GameState *pos)
+void parse_go(char *line, GameState *pos)
 {
     int depth = -1, movestogo = 35, movetime = -1;
     int wtime = -1, btime = -1, time = -1, inc = 0;
@@ -127,10 +123,9 @@ void parseGo(char *line, GameState *pos)
     SearchInfo info;
     info.stopped = 0;
     info.timeset = 0;
-    char *temp;
 
     line += 3; // Start the line after the word "go"
-    temp = line;
+    char *temp = line;
 
     if (strncmp(line, "perft", 5) == 0) {
         info.depth = atoi(temp + 6);
@@ -186,15 +181,15 @@ void parseGo(char *line, GameState *pos)
         movestogo = 1;
     }
 
-    info.starttime = GetTimeMs();
+    info.starttime = get_time_ms();
 
     if (time != -1) {
-        int timeLeft = time;
+        int time_left = time;
         info.timeset = 1;
         time /= movestogo;
         time -= 50;
 
-        if (timeLeft <= inc) {
+        if (time_left <= inc) {
             time = 0;
             inc -= 750;
             if (inc < 0)
@@ -210,10 +205,10 @@ void parseGo(char *line, GameState *pos)
         info.depth = depth;
     }
 
-    search(pos, &info);
+    search_root(pos, &info);
 }
 
-void uciLoop()
+void uci_loop()
 {
     GameState pos;
 
@@ -226,7 +221,7 @@ void uciLoop()
         fprintf(stderr, "uci loop: malloc failed\n");
         exit(EXIT_FAILURE);
     }
-    parsePosition("position startpos", &pos);
+    parse_position("position startpos", &pos);
     while (1) {
         memset(buf, 0, sizeof(char) * UCI_BUFFER_LEN);
         fflush(stdout);
@@ -242,19 +237,19 @@ void uciLoop()
         }
 
         if (strncmp(buf, "position", 8) == 0) {
-            parsePosition(buf, &pos);
+            parse_position(buf, &pos);
         }
         else if (strncmp(buf, "ucinewgame", 10) == 0) {
-            parsePosition("position startpos", &pos);
+            parse_position("position startpos", &pos);
         }
         else if (strncmp(buf, "go", 2) == 0) {
-            parseGo(buf, &pos);
+            parse_go(buf, &pos);
         }
         else if (strncmp(buf, "d\n", 2) == 0) {
-            printBoard(pos);
+            print_board(pos);
         }
         else if (strncmp(buf, "see", 3) == 0) {
-            parseSEE(buf, &pos);
+            parse_see(buf, &pos);
         }
         else if (strncmp(buf, "quit", 4) == 0) {
             free(buf);
@@ -267,8 +262,8 @@ void uciLoop()
             }
             TT_SIZE = (1 << 20) * MB;
             ET_SIZE = (TT_SIZE >> 2);
-            initTT(&GLOBAL_TT);
-            initET(&GLOBAL_ET);
+            init_tt(&GLOBAL_TT);
+            init_et(&GLOBAL_ET);
         }
         else if (strncmp(buf, "uci", 3) == 0) {
             // Print engine info

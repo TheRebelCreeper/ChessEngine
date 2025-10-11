@@ -6,59 +6,57 @@
 #include "position.h"
 #include "wrapper.h"
 
-int materialCount(GameState *pos)
+int material_count(const GameState *pos)
 {
-    int i;
-    int score = 0;
-    U64 pieceBB;
-    for (i = P; i <= k; i++) {
-        pieceBB = pos->pieceBitboards[i];
-        while (pieceBB) {
-            int sqr = getFirstBitSquare(pieceBB);
-            score += pieceValue[i];
+    int eval = 0;
+    for (int i = P; i <= k; i++) {
+        U64 piece_bb = pos->piece_bitboards[i];
+        while (piece_bb) {
+            int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
+            eval += piece_value[i];
             if (i == P)
-                score += pawnScore[mirroredSquare[sqr]];
+                eval += pawn_score[mirrored_square[sqr]];
             else if (i == p)
-                score -= pawnScore[sqr];
+                eval -= pawn_score[sqr];
             else if (i == N)
-                score += knightScore[mirroredSquare[sqr]];
+                eval += knight_score[mirrored_square[sqr]];
             else if (i == n)
-                score -= knightScore[sqr];
+                eval -= knight_score[sqr];
             else if (i == B)
-                score += bishopScore[mirroredSquare[sqr]];
+                eval += bishop_score[mirrored_square[sqr]];
             else if (i == b)
-                score -= bishopScore[sqr];
+                eval -= bishop_score[sqr];
             else if (i == R)
-                score += rookScore[mirroredSquare[sqr]];
+                eval += rook_score[mirrored_square[sqr]];
             else if (i == r)
-                score -= rookScore[sqr];
+                eval -= rook_score[sqr];
             else if (i == K)
-                score += kingScore[mirroredSquare[sqr]];
+                eval += king_score[mirrored_square[sqr]];
             else if (i == k)
-                score -= kingScore[sqr];
-            clear_lsb(pieceBB);
+                eval -= king_score[sqr];
+            CLEAR_LSB(piece_bb);
         }
     }
-    return (pos->turn == WHITE) ? score : -score;
+    return (pos->turn == WHITE) ? eval : -eval;
 }
 
-int nonPawnMaterial(GameState *pos)
+int non_pawn_material(const GameState *pos)
 {
-    int mat = 0;
-    mat += countBits(pos->pieceBitboards[N]) * pieceValue[N];
-    mat += countBits(pos->pieceBitboards[B]) * pieceValue[B];
-    mat += countBits(pos->pieceBitboards[R]) * pieceValue[R];
-    mat += countBits(pos->pieceBitboards[Q]) * pieceValue[Q];
+    int m = 0;
+    m += COUNT_BITS(pos->piece_bitboards[N]) * piece_value[N];
+    m += COUNT_BITS(pos->piece_bitboards[B]) * piece_value[B];
+    m += COUNT_BITS(pos->piece_bitboards[R]) * piece_value[R];
+    m += COUNT_BITS(pos->piece_bitboards[Q]) * piece_value[Q];
 
-    mat += countBits(pos->pieceBitboards[n]) * pieceValue[n];
-    mat += countBits(pos->pieceBitboards[b]) * pieceValue[b];
-    mat += countBits(pos->pieceBitboards[r]) * pieceValue[r];
-    mat += countBits(pos->pieceBitboards[q]) * pieceValue[q];
-    return mat;
+    m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[n];
+    m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[b];
+    m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[r];
+    m += COUNT_BITS(pos->piece_bitboards[q]) * piece_value[q];
+    return m;
 }
 
 // Fast Static Exchange Evaluation (SEE)
-int see(GameState *pos, int square)
+int see(const GameState *pos, int square)
 {
     U64 occupied = pos->occupancies[BOTH]; // all pieces
     U64 attackers[2]; // white & black attackers
@@ -67,70 +65,71 @@ int see(GameState *pos, int square)
 
     // piece on the target square (initial capture value)
     int captured = pos->mailbox[square];
-    if (captured == NO_PIECE)
+    if (captured == NO_PIECE) {
         return 0;
+    }
 
     // Initialize attackers
-    attackers[WHITE] = pawnAttacks[BLACK][square] & pos->pieceBitboards[P];
-    attackers[WHITE] |= knightAttacks[square] & pos->pieceBitboards[N];
-    attackers[WHITE] |= getBishopAttacks(square, occupied) & (pos->pieceBitboards[B] | pos->pieceBitboards[Q]);
-    attackers[WHITE] |= getRookAttacks(square, occupied) & (pos->pieceBitboards[R] | pos->pieceBitboards[Q]);
-    attackers[WHITE] |= kingAttacks[square] & pos->pieceBitboards[K];
+    attackers[WHITE] = pawn_attacks[BLACK][square] & pos->piece_bitboards[P];
+    attackers[WHITE] |= knight_attacks[square] & pos->piece_bitboards[N];
+    attackers[WHITE] |= get_bishop_attacks(square, occupied) & (pos->piece_bitboards[B] | pos->piece_bitboards[Q]);
+    attackers[WHITE] |= get_rook_attacks(square, occupied) & (pos->piece_bitboards[R] | pos->piece_bitboards[Q]);
+    attackers[WHITE] |= king_attacks[square] & pos->piece_bitboards[K];
 
-    attackers[BLACK] = pawnAttacks[WHITE][square] & pos->pieceBitboards[p];
-    attackers[BLACK] |= knightAttacks[square] & pos->pieceBitboards[n];
-    attackers[BLACK] |= getBishopAttacks(square, occupied) & (pos->pieceBitboards[b] | pos->pieceBitboards[q]);
-    attackers[BLACK] |= getRookAttacks(square, occupied) & (pos->pieceBitboards[r] | pos->pieceBitboards[q]);
-    attackers[BLACK] |= kingAttacks[square] & pos->pieceBitboards[k];
+    attackers[BLACK] = pawn_attacks[WHITE][square] & pos->piece_bitboards[p];
+    attackers[BLACK] |= knight_attacks[square] & pos->piece_bitboards[n];
+    attackers[BLACK] |= get_bishop_attacks(square, occupied) & (pos->piece_bitboards[b] | pos->piece_bitboards[q]);
+    attackers[BLACK] |= get_rook_attacks(square, occupied) & (pos->piece_bitboards[r] | pos->piece_bitboards[q]);
+    attackers[BLACK] |= king_attacks[square] & pos->piece_bitboards[k];
 
     // swap list holds material balance after each exchange
-    gain[depth] = abs(pieceValue[captured]);
+    gain[depth] = abs(piece_value[captured]);
     //printf("gain[%d] = %d\n", depth, gain[depth]);
     int stm = pos->turn; // side to move
-
 
     do {
         // find least valuable attacker for current side
         int attacker = NO_PIECE;
-        int attackerSq = -1;
-        int minValue = 99999;
+        int attacker_sq = -1;
+        int min_value = 99999;
         int offset = stm * 6;
 
-        for (int pt = P; pt <= K; pt++) {
-            U64 bb = pos->pieceBitboards[pt + offset] & attackers[stm];
+        for (int i = P; i <= K; i++) {
+            U64 bb = pos->piece_bitboards[i + offset] & attackers[stm];
             if (bb) {
-                int sq = getFirstBitSquare(bb);
-                int val = abs(pieceValue[pt + offset]);
-                if (val < minValue) {
-                    minValue = val;
-                    attacker = pt + offset;
-                    attackerSq = sq;
+                int sq = GET_FIRST_BIT_SQUARE(bb);
+                int val = abs(piece_value[i + offset]);
+                if (val < min_value) {
+                    min_value = val;
+                    attacker = i + offset;
+                    attacker_sq = sq;
                 }
             }
         }
 
-        if (attacker == NO_PIECE)
+        if (attacker == NO_PIECE) {
             break;
+        }
 
         // next captured piece is the value of this attacker
         depth++;
-        gain[depth] = -gain[depth - 1] + abs(pieceValue[attacker]);
+        gain[depth] = -gain[depth - 1] + abs(piece_value[attacker]);
         //printf("gain[%d] = %d\n", depth, gain[depth]);
 
         // remove attacker from board
-        clear_square(occupied, attackerSq);
+        CLEAR_SQUARE(occupied, attacker_sq);
 
         // update attackers (sliders may now attack through)
         attackers[WHITE] = (attackers[WHITE] & occupied) |
-                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[B] | pos->pieceBitboards[Q]) &
+                           (get_bishop_attacks(square, occupied) & (pos->piece_bitboards[B] | pos->piece_bitboards[Q]) &
                             occupied) |
-                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[R] | pos->pieceBitboards[Q]) &
+                           (get_rook_attacks(square, occupied) & (pos->piece_bitboards[R] | pos->piece_bitboards[Q]) &
                             occupied);
 
         attackers[BLACK] = (attackers[BLACK] & occupied) |
-                           (getBishopAttacks(square, occupied) & (pos->pieceBitboards[b] | pos->pieceBitboards[q]) &
+                           (get_bishop_attacks(square, occupied) & (pos->piece_bitboards[b] | pos->piece_bitboards[q]) &
                             occupied) |
-                           (getRookAttacks(square, occupied) & (pos->pieceBitboards[r] | pos->pieceBitboards[q]) &
+                           (get_rook_attacks(square, occupied) & (pos->piece_bitboards[r] | pos->piece_bitboards[q]) &
                             occupied);
 
         stm = !stm; // switch side
@@ -146,16 +145,15 @@ int see(GameState *pos, int square)
     return gain[0];
 }
 
-int nnue_eval(GameState *pos)
+int nnue_eval(const GameState *pos)
 {
-    int i, idx = 2;
-    U64 pieceBB;
+    int idx = 2;
     int pieces[65];
     int squares[65];
-    for (i = P; i <= k; i++) {
-        pieceBB = pos->pieceBitboards[i];
-        while (pieceBB) {
-            int sqr = getFirstBitSquare(pieceBB);
+    for (int i = P; i <= k; i++) {
+        U64 piece_bb = pos->piece_bitboards[i];
+        while (piece_bb) {
+            int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             if (i == K) {
                 pieces[0] = nnue_pieces[i];
                 squares[0] = sqr;
@@ -169,34 +167,34 @@ int nnue_eval(GameState *pos)
                 squares[idx] = sqr;
                 idx++;
             }
-            clear_lsb(pieceBB);
+            CLEAR_LSB(piece_bb);
         }
     }
     pieces[idx] = 0;
     squares[idx] = 0;
 
-    return evaluateNNUE(pos->turn, pieces, squares);
+    return evaluate_nnue(pos->turn, pieces, squares);
 }
 
 int evaluation(GameState *pos)
 {
-    int score = probeET(pos);
+    int score = probe_et(pos);
 
     if (score == INVALID_EVALUATION) {
         score = 0;
-        int matPawns = countBits(pos->pieceBitboards[P] | pos->pieceBitboards[p]);
-        int mat = nonPawnMaterial(pos) + matPawns * pieceValue[P];
+        int mat_pawns = COUNT_BITS(pos->piece_bitboards[P] | pos->piece_bitboards[p]);
+        int mat = non_pawn_material(pos) + mat_pawns * piece_value[P];
         if (FOUND_NETWORK)
             score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
         else
-            score += materialCount(pos);
-        saveET(pos, score);
+            score += material_count(pos);
+        save_et(pos, score);
     }
 
-    return score * (100 - pos->halfMoveClock) / 100;
+    return score * (100 - pos->half_move_clock) / 100;
 }
 
-void printEvaluation(int score)
+void print_evaluation(int score)
 {
     int mated = 0;
     if (score > CHECKMATE) {

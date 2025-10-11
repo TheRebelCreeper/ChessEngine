@@ -18,16 +18,16 @@
 
 int main(int argc, char *argv[])
 {
-    initNNUE("nn-62ef826d1a6d.nnue");
-    initKeys();
-    initAttacks();
-    initTT(&GLOBAL_TT);
-    initET(&GLOBAL_ET);
+    init_nnue("nn-62ef826d1a6d.nnue");
+    init_keys();
+    init_attacks();
+    init_tt(&GLOBAL_TT);
+    init_et(&GLOBAL_ET);
 
 #ifdef VALIDATE
     moveGeneratorValidator();
 #else
-    uciLoop();
+    uci_loop();
 #endif
     return 0;
 }

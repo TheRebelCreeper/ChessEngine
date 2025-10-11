@@ -22,19 +22,19 @@ typedef struct ttEntry {
 } TTEntry;
 
 typedef struct tt {
-    TTEntry *hashTable;
-    int numEntries;
-    int newWrite;
-    int overWrite;
+    TTEntry *hash_table;
+    int num_entries;
+    int new_write;
+    int over_write;
     int hit;
     int cut;
 } TT;
 
 extern TT GLOBAL_TT;
 
-void initTT(TT *table);
-void clearTT(TT *table);
-int probeTT(const GameState *pos, Move *move, int alpha, int beta, int depth, int ply);
-void saveTT(const GameState *pos, Move move, int score, int bounds, int depth, int ply);
+void init_tt(TT *table);
+void clear_tt(TT *table);
+int probe_tt(const GameState *pos, Move *move, int alpha, int beta, int depth, int ply);
+void save_tt(const GameState *pos, Move move, int score, int bounds, int depth, int ply);
 
 #endif
