@@ -129,7 +129,7 @@ void parse_go(char *line, GameState *pos)
 
     if (strncmp(line, "perft", 5) == 0) {
         info.depth = atoi(temp + 6);
-        runPerft(info.depth, pos);
+        run_perft(info.depth, pos);
         return;
     }
 
