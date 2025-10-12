@@ -1,31 +1,33 @@
 #include "perft.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "util.h"
 
 U64 perft(int depth, GameState *pos)
 {
-    MoveList moveList;
+    MoveList move_list;
     int size, legal;
     U64 sum = 0;
     if (depth == 0) {
         return 1ULL;
     }
 
-    moveList = generate_moves(pos, &size);
+    move_list = generate_moves(pos, &size);
 
     for (int i = 0; i < size; i++) {
-        GameState newState = play_move(pos, moveList.list[i], &legal);
+        GameState new_pos = play_move(pos, move_list.list[i], &legal);
         if (legal) {
-            sum += perft(depth - 1, &newState);
+            sum += perft(depth - 1, &new_pos);
         }
     }
     return sum;
 }
 
-U64 perftDivide(int depth, GameState *pos)
+U64 perft_divide(int depth, GameState *pos)
 {
-    MoveList moveList;
+    MoveList move_list;
     int size, i, legal;
     U64 sum = 0;
 
@@ -33,14 +35,14 @@ U64 perftDivide(int depth, GameState *pos)
         return 1ULL;
     }
 
-    moveList = generate_moves(pos, &size);
+    move_list = generate_moves(pos, &size);
     printf("Perft results for depth %d:\n", depth);
 
     for (i = 0; i < size; i++) {
-        Move current = moveList.list[i];
-        GameState newState = play_move(pos, current, &legal);
+        Move current = move_list.list[i];
+        GameState new_pos = play_move(pos, current, &legal);
         if (legal == 1) {
-            U64 res = perft(depth - 1, &newState);
+            U64 res = perft(depth - 1, &new_pos);
             sum += res;
             print_move(current);
             printf(": %llu\n", res);
@@ -49,64 +51,73 @@ U64 perftDivide(int depth, GameState *pos)
     return sum;
 }
 
-U64 runPerft(int depth, GameState *pos)
+U64 run_perft(int depth, GameState *pos)
 {
-    U64 size;
-    unsigned int start, finish;
-    double seconds;
-    start = get_time_ms();
-    size = perftDivide(depth, pos);
+    unsigned int start = get_time_ms();
+    U64 size = perft_divide(depth, pos);
     printf("Nodes searched: %llu\n\n", size);
-    finish = get_time_ms();
-    seconds = (finish - start) / 1000.0;
+    unsigned int finish = get_time_ms();
+    double seconds = (finish - start) / 1000.0;
     printf("Finished perft in %f seconds\n", seconds);
     printf("NPS: %f\n", size / seconds);
     return size;
 }
 
+void parse_perft_line(char *line, GameState *pos)
+{
+    if (line == NULL)
+        exit(EXIT_FAILURE);
+
+    int length = strlen(line);
+    char *str = malloc(length + 1);
+    if (str == NULL) {
+        perror("Malloc error in loadFEN");
+        exit(EXIT_FAILURE);
+    }
+    memset(str, 0, length + 1);
+    memcpy(str, line, length);
+    str[length] = 0;
+
+    load_fen(pos, str);
+    *strchr(line, ';') = 0;
+
+    while (*str) {
+        while (*str != ';' || *str == ' ') {
+            if (*str == 0 || *str == '\n')
+                return;
+            str++;
+        }
+        str += 2;
+        int depth = str[0] - '0';
+        str += 2;
+        U64 expected = strtoll(str, NULL, 10);
+        printf("Depth: %d | FEN: %s | Expected: %llu\n", depth, line, expected);
+        U64 found = perft(depth, pos);
+        if (found != expected) {
+            fprintf(stderr, "PERFT FAILURE. Found %llu\n", found);
+            exit(1);
+        }
+    }
+    free(str);
+}
+
+void parse_epd_file(const char *filename, GameState *pos)
+{
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    char line[2048];
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        parse_perft_line(line, pos);
+    }
+}
+
 void moveGeneratorValidator()
 {
     GameState testPos;
-    load_fen(&testPos, PERFT_POSITION_1);
-    if (runPerft(7, &testPos) != 3195901860ULL) {
-        fprintf(stderr, "PERFT 1 FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_2);
-    if (runPerft(6, &testPos) != 8031647685ULL) {
-        fprintf(stderr, "PERFT 2 FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_3);
-    if (runPerft(8, &testPos) != 3009794393ULL) {
-        fprintf(stderr, "PERFT 3 FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_4);
-    if (runPerft(6, &testPos) != 706045033ULL) {
-        fprintf(stderr, "PERFT 4 FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_4B);
-    if (runPerft(6, &testPos) != 706045033ULL) {
-        fprintf(stderr, "PERFT 4B FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_5);
-    if (runPerft(5, &testPos) != 89941194ULL) {
-        fprintf(stderr, "PERFT 5 FAILURE\n");
-        exit(1);
-    }
-
-    load_fen(&testPos, PERFT_POSITION_6);
-    if (runPerft(6, &testPos) != 6923051137ULL) {
-        fprintf(stderr, "PERFT 6 FAILURE\n");
-        exit(1);
-    }
+    parse_epd_file("standard.epd", &testPos);
     printf("PERFT PASSED\n");
 }
