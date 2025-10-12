@@ -7,88 +7,87 @@
 uint32_t TT_SIZE = ((1 << 20) * 128);
 TT GLOBAL_TT;
 
-void initTT(TT *table)
+void init_tt(TT *table)
 {
-    table->numEntries = TT_SIZE / sizeof(TTEntry);
-    table->numEntries -= 2;
-    if (table->hashTable != NULL)
-        free(table->hashTable);
-    table->hashTable = (TTEntry *) malloc(table->numEntries * sizeof(TTEntry));
-    if (table->hashTable == NULL) {
+    table->num_entries = TT_SIZE / sizeof(TTEntry);
+    table->num_entries -= 2;
+    if (table->hash_table != NULL)
+        free(table->hash_table);
+    table->hash_table = (TTEntry *) malloc(table->num_entries * sizeof(TTEntry));
+    if (table->hash_table == NULL) {
         perror("Failed to allocate hash table\n");
     }
-    clearTT(table);
-    printf("HashTable init complete with %d entries\n", table->numEntries);
+    clear_tt(table);
+    printf("HashTable init complete with %d entries\n", table->num_entries);
 }
 
-void clearTT(TT *table)
+void clear_tt(TT *table)
 {
-    TTEntry *e;
-    for (e = table->hashTable; e < table->hashTable + table->numEntries; e++) {
-        e->key = 0ULL;
-        e->move = 0;
-        e->depth = 0;
-        e->score = INVALID_SCORE;
-        e->bound = 0;
+    if (table != NULL && table->hash_table != NULL) {
+        for (TTEntry *e = table->hash_table; e < table->hash_table + table->num_entries; e++) {
+            e->key = 0ULL;
+            e->move = 0;
+            e->depth = 0;
+            e->score = INVALID_SCORE;
+            e->bound = 0;
+        }
+        table->new_write = 0;
     }
-    table->newWrite = 0;
 }
 
 // Should return a score
-int probeTT(GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
+int probe_tt(const GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
 {
-    int finalScore = INVALID_SCORE;
-    int index = pos->key % GLOBAL_TT.numEntries;
-    TTEntry entry = GLOBAL_TT.hashTable[index];
-
+    int i = pos->key % GLOBAL_TT.num_entries;
+    TTEntry entry = GLOBAL_TT.hash_table[i];
     if (entry.key == pos->key) {
         *move = entry.move;
         if (entry.depth >= depth) {
             GLOBAL_TT.hit++;
 
             int score = entry.score;
-            if (score > CHECKMATE)
+            if (score > CHECKMATE) {
                 score -= ply;
-            else if (score < -CHECKMATE)
+            }
+            else if (score < -CHECKMATE) {
                 score += ply;
+            }
 
-            if (entry.bound == TT_ALL && score <= alpha) {
-                finalScore = alpha;
-            }
-            else if (entry.bound == TT_CUT && score >= beta) {
-                finalScore = beta;
-            }
-            else if (entry.bound == TT_PV) {
-                finalScore = score;
+            if ((entry.bound == TT_CUT && score >= beta) ||
+                (entry.bound == TT_ALL && score <= alpha) ||
+                entry.bound == TT_PV) {
+                return score;
             }
         }
     }
-    return finalScore;
+    return INVALID_SCORE;
 }
 
-void saveTT(GameState *pos, Move move, int score, int bound, int depth, int ply)
+void save_tt(const GameState *pos, Move move, int score, int bound, int depth, int ply)
 {
-    int index = pos->key % GLOBAL_TT.numEntries;
+    int index = pos->key % GLOBAL_TT.num_entries;
 
     /*
     // Debug stats
-    if( GLOBAL_TT.hashTable[index].key == 0)
+    if( GLOBAL_TT.hash_table[index].key == 0)
     {
-        GLOBAL_TT.newWrite++;
+        GLOBAL_TT.new_write++;
     }
     else
     {
-        GLOBAL_TT.overWrite++;
+        GLOBAL_TT.over_write++;
     }*/
 
-    if (score > CHECKMATE)
+    if (score > CHECKMATE) {
         score += ply;
-    else if (score < -CHECKMATE)
+    }
+    else if (score < -CHECKMATE) {
         score -= ply;
+    }
 
-    GLOBAL_TT.hashTable[index].move = move;
-    GLOBAL_TT.hashTable[index].key = pos->key;
-    GLOBAL_TT.hashTable[index].bound = bound;
-    GLOBAL_TT.hashTable[index].score = score;
-    GLOBAL_TT.hashTable[index].depth = (unsigned char) depth;
+    GLOBAL_TT.hash_table[index].move = move;
+    GLOBAL_TT.hash_table[index].key = pos->key;
+    GLOBAL_TT.hash_table[index].bound = bound;
+    GLOBAL_TT.hash_table[index].score = score;
+    GLOBAL_TT.hash_table[index].depth = (unsigned char) depth;
 }

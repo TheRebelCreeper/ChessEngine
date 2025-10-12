@@ -11,161 +11,160 @@
 */
 
 
-unsigned char adjustCastlingRights(GameState *pos, int src, int dst, int piece)
+unsigned char adjust_castling_rights(const GameState *pos, int src, int dst, int piece)
 {
-    unsigned char castlingRights = pos->castlingRights;
+    unsigned char castling_rights = pos->castling_rights;
     if (src == a1 || dst == a1) {
-        castlingRights &= (WHITE_OO | BLACK_OO | BLACK_OOO);
+        castling_rights &= (WHITE_OO | BLACK_OO | BLACK_OOO);
     }
 
     if (src == h1 || dst == h1) {
-        castlingRights &= (WHITE_OOO | BLACK_OO | BLACK_OOO);
+        castling_rights &= (WHITE_OOO | BLACK_OO | BLACK_OOO);
     }
 
     if (src == a8 || dst == a8) {
-        castlingRights &= (BLACK_OO | WHITE_OO | WHITE_OOO);
+        castling_rights &= (BLACK_OO | WHITE_OO | WHITE_OOO);
     }
 
     if (src == h8 || dst == h8) {
-        castlingRights &= (BLACK_OOO | WHITE_OO | WHITE_OOO);
+        castling_rights &= (BLACK_OOO | WHITE_OO | WHITE_OOO);
     }
 
     if (piece == K) {
-        castlingRights &= (BLACK_OO | BLACK_OOO);
+        castling_rights &= (BLACK_OO | BLACK_OOO);
     }
 
     if (piece == k) {
-        castlingRights &= (WHITE_OO | WHITE_OOO);
+        castling_rights &= (WHITE_OO | WHITE_OOO);
     }
-    return castlingRights;
+    return castling_rights;
 }
 
-GameState playMove(GameState *pos, Move move, int *isLegal)
+GameState play_move(const GameState *pos, Move move, int *is_legal)
 {
-    GameState newPos;
-    memcpy(&newPos, pos, sizeof(GameState));
+    GameState new_pos;
+    memcpy(&new_pos, pos, sizeof(GameState));
     int turn = pos->turn;
     int piece = GET_MOVE_PIECE(move);
     int src = GET_MOVE_SRC(move);
     int dst = GET_MOVE_DST(move);
     int promotion = GET_MOVE_PROMOTION(move);
     int offset = 0;
-    U64 hashKey = pos->key;
+    U64 hash_key = pos->key;
 
     if (turn == BLACK) {
         offset = 6;
-        newPos.fullMove += 1;
+        new_pos.full_move += 1;
     }
 
-    newPos.turn ^= 1;
-    newPos.halfMoveClock += 1;
+    new_pos.turn ^= 1;
+    new_pos.half_move_clock += 1;
 
     // Clear Source
-    hashKey ^= sideKey;
-    hashKey ^= pieceKeys[piece][src];
-    clear_square(newPos.pieceBitboards[piece], src);
-    clear_square(newPos.occupancies[turn], src);
-    newPos.mailbox[src] = NO_PIECE;
+    hash_key ^= side_key;
+    hash_key ^= piece_keys[piece][src];
+    CLEAR_SQUARE(new_pos.piece_bitboards[piece], src);
+    CLEAR_SQUARE(new_pos.occupancies[turn], src);
+    new_pos.mailbox[src] = NO_PIECE;
 
     // En Passant Moves
     if ((piece == P || piece == p) && IS_MOVE_EP(move)) {
-        hashKey ^= epKey[pos->enpassantSquare & 7];
+        hash_key ^= epKey[pos->enpassant_square & 7];
         if (turn == WHITE) {
-            hashKey ^= pieceKeys[p][dst - 8];
-            clear_square(newPos.pieceBitboards[p], dst - 8);
-            clear_square(newPos.occupancies[BLACK], dst - 8);
-            newPos.mailbox[dst - 8] = NO_PIECE;
+            hash_key ^= piece_keys[p][dst - 8];
+            CLEAR_SQUARE(new_pos.piece_bitboards[p], dst - 8);
+            CLEAR_SQUARE(new_pos.occupancies[BLACK], dst - 8);
+            new_pos.mailbox[dst - 8] = NO_PIECE;
         }
         else {
-            hashKey ^= pieceKeys[P][dst + 8];
-            clear_square(newPos.pieceBitboards[P], dst + 8);
-            clear_square(newPos.occupancies[WHITE], dst + 8);
-            newPos.mailbox[dst + 8] = NO_PIECE;
+            hash_key ^= piece_keys[P][dst + 8];
+            CLEAR_SQUARE(new_pos.piece_bitboards[P], dst + 8);
+            CLEAR_SQUARE(new_pos.occupancies[WHITE], dst + 8);
+            new_pos.mailbox[dst + 8] = NO_PIECE;
         }
     }
 
     // Clear Destination
-    clear_square(newPos.occupancies[newPos.turn], dst);
+    CLEAR_SQUARE(new_pos.occupancies[new_pos.turn], dst);
     int victim = GET_MOVE_CAPTURED(move);
     if (victim != NO_CAPTURE) {
-        clear_square(newPos.pieceBitboards[victim], dst);
-        hashKey ^= pieceKeys[victim][dst];
+        CLEAR_SQUARE(new_pos.piece_bitboards[victim], dst);
+        hash_key ^= piece_keys[victim][dst];
     }
 
     // Set destination
     // If pawn promotion
-    set_square(newPos.occupancies[turn], dst);
+    SET_SQUARE(new_pos.occupancies[turn], dst);
     if (piece == (P + offset) && promotion) {
-        hashKey ^= pieceKeys[promotion + offset][dst];
-        set_square(newPos.pieceBitboards[promotion + offset], dst);
-        newPos.mailbox[dst] = promotion + offset;
+        hash_key ^= piece_keys[promotion + offset][dst];
+        SET_SQUARE(new_pos.piece_bitboards[promotion + offset], dst);
+        new_pos.mailbox[dst] = promotion + offset;
     }
     else {
-        hashKey ^= pieceKeys[piece][dst];
-        set_square(newPos.pieceBitboards[piece], dst);
-        newPos.mailbox[dst] = piece;
+        hash_key ^= piece_keys[piece][dst];
+        SET_SQUARE(new_pos.piece_bitboards[piece], dst);
+        new_pos.mailbox[dst] = piece;
     }
 
     // Castling
     if (piece == (K + offset) && IS_MOVE_CASTLES(move)) {
         //Short Castling
         if (src < dst) {
-            hashKey ^= pieceKeys[R + offset][dst + 1];
-            clear_square(newPos.pieceBitboards[R + offset], dst + 1);
-            clear_square(newPos.occupancies[turn], dst + 1);
-            newPos.mailbox[dst + 1] = NO_PIECE;
+            hash_key ^= piece_keys[R + offset][dst + 1];
+            CLEAR_SQUARE(new_pos.piece_bitboards[R + offset], dst + 1);
+            CLEAR_SQUARE(new_pos.occupancies[turn], dst + 1);
+            new_pos.mailbox[dst + 1] = NO_PIECE;
 
-            hashKey ^= pieceKeys[R + offset][dst - 1];
-            set_square(newPos.pieceBitboards[R + offset], dst - 1);
-            set_square(newPos.occupancies[turn], dst - 1);
-            newPos.mailbox[dst - 1] = R + offset;
+            hash_key ^= piece_keys[R + offset][dst - 1];
+            SET_SQUARE(new_pos.piece_bitboards[R + offset], dst - 1);
+            SET_SQUARE(new_pos.occupancies[turn], dst - 1);
+            new_pos.mailbox[dst - 1] = R + offset;
         }
         // Long Castling
         else if (src > dst) {
-            hashKey ^= pieceKeys[R + offset][dst - 2];
-            clear_square(newPos.pieceBitboards[R + offset], dst - 2);
-            clear_square(newPos.occupancies[turn], dst - 2);
-            newPos.mailbox[dst - 2] = NO_PIECE;
+            hash_key ^= piece_keys[R + offset][dst - 2];
+            CLEAR_SQUARE(new_pos.piece_bitboards[R + offset], dst - 2);
+            CLEAR_SQUARE(new_pos.occupancies[turn], dst - 2);
+            new_pos.mailbox[dst - 2] = NO_PIECE;
 
-            hashKey ^= pieceKeys[R + offset][dst + 1];
-            set_square(newPos.pieceBitboards[R + offset], dst + 1);
-            set_square(newPos.occupancies[turn], dst + 1);
-            newPos.mailbox[dst + 1] = R + offset;
+            hash_key ^= piece_keys[R + offset][dst + 1];
+            SET_SQUARE(new_pos.piece_bitboards[R + offset], dst + 1);
+            SET_SQUARE(new_pos.occupancies[turn], dst + 1);
+            new_pos.mailbox[dst + 1] = R + offset;
         }
     }
 
-    hashKey ^= castleKeys[newPos.castlingRights];
-    newPos.occupancies[BOTH] = newPos.occupancies[WHITE] | newPos.occupancies[BLACK];
-    newPos.castlingRights = (pos->castlingRights) ? adjustCastlingRights(pos, src, dst, piece) : 0;
-    hashKey ^= castleKeys[newPos.castlingRights];
+    // Unset old castling rights, then set new ones
+    hash_key ^= castle_keys[new_pos.castling_rights];
+    new_pos.occupancies[BOTH] = new_pos.occupancies[WHITE] | new_pos.occupancies[BLACK];
+    new_pos.castling_rights = (pos->castling_rights) ? adjust_castling_rights(pos, src, dst, piece) : 0;
+    hash_key ^= castle_keys[new_pos.castling_rights];
 
     // Reset 50 move counter if capture or pawn push
     if (GET_MOVE_CAPTURED(move) != NO_CAPTURE || piece == P || piece == p) {
-        newPos.halfMoveClock = 0;
+        new_pos.half_move_clock = 0;
     }
 
-    newPos.enpassantSquare = none;
-    // Might be wrong turn here if perft fails
+    new_pos.enpassant_square = none;
     if (IS_MOVE_DPP(move)) {
-        newPos.enpassantSquare = src + 8 - (16 * turn);
-        hashKey ^= epKey[newPos.enpassantSquare & 7];
+        new_pos.enpassant_square = src + 8 - (16 * turn);
+        hash_key ^= epKey[new_pos.enpassant_square & 7];
     }
 
     // Legality Check
-    int kingLocation = getFirstBitSquare(newPos.pieceBitboards[K + offset]);
-    *isLegal = !isSquareAttacked(&newPos, kingLocation, newPos.turn);
+    int king_location = GET_FIRST_BIT_SQUARE(new_pos.piece_bitboards[K + offset]);
+    *is_legal = !is_square_attacked(&new_pos, king_location, new_pos.turn);
 
-    newPos.key = hashKey;
+    new_pos.key = hash_key;
 
-    return newPos;
+    return new_pos;
 }
 
-void printMove(Move m)
+void print_move(Move m)
 {
     int promotion = GET_MOVE_PROMOTION(m);
     if (m) {
-        printf("%s%s%s", squareNames[GET_MOVE_SRC(m)], squareNames[GET_MOVE_DST(m)],
-               (m) ? pieceNotation[promotion] : "");
+        printf("%s%s%s", square_names[GET_MOVE_SRC(m)], square_names[GET_MOVE_DST(m)], piece_notation[promotion]);
     }
     else {
         printf("0000");

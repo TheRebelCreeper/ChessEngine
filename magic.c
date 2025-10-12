@@ -32,19 +32,19 @@ U64 random_u64_fewbits()
 
 U64 find_magic_number(int sq, int m, int bishop)
 {
-    U64 mask, occupancy[4096], a[4096], used[4096], magic;
-    int i, j, k, n, fail;
+    U64 occupancy[4096], a[4096], used[4096];
+    int i, j, fail;
 
-    mask = bishop ? calculateBishopOccupancy(sq) : calculateRookOccupancy(sq);
-    n = countBits(mask);
+    U64 mask = bishop ? calculate_bishop_occupancy(sq) : calculate_rook_occupancy(sq);
+    int n = COUNT_BITS(mask);
 
     for (i = 0; i < (1 << n); i++) {
-        occupancy[i] = occupancyFromIndex(i, mask);
-        a[i] = bishop ? generateBishopAttacks(sq, occupancy[i]) : generateRookAttacks(sq, occupancy[i]);
+        occupancy[i] = occupancy_from_index(i, mask);
+        a[i] = bishop ? generate_bishop_attacks(sq, occupancy[i]) : generate_rook_attacks(sq, occupancy[i]);
     }
-    for (k = 0; k < 100000000; k++) {
-        magic = random_u64_fewbits();
-        if (countBits((mask * magic) & 0xFF00000000000000ULL) < 6) {
+    for (int k = 0; k < 100000000; k++) {
+        U64 magic = random_u64_fewbits();
+        if (COUNT_BITS((mask * magic) & 0xFF00000000000000ULL) < 6) {
             continue;
         }
         memset(used, 0ULL, sizeof(used));

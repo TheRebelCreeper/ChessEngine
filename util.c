@@ -12,7 +12,7 @@
 
 #include "util.h"
 
-int GetTimeMs()
+int get_time_ms()
 {
 #ifdef WIN32
     return GetTickCount();
@@ -62,7 +62,7 @@ int InputWaiting()
 #endif
 }
 
-void ReadInput(SearchInfo *info)
+void read_input(SearchInfo *info)
 {
     int bytes;
     char input[256] = "", *endc;

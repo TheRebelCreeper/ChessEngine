@@ -7,35 +7,37 @@
 uint32_t ET_SIZE = ((1 << 20) * 16);
 ET GLOBAL_ET;
 
-void initET(ET *table)
+void init_et(ET *table)
 {
-    table->numEntries = ET_SIZE / sizeof(ETEntry);
-    table->numEntries -= 2;
-    if (table->hashTable != NULL)
-        free(table->hashTable);
-    table->hashTable = (ETEntry *) malloc(table->numEntries * sizeof(ETEntry));
-    if (table->hashTable == NULL) {
+    table->num_entries = ET_SIZE / sizeof(ETEntry);
+    table->num_entries -= 2;
+    if (table->hash_table != NULL)
+        free(table->hash_table);
+    table->hash_table = (ETEntry *) malloc(table->num_entries * sizeof(ETEntry));
+    if (table->hash_table == NULL) {
         perror("Failed to allocate hash table\n");
     }
-    clearET(table);
-    printf("EvalTable init complete with %d entries\n", table->numEntries);
+    clear_et(table);
+    printf("EvalTable init complete with %d entries\n", table->num_entries);
 }
 
-void clearET(ET *table)
+void clear_et(ET *table)
 {
     ETEntry *e;
-    for (e = table->hashTable; e < table->hashTable + table->numEntries; e++) {
-        e->key = 0ULL;
-        e->eval = INVALID_EVALUATION;
+    if (table != NULL && table->hash_table != NULL) {
+        for (e = table->hash_table; e < table->hash_table + table->num_entries; e++) {
+            e->key = 0ULL;
+            e->eval = INVALID_EVALUATION;
+        }
+        table->new_write = 0;
     }
-    table->newWrite = 0;
 }
 
 // Should return a score
-int probeET(GameState *pos)
+int probe_et(const GameState *pos)
 {
-    int index = pos->key % GLOBAL_ET.numEntries;
-    ETEntry entry = GLOBAL_ET.hashTable[index];
+    int i = pos->key % GLOBAL_ET.num_entries;
+    ETEntry entry = GLOBAL_ET.hash_table[i];
 
     if (entry.key == pos->key && entry.eval != INVALID_EVALUATION) {
         return entry.eval;
@@ -43,21 +45,9 @@ int probeET(GameState *pos)
     return INVALID_EVALUATION;
 }
 
-void saveET(GameState *pos, int eval)
+void save_et(GameState *pos, int eval)
 {
-    int index = pos->key % GLOBAL_ET.numEntries;
-
-    /*
-    // Debug stats
-    if( GLOBAL_TT.hashTable[index].key == 0)
-    {
-        GLOBAL_TT.newWrite++;
-    }
-    else
-    {
-        GLOBAL_TT.overWrite++;
-    }*/
-
-    GLOBAL_ET.hashTable[index].key = pos->key;
-    GLOBAL_ET.hashTable[index].eval = eval;
+    int i = pos->key % GLOBAL_ET.num_entries;
+    GLOBAL_ET.hash_table[i].key = pos->key;
+    GLOBAL_ET.hash_table[i].eval = eval;
 }

@@ -5,20 +5,18 @@
 #include <string.h>
 #include "magic.h"
 
-int flip = 0;
+int history_index = 0;
 
-int historyIndex = 0;
+char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
+char *piece_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
 
-char *pieceChars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
-char *pieceNotation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
-
-int pieceLookup[2][6] =
+int piece_lookup[2][6] =
 {
     {P, N, B, R, Q, K},
     {p, n, b, r, q, k}
 };
 
-int getSquareFromNotation(char *str)
+int get_square_from_notation(const char *str)
 {
     if (strlen(str) != 2) {
         printf("Invalid square\n");
@@ -27,7 +25,7 @@ int getSquareFromNotation(char *str)
     return (str[1] - '0' - 1) * 8 + (tolower(str[0]) - 'a');
 }
 
-int getPieceFromChar(char c)
+int get_piece_from_char(char c)
 {
     if (c == 'P')
         return P;
@@ -53,11 +51,10 @@ int getPieceFromChar(char c)
         return q;
     if (c == 'k')
         return k;
-    else
-        return NO_PIECE;
+    return NO_PIECE;
 }
 
-char getCastlingRights(char *str)
+char get_castling_rights(const char *str)
 {
     char rights = 0;
     if (strlen(str) > 4) {
@@ -76,43 +73,42 @@ char getCastlingRights(char *str)
     if (strchr(str, 'q') != NULL) {
         rights |= BLACK_OOO;
     }
-
     return rights;
 }
 
-void setOccupancies(GameState *pos)
+void set_occupancies(GameState *pos)
 {
     pos->occupancies[WHITE] = 0ULL;
     pos->occupancies[BLACK] = 0ULL;
 
-    pos->occupancies[WHITE] |= pos->pieceBitboards[P];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[N];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[B];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[R];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[Q];
-    pos->occupancies[WHITE] |= pos->pieceBitboards[K];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[P];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[N];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[B];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[R];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[Q];
+    pos->occupancies[WHITE] |= pos->piece_bitboards[K];
 
-    pos->occupancies[BLACK] |= pos->pieceBitboards[p];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[n];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[b];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[r];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[q];
-    pos->occupancies[BLACK] |= pos->pieceBitboards[k];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[p];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[n];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[b];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[r];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[q];
+    pos->occupancies[BLACK] |= pos->piece_bitboards[k];
 
     pos->occupancies[BOTH] = pos->occupancies[WHITE] | pos->occupancies[BLACK];
 }
 
-void initKeys()
+void init_keys()
 {
-    sideKey = random_u64();
+    side_key = random_u64();
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 64; j++) {
-            pieceKeys[i][j] = random_u64();
+            piece_keys[i][j] = random_u64();
         }
     }
 
     for (int i = 0; i < 16; i++) {
-        castleKeys[i] = random_u64();
+        castle_keys[i] = random_u64();
     }
 
     for (int i = 0; i < 8; i++) {
@@ -120,79 +116,76 @@ void initKeys()
     }
 }
 
-U64 generatePosKey(GameState *pos)
+U64 generate_pos_key(const GameState *pos)
 {
-    int src;
-    int i;
-    U64 finalKey = 0ULL, pieceBB;
+    U64 final_key = 0ULL;
 
-    for (i = P; i <= k; i++) {
+    for (int i = P; i <= k; i++) {
         // Generate Knight Moves
-        pieceBB = pos->pieceBitboards[i];
-        while (pieceBB) {
-            src = getFirstBitSquare(pieceBB);
-            finalKey ^= pieceKeys[i][src];
-            clear_lsb(pieceBB);
+        U64 piece_bb = pos->piece_bitboards[i];
+        while (piece_bb) {
+            int src = GET_FIRST_BIT_SQUARE(piece_bb);
+            final_key ^= piece_keys[i][src];
+            CLEAR_LSB(piece_bb);
         }
     }
 
     if (pos->turn == BLACK) {
-        finalKey ^= sideKey;
+        final_key ^= side_key;
     }
 
-    if (pos->enpassantSquare != none) {
-        finalKey ^= epKey[pos->enpassantSquare & 7];
+    if (pos->enpassant_square != none) {
+        final_key ^= epKey[pos->enpassant_square & 7];
     }
 
-    finalKey ^= castleKeys[pos->castlingRights];
+    final_key ^= castle_keys[pos->castling_rights];
 
-    return finalKey;
+    return final_key;
 }
 
-void loadFEN(GameState *state, char *fen)
+void load_fen(GameState *state, const char *fen)
 {
-    int rank, file, square, piece, index, length;
     char *str = NULL;
     char *token = NULL;
 
-    length = strlen(fen);
+    int length = strlen(fen);
     str = malloc(length + 1);
     if (str == NULL) {
-        perror("Malloc error in loadFEN");
+        perror("Malloc error in load_fen");
         exit(EXIT_FAILURE);
     }
     memset(str, 0, length + 1);
     memcpy(str, fen, length);
     str[length] = 0;
 
-    memset(state->pieceBitboards, 0ULL, sizeof(state->pieceBitboards));
+    memset(state->piece_bitboards, 0ULL, sizeof(state->piece_bitboards));
     memset(state->occupancies, 0ULL, sizeof(state->occupancies));
     memset(state->mailbox, NO_PIECE, sizeof(state->mailbox));
     state->turn = 0;
-    state->castlingRights = 0;
-    state->enpassantSquare = none;
-    state->halfMoveClock = 0;
-    state->fullMove = 1;
+    state->castling_rights = 0;
+    state->enpassant_square = none;
+    state->half_move_clock = 0;
+    state->full_move = 1;
 
     token = strtok(str, DELIMS);
     // For loops read in pieces
-    for (rank = 7; rank >= 0; rank--) {
-        index = 0;
-        for (file = 0; file < 8; file++) {
-            piece = getPieceFromChar(token[index]);
-            if (isdigit(token[index])) {
-                file += (token[index] - '0') - 1;
+    for (int rank = 7; rank >= 0; rank--) {
+        int i = 0;
+        for (int file = 0; file < 8; file++) {
+            int piece = get_piece_from_char(token[i]);
+            if (isdigit(token[i])) {
+                file += (token[i] - '0') - 1;
             }
             else {
                 if (piece == NO_PIECE) {
                     printf("Invalid FEN\n");
                     exit(EXIT_FAILURE);
                 }
-                square = rank * 8 + file;
-                set_square(state->pieceBitboards[piece], square);
+                int square = rank * 8 + file;
+                SET_SQUARE(state->piece_bitboards[piece], square);
                 state->mailbox[square] = piece;
             }
-            index++;
+            i++;
         }
         token = strtok(NULL, DELIMS);
     }
@@ -211,38 +204,36 @@ void loadFEN(GameState *state, char *fen)
 
     // Get castling gamestate
     token = strtok(NULL, DELIMS);
-    state->castlingRights = getCastlingRights(token);
+    state->castling_rights = get_castling_rights(token);
 
-    // Get enpassantSquare
+    // Get enpassant_square
     token = strtok(NULL, DELIMS);
-    state->enpassantSquare = (token[0] == '-') ? none : getSquareFromNotation(token);
+    state->enpassant_square = (token[0] == '-') ? none : get_square_from_notation(token);
 
     token = strtok(NULL, DELIMS);
-    state->halfMoveClock = (token) ? atoi(token) : 0;
+    state->half_move_clock = (token) ? atoi(token) : 0;
     token = strtok(NULL, DELIMS);
-    state->fullMove = (token) ? atoi(token) : 1;
+    state->full_move = (token) ? atoi(token) : 1;
 
-    setOccupancies(state);
+    set_occupancies(state);
 
-    state->key = generatePosKey(state);
+    state->key = generate_pos_key(state);
 
     free(str);
 }
 
-void printBoard(GameState state)
+void print_board(GameState state)
 {
-    char *piece;
-    int rank, file, square;
     printf("  +---+---+---+---+---+---+---+---+\n");
-    for (rank = 0; rank < 8; rank++) {
+    for (int rank = 0; rank < 8; rank++) {
         if (state.turn == WHITE)
             printf("%d ", 8 - rank);
         else
             printf("%d ", rank + 1);
 
-        for (file = 0; file < 8; file++) {
-            square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-            piece = pieceChars[state.mailbox[square]];
+        for (int file = 0; file < 8; file++) {
+            int square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
+            char *piece = piece_chars[state.mailbox[square]];
 
             printf("|");
 #ifndef _WIN32
@@ -267,19 +258,19 @@ void printBoard(GameState state)
 
     printf("\n%s to move\n", (state.turn == WHITE) ? "White" : "Black");
     printf("Castling Rights: ");
-    if (state.castlingRights & WHITE_OO)
+    if (state.castling_rights & WHITE_OO)
         printf("K");
-    if (state.castlingRights & WHITE_OOO)
+    if (state.castling_rights & WHITE_OOO)
         printf("Q");
-    if (state.castlingRights & BLACK_OO)
+    if (state.castling_rights & BLACK_OO)
         printf("k");
-    if (state.castlingRights & BLACK_OOO)
+    if (state.castling_rights & BLACK_OOO)
         printf("q");
-    if (!state.castlingRights)
+    if (!state.castling_rights)
         printf("-");
     printf("\n");
-    printf("En Passant Square: %s\n", squareNames[state.enpassantSquare]);
-    printf("Halfmove Clock: %d\n", state.halfMoveClock);
-    printf("Move: %d\n", state.fullMove);
+    printf("En Passant Square: %s\n", square_names[state.enpassant_square]);
+    printf("Halfmove Clock: %d\n", state.half_move_clock);
+    printf("Move: %d\n", state.full_move);
     printf("Hash Key: %llx\n", state.key);
 }

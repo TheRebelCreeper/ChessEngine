@@ -1,10 +1,9 @@
 #ifndef MAGIC_H
 #define MAGIC_H
+#include "bitboard.h"
 
-typedef unsigned long long U64;
-
-extern int RBits[64];
-extern int BBits[64];
+extern int rook_bits[64];
+extern int bishop_bits[64];
 
 U64 random_u64();
 U64 random_u64_fewbits();

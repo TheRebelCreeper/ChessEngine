@@ -6,9 +6,9 @@
 #define INF 1000000
 #define CHECKMATE 999900
 
-static const int pieceValue[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
+static const int piece_value[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
 
-static const int pawnScore[64] =
+static const int pawn_score[64] =
 {
     0, 0, 0, 0, 0, 0, 0, 0,
     50, 50, 50, 60, 60, 50, 50, 50,
@@ -20,7 +20,7 @@ static const int pawnScore[64] =
     0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static const int knightScore[64] =
+static const int knight_score[64] =
 {
     -50, 0, 0, 0, 0, 0, 0, -50,
     -25, 0, 0, 0, 0, 0, 0, -25,
@@ -32,7 +32,7 @@ static const int knightScore[64] =
     -50, -10, 0, 0, 0, 0, -10, -50
 };
 
-static const int bishopScore[64] =
+static const int bishop_score[64] =
 {
     -20, -10, -10, -10, -10, -10, -10, -20,
     -10, 0, 0, 0, 0, 0, 0, -10,
@@ -45,7 +45,7 @@ static const int bishopScore[64] =
 
 };
 
-static const int rookScore[64] =
+static const int rook_score[64] =
 {
     25, 25, 25, 25, 25, 25, 25, 25,
     50, 50, 50, 50, 50, 50, 50, 50,
@@ -58,7 +58,7 @@ static const int rookScore[64] =
 
 };
 
-static const int kingScore[64] =
+static const int king_score[64] =
 {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 5, 5, 5, 5, 0, 0,
@@ -70,7 +70,7 @@ static const int kingScore[64] =
     0, 0, 5, 0, -15, -5, 10, 0
 };
 
-static const int mirroredSquare[65] =
+static const int mirrored_square[65] =
 {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -87,9 +87,9 @@ static const int nnue_pieces[12] =
     6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7
 };
 
-void printEvaluation(int score);
-int nnue_eval(GameState *pos);
+void print_evaluation(int score);
+int nnue_eval(const GameState *pos);
 int evaluation(GameState *pos);
-int see(GameState *pos, int square);
+int see(const GameState *pos, int square);
 
 #endif

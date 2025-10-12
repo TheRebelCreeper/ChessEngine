@@ -28,59 +28,59 @@ enum {
     a8, b8, c8, d8, e8, f8, g8, h8, none
 };
 
-#define set_square(board, square) ((board) |= (1ULL << (square)))
-#define clear_square(board, square) ((board) &= ~(1ULL << (square)))
-#define clear_lsb(board) ((board) = ((board) & ((board) - 1)))
-#define get_square(board, square) ((board) & (1ULL << (square)))
+#define SET_SQUARE(board, square) ((board) |= (1ULL << (square)))
+#define CLEAR_SQUARE(board, square) ((board) &= ~(1ULL << (square)))
+#define CLEAR_LSB(board) ((board) = ((board) & ((board) - 1)))
+#define GET_SQUARE(board, square) ((board) & (1ULL << (square)))
 
-#define FileA 0x0101010101010101ULL
-#define FileB (FileA << 1)
-#define FileC (FileA << 2)
-#define FileD (FileA << 3)
-#define FileE (FileA << 4)
-#define FileF (FileA << 5)
-#define FileG (FileA << 6)
-#define FileH (FileA << 7)
+#define FILE_A 0x0101010101010101ULL
+#define FILE_B (FILE_A << 1)
+#define FILE_C (FILE_A << 2)
+#define FILE_D (FILE_A << 3)
+#define FILE_E (FILE_A << 4)
+#define FILE_F (FILE_A << 5)
+#define FILE_G (FILE_A << 6)
+#define FILE_H (FILE_A << 7)
 
-#define Rank1 0xFFULL
-#define Rank2 (Rank1 << (8 * 1))
-#define Rank3 (Rank1 << (8 * 2))
-#define Rank4 (Rank1 << (8 * 3))
-#define Rank5 (Rank1 << (8 * 4))
-#define Rank6 (Rank1 << (8 * 5))
-#define Rank7 (Rank1 << (8 * 6))
-#define Rank8 (Rank1 << (8 * 7))
+#define RANK_1 0xFFULL
+#define RANK_2 (RANK_1 << (8 * 1))
+#define RANK_3 (RANK_1 << (8 * 2))
+#define RANK_4 (RANK_1 << (8 * 3))
+#define RANK_5 (RANK_1 << (8 * 4))
+#define RANK_6 (RANK_1 << (8 * 5))
+#define RANK_7 (RANK_1 << (8 * 6))
+#define RANK_8 (RANK_1 << (8 * 7))
 
-extern char *squareNames[65];
+extern char *square_names[65];
 
-U64 kingAttacks[64];
-U64 knightAttacks[64];
-U64 pawnAttacks[2][64];
+U64 king_attacks[64];
+U64 knight_attacks[64];
+U64 pawn_attacks[2][64];
 
-U64 bishopOccupancy[64];
-U64 rookOccupancy[64];
+U64 bishop_occupancy[64];
+U64 rook_occupancy[64];
 
-U64 bishopMagic[64];
-U64 rookMagic[64];
+U64 bishop_magic[64];
+U64 rook_magic[64];
 
-U64 bishopAttacks[64][512];
-U64 rookAttacks[64][4096];
+U64 bishop_attacks[64][512];
+U64 rook_attacks[64][4096];
 
-U64 generateBishopAttacks(int square, U64 blockers);
-U64 generateRookAttacks(int square, U64 blockers);
-U64 occupancyFromIndex(int index, U64 board);
-U64 calculateBishopOccupancy(int square);
-U64 calculateRookOccupancy(int square);
-U64 getBishopAttacks(int square, U64 blockers);
-U64 getRookAttacks(int square, U64 blockers);
-U64 getQueenAttacks(int square, U64 blockers);
+U64 generate_bishop_attacks(int square, U64 blockers);
+U64 generate_rook_attacks(int square, U64 blockers);
+U64 occupancy_from_index(int index, U64 board);
+U64 calculate_bishop_occupancy(int square);
+U64 calculate_rook_occupancy(int square);
+U64 get_bishop_attacks(int square, U64 blockers);
+U64 get_rook_attacks(int square, U64 blockers);
+U64 get_queen_attacks(int square, U64 blockers);
 
-#define countBits(board) (__builtin_popcountll((board)))
-#define getFirstBitSquare(board) (__builtin_ffsll((board)) - 1)
+#define COUNT_BITS(board) (__builtin_popcountll((board)))
+#define GET_FIRST_BIT_SQUARE(board) (__builtin_ffsll((board)) - 1)
 
-void initLeapers();
-void initSliders();
-void initAttacks();
-void printBitboard(U64 board);
+void init_leapers();
+void init_sliders();
+void init_attacks();
+void print_bitboard(U64 board);
 
 #endif

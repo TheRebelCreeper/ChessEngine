@@ -3,8 +3,8 @@
 
 extern int FOUND_NETWORK;
 
-void initNNUE(char *file);
-int evaluateNNUE(int turn, int *pieces, int *squares);
-int evaluateFromFen(char *fen);
+void init_nnue(char *file);
+int evaluate_nnue(int turn, int *pieces, int *squares);
+int evaluate_from_fen(char *fen);
 
 #endif

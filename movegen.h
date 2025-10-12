@@ -3,6 +3,6 @@
 
 #include "list.h"
 
-MoveList generateMoves(GameState *position, int *size);
+MoveList generate_moves(const GameState *position, int *size);
 
 #endif
