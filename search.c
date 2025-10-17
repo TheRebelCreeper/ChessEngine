@@ -36,7 +36,7 @@ void score_moves(MoveList *moves, GameState *pos, Move tt_move, SearchInfo *info
                                   GET_MOVE_CAPTURED(moves->list[i])] + KILLER_ONE;
 
             // Give bad score to results with negative SEE
-            if (see(pos, GET_MOVE_DST(moves->list[i])) < 0) {
+            if (see(pos, GET_MOVE_DST(moves->list[i])) < -100) {
                 moves->score[i] -= KILLER_ONE;
             }
         }
