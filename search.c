@@ -180,7 +180,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
     if (depth < 4 && !is_pv_node && !in_check && abs(beta) < CHECKMATE) {
         int rfp_margin = 80 * depth;
         if (static_eval - rfp_margin >= beta)
-            return beta;
+            return static_eval;
     }
 
     // Razoring
@@ -228,7 +228,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
             return alpha;
 
         if (score >= beta && abs(score) < CHECKMATE)
-            return beta;
+            return score;
     }
 
     // Check if move is eligible for futility pruning
@@ -307,10 +307,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
         history_index--;
 
         if (info->stopped)
-            return alpha;
+            return (best_score == -INF) ? alpha : best_score;
 
         if (score >= beta) {
-            save_tt(pos, current, beta, TT_CUT, depth, ply);
+            save_tt(pos, current, score, TT_CUT, depth, ply);
             // If the move is not a capture, save as killer move
             if ((current & IS_CAPTURE) == 0) {
                 if (current != info->killer_moves[0][ply]) {
@@ -322,7 +322,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
                     info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] >>= 1;
                 }
             }
-            return beta;
+            return score;
         }
 
         if (score > alpha) {
@@ -350,8 +350,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
         return 0;
     }
 
-    save_tt(pos, best_move, alpha, node_bound, depth, ply);
-    return alpha;
+    save_tt(pos, best_move, best_score, node_bound, depth, ply);
+    return best_score;
 }
 
 // Cannot enter while in check initially
@@ -361,24 +361,23 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     int size, legal, move_count = 0;
     int in_check = is_in_check(pos);
 
-    info->nodes++;
-
-    // Check if time is up every 2048 nodes
-    if ((info->nodes & 2047) == 0) {
-        check_time_left(info);
-        if (info->stopped)
-            return alpha;
-    }
-
     int static_eval = evaluation(pos);
-    int score = static_eval;
+    int bestScore = static_eval;
+    info->nodes++;
 
     if (info->ply >= MAX_PLY) {
         return static_eval;
     }
 
+    // Check if time is up every 2048 nodes
+    if ((info->nodes & 2047) == 0) {
+        check_time_left(info);
+        if (info->stopped)
+            return static_eval;
+    }
+
     if (static_eval >= beta && !in_check) {
-        return beta;
+        return static_eval;
     }
 
     if (static_eval > alpha && !in_check) {
@@ -408,16 +407,20 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         move_count++;
 
         info->ply++;
-        score = -qsearch(-beta, -alpha, depth, &new_pos, info);
+        int score = -qsearch(-beta, -alpha, depth, &new_pos, info);
         info->ply--;
 
         if (info->stopped)
             return alpha;
 
-        // Should this return best eval found or beta?
-        if (score >= beta) {
-            return beta;
+        if (score > bestScore) {
+            bestScore = score;
         }
+
+        if (score >= beta) {
+            return score;
+        }
+
         if (score > alpha) {
             alpha = score;
         }
@@ -433,7 +436,7 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return 0;
     }
 
-    return alpha;
+    return bestScore;
 }
 
 void search_root(GameState *pos, SearchInfo *root_info)
