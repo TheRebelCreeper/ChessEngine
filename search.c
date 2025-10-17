@@ -361,24 +361,23 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     int size, legal, move_count = 0;
     int in_check = is_in_check(pos);
 
-    info->nodes++;
-
-    // Check if time is up every 2048 nodes
-    if ((info->nodes & 2047) == 0) {
-        check_time_left(info);
-        if (info->stopped)
-            return alpha;
-    }
-
     int static_eval = evaluation(pos);
-    int score = static_eval;
+    int bestScore = static_eval;
+    info->nodes++;
 
     if (info->ply >= MAX_PLY) {
         return static_eval;
     }
 
+    // Check if time is up every 2048 nodes
+    if ((info->nodes & 2047) == 0) {
+        check_time_left(info);
+        if (info->stopped)
+            return static_eval;
+    }
+
     if (static_eval >= beta && !in_check) {
-        return beta;
+        return static_eval;
     }
 
     if (static_eval > alpha && !in_check) {
@@ -408,16 +407,20 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         move_count++;
 
         info->ply++;
-        score = -qsearch(-beta, -alpha, depth, &new_pos, info);
+        int score = -qsearch(-beta, -alpha, depth, &new_pos, info);
         info->ply--;
 
         if (info->stopped)
             return alpha;
 
-        // Should this return best eval found or beta?
-        if (score >= beta) {
-            return beta;
+        if (score > bestScore) {
+            bestScore = score;
         }
+
+        if (score >= beta) {
+            return score;
+        }
+
         if (score > alpha) {
             alpha = score;
         }
@@ -433,7 +436,7 @@ int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return 0;
     }
 
-    return alpha;
+    return bestScore;
 }
 
 void search_root(GameState *pos, SearchInfo *root_info)
