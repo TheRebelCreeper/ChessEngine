@@ -180,7 +180,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
     if (depth < 4 && !is_pv_node && !in_check && abs(beta) < CHECKMATE) {
         int rfp_margin = 80 * depth;
         if (static_eval - rfp_margin >= beta)
-            return beta;
+            return static_eval;
     }
 
     // Razoring
@@ -228,7 +228,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
             return alpha;
 
         if (score >= beta && abs(score) < CHECKMATE)
-            return beta;
+            return score;
     }
 
     // Check if move is eligible for futility pruning
@@ -307,10 +307,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
         history_index--;
 
         if (info->stopped)
-            return alpha;
+            return (best_score == -INF) ? alpha : best_score;
 
         if (score >= beta) {
-            save_tt(pos, current, beta, TT_CUT, depth, ply);
+            save_tt(pos, current, score, TT_CUT, depth, ply);
             // If the move is not a capture, save as killer move
             if ((current & IS_CAPTURE) == 0) {
                 if (current != info->killer_moves[0][ply]) {
@@ -322,7 +322,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
                     info->history[pos->turn][GET_MOVE_SRC(current)][GET_MOVE_DST(current)] >>= 1;
                 }
             }
-            return beta;
+            return score;
         }
 
         if (score > alpha) {
@@ -350,8 +350,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, int
         return 0;
     }
 
-    save_tt(pos, best_move, alpha, node_bound, depth, ply);
-    return alpha;
+    save_tt(pos, best_move, best_score, node_bound, depth, ply);
+    return best_score;
 }
 
 // Cannot enter while in check initially
