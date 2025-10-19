@@ -96,7 +96,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     // Enter qsearch
     if (depth <= 0) {
         info->pv_table_length[ply] = 0;
-        return evaluation(pos);
+        return qsearch(alpha, beta, pos, info);
     }
 
     // Search for draws and repetitions
@@ -182,6 +182,84 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     if (move_count == 0) {
         info->pv_table_length[ply] = 0;
         return in_check ? -MATE_SCORE + ply : 0;
+    }
+
+    return best_score;
+}
+
+int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
+{
+    assert(info->ply >= 0 && info->ply <= MAX_PLY);
+    int ply = info->ply;
+    int in_check = is_in_check(pos);
+
+    // Update time left
+    if ((info->nodes & 2047) == 0) {
+        check_time_left(info);
+        // Ran out of time
+        if (info->stopped)
+            return 0;
+    }
+
+    // Search has exceeded max depth, return static eval
+    if (ply >= MAX_PLY) {
+        return evaluation(pos);
+    }
+
+    int static_eval;
+    if (in_check) {
+        static_eval = -MATE_SCORE + ply;
+    }
+    else {
+        static_eval = evaluation(pos);
+        if (static_eval >= beta) {
+            return static_eval;
+        }
+
+        if (static_eval > alpha) {
+            alpha = static_eval;
+        }
+    }
+
+    int best_score = static_eval;
+
+    int total_moves, legal;
+    int move_count = 0;
+    MoveList move_list = generate_moves(pos, &total_moves);
+    score_moves(&move_list, pos, 0, info);
+
+    for (int i = 0; i < total_moves; i++) {
+        pick_move(&move_list, i);
+        Move current = move_list.move[i];
+
+        if (!in_check && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
+            continue;
+        }
+
+        // Prune captures with bad SEE when not in check
+        if (!in_check && see(pos, GET_MOVE_DST(current)) < -105) {
+            continue;
+        }
+
+        GameState new_pos = play_move(pos, current, &legal);
+        if (!legal)
+            continue;
+        move_count++;
+
+        info->ply++;
+        int score = -qsearch(-beta, -alpha, &new_pos, info);
+        info->ply--;
+
+        if (score > best_score) {
+            best_score = score;
+            if (score > alpha) {
+                alpha = score;
+
+                if (score >= beta) {
+                    break;
+                }
+            }
+        }
     }
 
     return best_score;
