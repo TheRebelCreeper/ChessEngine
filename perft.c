@@ -17,7 +17,7 @@ U64 perft(int depth, GameState *pos)
     move_list = generate_moves(pos, &size);
 
     for (int i = 0; i < size; i++) {
-        GameState new_pos = play_move(pos, move_list.list[i], &legal);
+        GameState new_pos = play_move(pos, move_list.move[i], &legal);
         if (legal) {
             sum += perft(depth - 1, &new_pos);
         }
@@ -39,7 +39,7 @@ U64 perft_divide(int depth, GameState *pos)
     printf("Perft results for depth %d:\n", depth);
 
     for (i = 0; i < size; i++) {
-        Move current = move_list.list[i];
+        Move current = move_list.move[i];
         GameState new_pos = play_move(pos, current, &legal);
         if (legal == 1) {
             U64 res = perft(depth - 1, &new_pos);

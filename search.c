@@ -7,6 +7,7 @@
 
 #include "move.h"
 #include "movegen.h"
+#include "movepick.h"
 #include "tt.h"
 #include "util.h"
 
@@ -49,26 +50,6 @@ void check_time_left(SearchInfo *info)
         info->stopped = 1;
     }
     read_input(info);
-}
-
-void score_moves(MoveList *moves, GameState *pos, Move tt_move, SearchInfo *info)
-{
-}
-
-void pick_move(MoveList *moves, int start_index)
-{
-    int best_index = start_index;
-    for (int i = start_index; i < moves->next_open; i++) {
-        if (moves->score[i] > moves->score[best_index])
-            best_index = i;
-    }
-
-    Move tmp = moves->list[start_index];
-    int temp_score = moves->score[start_index];
-    moves->list[start_index] = moves->list[best_index];
-    moves->score[start_index] = moves->score[best_index];
-    moves->list[best_index] = tmp;
-    moves->score[best_index] = temp_score;
 }
 
 inline int is_repetition(const GameState *pos)
@@ -137,7 +118,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     int move_count = 0;
 
     for (int i = 0; i < total_moves; i++) {
-        Move current = move_list.list[i];
+        pick_move(&move_list, i);
+        Move current = move_list.move[i];
         GameState new_pos = play_move(pos, current, &legal);
 
         if (!legal)

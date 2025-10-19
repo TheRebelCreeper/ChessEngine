@@ -20,7 +20,7 @@ int parse_move(char *input_string, MoveList *move_list)
     int promotion_piece = 0;
 
     for (int i = 0; i < move_list->next_open; i++) {
-        Move move = move_list->list[i];
+        Move move = move_list->move[i];
         promotion_piece = GET_MOVE_PROMOTION(move);
 
         if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst) {
@@ -74,19 +74,19 @@ void parse_position(char *line, GameState *pos)
         while (*temp) {
             move_list = generate_moves(pos, &size);
             int idx = parse_move(temp, &move_list);
-            int piece = GET_MOVE_PIECE(move_list.list[idx]);
+            int piece = GET_MOVE_PIECE(move_list.move[idx]);
 
             if (idx == -1) {
                 break;
             }
 
-            GameState temp_pos = play_move(pos, move_list.list[idx], &legal);
+            GameState temp_pos = play_move(pos, move_list.move[idx], &legal);
             if (!legal) {
                 break;
             }
 
             // If the move is a pawn push or capture, reset history list
-            if (GET_MOVE_CAPTURED(move_list.list[idx]) != NO_CAPTURE || piece == P || piece == p) {
+            if (GET_MOVE_CAPTURED(move_list.move[idx]) != NO_CAPTURE || piece == P || piece == p) {
                 history_index = 0;
             }
 
