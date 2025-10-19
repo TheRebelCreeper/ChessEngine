@@ -69,8 +69,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
     int in_check = is_in_check(pos);
-    int is_pv_node = 1;
+    int is_pv_node = beta - alpha > 1;
     int is_root = (ply == 0);
+    int score;
 
     MoveList move_list;
     Move best_move = 0;
@@ -135,8 +136,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // Does this move give check
         //int gives_check = is_in_check(&new_pos);
 
+        // PVS
         int new_depth = depth - 1;
-        int score = -search(-beta, -alpha, new_depth, &new_pos, info);
+        if (move_count == 1) {
+            score = -search(-beta, -alpha, new_depth, &new_pos, info);
+        }
+        else {
+            score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+            if (score > alpha && score < beta) {
+                score = -search(-beta, -alpha, new_depth, &new_pos, info);
+            }
+        }
 
         // Unmake move by removing current move from history
         info->ply--;
