@@ -163,6 +163,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 }
             }
         }
+
+        if (info->stopped)
+            return 0;
     }
 
     // When no more legal moves, return either mate score or draw
