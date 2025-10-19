@@ -262,6 +262,11 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         }
     }
 
+    // When no more legal moves, return mate score
+    if (move_count == 0 && in_check) {
+        return -MATE_SCORE + ply;
+    }
+
     return best_score;
 }
 
