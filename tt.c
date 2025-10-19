@@ -46,10 +46,10 @@ int probe_tt(const GameState *pos, Move *move, int alpha, int beta, int depth, i
             GLOBAL_TT.hit++;
 
             int score = entry.score;
-            if (score > CHECKMATE) {
+            if (score > MAX_MATE_SCORE) {
                 score -= ply;
             }
-            else if (score < -CHECKMATE) {
+            else if (score < -MAX_MATE_SCORE) {
                 score += ply;
             }
 
@@ -78,10 +78,10 @@ void save_tt(const GameState *pos, Move move, int score, int bound, int depth, i
         GLOBAL_TT.over_write++;
     }*/
 
-    if (score > CHECKMATE) {
+    if (score > MAX_MATE_SCORE) {
         score += ply;
     }
-    else if (score < -CHECKMATE) {
+    else if (score < -MAX_MATE_SCORE) {
         score -= ply;
     }
 

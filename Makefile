@@ -28,22 +28,22 @@ else
 endif
 
 # Executable name
-NAME = Saxton
+NAME = Remake
 VERSION = $(file < version.txt)
-TARGET = $(NAME)_v$(VERSION)
+TARGET = $(NAME)_v$(VERSION)$(EXEEXT)
 
 all: release
 
-release: $(TARGET)$(EXEEXT)
+release: $(TARGET)
 
 debug: CFLAGS += -g
-debug: $(TARGET)$(EXEEXT)
+debug: $(TARGET)
 
-$(TARGET)$(EXEEXT): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(TARGET)$(EXEEXT) $(OBJECTS) $(LIBS) $(DEFINES)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS) $(LIBS) $(DEFINES)
 
 $(OBJECTS):$(SOURCES) $(INCLUDES)
 	$(CC) $(CFLAGS) -c $(SOURCES) $(DEFINES)
 
 clean:
-	$(RM) $(OBJECTS) $(TARGET)$(EXEEXT)
+	$(RM) $(OBJECTS) $(TARGET)

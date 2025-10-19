@@ -67,7 +67,7 @@ static const int RAZOR_MARGIN[4] = {
 static const int futility_margins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780};
 
 int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
-void search_root(GameState *pos, SearchInfo *info);
+void search_root(GameState *pos, SearchInfo *root_info);
 void read_input(SearchInfo *info);
 
 #endif

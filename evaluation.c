@@ -197,11 +197,11 @@ int evaluation(GameState *pos)
 void print_evaluation(int score)
 {
     int mated = 0;
-    if (score > CHECKMATE) {
+    if (score > MATE_SCORE) {
         score = INF - score;
         mated = 1;
     }
-    else if (score < -CHECKMATE) {
+    else if (score < -MATE_SCORE) {
         score = -INF - score;
         mated = 1;
     }
