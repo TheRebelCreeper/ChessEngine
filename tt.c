@@ -29,54 +29,45 @@ void clear_tt(TT *table)
             e->move = 0;
             e->depth = 0;
             e->score = INVALID_SCORE;
-            e->bound = 0;
+            e->flag = TT_NONE;
         }
         table->new_write = 0;
     }
 }
 
 // Should return a score
-int probe_tt(const GameState *pos, Move *move, int alpha, int beta, int depth, int ply)
+int probe_tt(const GameState *pos, TTEntry *dst, int ply)
 {
     int i = pos->key % GLOBAL_TT.num_entries;
     TTEntry entry = GLOBAL_TT.hash_table[i];
-    if (entry.key == pos->key) {
-        *move = entry.move;
-        if (entry.depth >= depth) {
-            GLOBAL_TT.hit++;
 
-            int score = entry.score;
-            if (score > MAX_MATE_SCORE) {
-                score -= ply;
-            }
-            else if (score < -MAX_MATE_SCORE) {
-                score += ply;
-            }
-
-            if ((entry.bound == TT_CUT && score >= beta) ||
-                (entry.bound == TT_ALL && score <= alpha) ||
-                entry.bound == TT_PV) {
-                return score;
-            }
+    if (entry.key == pos->key && entry.flag != TT_NONE) {
+        // Adjust mate score in TT
+        int score = entry.score;
+        if (score > MAX_MATE_SCORE) {
+            score -= ply;
         }
+        else if (score < -MAX_MATE_SCORE) {
+            score += ply;
+        }
+
+        dst->score = score;
+        dst->depth = entry.depth;
+        dst->move = entry.move;
+        dst->flag = entry.flag;
+        GLOBAL_TT.hit++;
+
+        return 1;
     }
-    return INVALID_SCORE;
+    dst->flag = TT_NONE;
+    dst->move = 0;
+    return 0;
 }
 
-void save_tt(const GameState *pos, Move move, int score, int bound, int depth, int ply)
+void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply)
 {
-    int index = pos->key % GLOBAL_TT.num_entries;
-
-    /*
-    // Debug stats
-    if( GLOBAL_TT.hash_table[index].key == 0)
-    {
-        GLOBAL_TT.new_write++;
-    }
-    else
-    {
-        GLOBAL_TT.over_write++;
-    }*/
+    assert(depth >= 0);
+    int i = pos->key % GLOBAL_TT.num_entries;
 
     if (score > MAX_MATE_SCORE) {
         score += ply;
@@ -85,9 +76,9 @@ void save_tt(const GameState *pos, Move move, int score, int bound, int depth, i
         score -= ply;
     }
 
-    GLOBAL_TT.hash_table[index].move = move;
-    GLOBAL_TT.hash_table[index].key = pos->key;
-    GLOBAL_TT.hash_table[index].bound = bound;
-    GLOBAL_TT.hash_table[index].score = score;
-    GLOBAL_TT.hash_table[index].depth = (unsigned char) depth;
+    GLOBAL_TT.hash_table[i].key = pos->key;
+    GLOBAL_TT.hash_table[i].move = move;
+    GLOBAL_TT.hash_table[i].flag = flag;
+    GLOBAL_TT.hash_table[i].score = score;
+    GLOBAL_TT.hash_table[i].depth = (unsigned char) depth;
 }

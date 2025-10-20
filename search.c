@@ -69,7 +69,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
     int in_check = is_in_check(pos);
-    int is_pv_node = beta - alpha > 1;
+    int pv_node = beta - alpha > 1;
     int is_root = (ply == 0);
     int score;
 
@@ -109,13 +109,21 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     }
 
     // Placeholder
-    Move ttMove = 0;
+    TTEntry tt_entry;
+    int tt_hit = probe_tt(pos, &tt_entry, ply);
+
+    if (!pv_node && tt_hit && tt_entry.depth >= depth && (tt_entry.flag == TT_EXACT
+                                                          || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
+                                                          || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
+        return tt_entry.score;
+    }
 
     //int static_eval = evaluation(pos);
 
+    unsigned char tt_flag = TT_UPPER;
     int total_moves, legal;
     move_list = generate_moves(pos, &total_moves);
-    score_moves(&move_list, pos, ttMove, info);
+    score_moves(&move_list, pos, tt_entry.move, info);
     int move_count = 0;
 
     for (int i = 0; i < total_moves; i++) {
@@ -160,7 +168,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 best_move = current;
                 alpha = score;
 
-                if (is_pv_node) {
+                if (pv_node) {
                     info->pv_table[ply][ply] = current;
                     // Crazy memcpy which copies PV from lower depth to current depth
                     memcpy((info->pv_table[ply]) + ply + 1, (info->pv_table[ply + 1]) + ply + 1,
@@ -169,8 +177,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 }
 
                 if (score >= beta) {
+                    tt_flag = TT_LOWER;
                     break;
                 }
+                tt_flag = TT_EXACT;
             }
         }
 
@@ -184,6 +194,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return in_check ? -MATE_SCORE + ply : 0;
     }
 
+    save_tt(pos, best_move, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
