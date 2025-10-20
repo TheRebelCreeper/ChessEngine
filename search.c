@@ -225,16 +225,12 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 
     int total_moves, legal;
     int move_count = 0;
-    MoveList move_list = generate_moves(pos, &total_moves);
+    MoveList move_list = (!in_check) ? generate_moves_qsearch(pos, &total_moves) : generate_moves(pos, &total_moves);
     score_moves(&move_list, pos, 0, info);
 
     for (int i = 0; i < total_moves; i++) {
         pick_move(&move_list, i);
         Move current = move_list.move[i];
-
-        if (!in_check && GET_MOVE_CAPTURED(current) == NO_CAPTURE && GET_MOVE_PROMOTION(current) == NO_PROMOTION) {
-            continue;
-        }
 
         // Prune captures with bad SEE when not in check
         if (!in_check && see(pos, GET_MOVE_DST(current)) < -105) {
