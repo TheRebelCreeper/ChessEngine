@@ -108,13 +108,15 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return 0;
     }
 
-    // Placeholder
+    // tt_hit is boolean
     TTEntry tt_entry;
     int tt_hit = probe_tt(pos, &tt_entry, ply);
 
-    if (!pv_node && tt_hit && tt_entry.depth >= depth && (tt_entry.flag == TT_EXACT
-                                                          || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
-                                                          || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
+    // Cutoff when we find valid TT entry
+    if (!pv_node && tt_hit && tt_entry.depth >= depth
+        && (tt_entry.flag == TT_EXACT
+            || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
+            || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
         return tt_entry.score;
     }
 

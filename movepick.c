@@ -31,6 +31,12 @@ void pick_move(MoveList *moves, int start_index)
 void score_moves(MoveList *moves, GameState *pos, Move tt_move, SearchInfo *info)
 {
     for (int i = 0; i < moves->next_open; i++) {
+        // Score TT hits
+        if (tt_move != 0 && moves->move[i] == tt_move) {
+            moves->score[i] = TT_HIT_SCORE;
+            continue;
+        }
+
         // Score captures
         if (moves->move[i] & IS_CAPTURE) {
             int piece_offset = 6 * pos->turn;
