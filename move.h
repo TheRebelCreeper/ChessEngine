@@ -8,6 +8,7 @@
 #define NO_CAPTURE -1
 #define NO_PROMOTION 0
 
+#define IS_PROMOTION 0xf0000
 #define IS_CAPTURE 0xf00000
 #define IS_PAWN_PUSH 0x1000000
 #define IS_EN_PASSANT 0x2000000
@@ -38,12 +39,13 @@ typedef uint32_t Move;
 #define GET_MOVE_SRC(move) ((move) & 0x3f)
 #define GET_MOVE_DST(move) (((move) & 0xfc0) >> 6)
 #define GET_MOVE_PIECE(move) (((move) & 0xf000) >> 12)
-#define GET_MOVE_PROMOTION(move) (((move) & 0xf0000) >> 16)
-#define GET_MOVE_CAPTURED(move) ((((move) & 0xf00000) >> 20) - 1)
-#define IS_MOVE_DPP(move) (((move) & 0x1000000) >> 24)
-#define IS_MOVE_EP(move) (((move) & 0x2000000) >> 25)
-#define IS_MOVE_CASTLES(move) (((move) & 0x4000000) >> 26)
+#define GET_MOVE_PROMOTION(move) (((move) & IS_PROMOTION) >> 16)
+#define GET_MOVE_CAPTURED(move) ((((move) & IS_CAPTURE) >> 20) - 1)
+#define IS_MOVE_DPP(move) (((move) & IS_PAWN_PUSH) >> 24)
+#define IS_MOVE_EP(move) (((move) & IS_EN_PASSANT) >> 25)
+#define IS_MOVE_CASTLES(move) (((move) & IS_CASTLES) >> 26)
 
+int is_noisy(Move move);
 GameState play_move(const GameState *pos, Move move, int *is_legal);
 void print_move(Move m);
 
