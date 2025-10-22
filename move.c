@@ -1,4 +1,6 @@
 #include "move.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include "bitboard.h"
@@ -38,6 +40,12 @@ unsigned char adjust_castling_rights(const GameState *pos, int src, int dst, int
         castling_rights &= (WHITE_OO | WHITE_OOO);
     }
     return castling_rights;
+}
+
+int is_noisy(Move move)
+{
+    assert(move != 0);
+    return move & (IS_CAPTURE | IS_PROMOTION | IS_CASTLES);
 }
 
 GameState play_move(const GameState *pos, Move move, int *is_legal)

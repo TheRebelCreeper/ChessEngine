@@ -12,6 +12,7 @@
 #define ASPIRATION_WINDOW
 
 extern int NUM_THREADS;
+int history_score[2][64][64];
 
 typedef struct info {
     int starttime;
@@ -27,7 +28,6 @@ typedef struct info {
     int ply;
     U64 nodes;
     Move killer_moves[2][MAX_PLY];
-    int history[2][64][64];
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
 } SearchInfo;

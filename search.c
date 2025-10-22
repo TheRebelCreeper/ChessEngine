@@ -196,6 +196,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return in_check ? -MATE_SCORE + ply : 0;
     }
 
+    // Update history score if not a capture and beta cutoff
+    if (best_score >= beta && best_move && !is_noisy(best_move)) {
+        history_score[pos->turn][GET_MOVE_SRC(best_move)][GET_MOVE_DST(best_move)] += (depth * depth);
+    }
+
     save_tt(pos, best_move, best_score, tt_flag, depth, ply);
     return best_score;
 }
@@ -289,10 +294,10 @@ void search_root(GameState *pos, SearchInfo *root_info)
 
     // Clear information for root_info. Will have to do this for ID upon each depth
     unsigned int start = get_time_ms();
+    memset(history_score, 0, sizeof(history_score));
     root_info->nodes = 0ULL;
     root_info->ply = 0;
     memset(root_info->killer_moves, 0, sizeof(root_info->killer_moves));
-    memset(root_info->history, 0, sizeof(root_info->history));
 
     for (int ID = 1; ID <= max_search_depth; ID++) {
         memset(root_info->pv_table, 0, sizeof(root_info->pv_table));
