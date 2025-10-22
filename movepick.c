@@ -1,6 +1,7 @@
 #include "movelist.h"
 #include "movepick.h"
 
+#include "history.h"
 #include "search.h"
 #include "see.h"
 #include "util.h"
@@ -28,11 +29,10 @@ void pick_move(MoveList *moves, int start_index)
     }
 }
 
-void score_moves(MoveList *moves, GameState *pos, Move tt_move, SearchInfo *info)
+void score_moves(MoveList *moves, const GameState *pos, Move tt_move, SearchInfo *info)
 {
     for (int i = 0; i < moves->next_open; i++) {
         Move m = moves->move[i];
-        int src = GET_MOVE_SRC(m);
         int dst = GET_MOVE_DST(m);
 
         // Score TT hits
@@ -53,7 +53,7 @@ void score_moves(MoveList *moves, GameState *pos, Move tt_move, SearchInfo *info
         }
         // Score quiet moves
         else {
-            moves->score[i] = MIN(HISTORY_SCORE_MAX, history_score[pos->turn][src][dst] + HISTORY_SCORE_MIN);
+            moves->score[i] = get_history(pos, m);
         }
     }
 }

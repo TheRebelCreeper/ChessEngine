@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "et.h"
+#include "history.h"
 #include "movegen.h"
 #include "perft.h"
 #include "search.h"

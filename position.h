@@ -29,11 +29,10 @@ enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
 };
 
-extern int history_index;
+
 extern char *piece_notation[12];
 extern int piece_lookup[2][6];
 
-U64 pos_history[256];
 U64 piece_keys[12][64];
 U64 castle_keys[16];
 U64 epKey[8];

@@ -12,7 +12,6 @@
 #define ASPIRATION_WINDOW
 
 extern int NUM_THREADS;
-int history_score[2][64][64];
 
 typedef struct info {
     int starttime;

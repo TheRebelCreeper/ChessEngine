@@ -5,7 +5,6 @@
 #include <string.h>
 #include "magic.h"
 
-int history_index = 0;
 
 char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
 char *piece_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};

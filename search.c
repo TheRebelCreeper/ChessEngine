@@ -5,6 +5,7 @@
 
 #include <assert.h>
 
+#include "history.h"
 #include "move.h"
 #include "movegen.h"
 #include "movepick.h"
@@ -198,7 +199,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
     // Update history score if not a capture and beta cutoff
     if (best_score >= beta && best_move && !is_noisy(best_move)) {
-        history_score[pos->turn][GET_MOVE_SRC(best_move)][GET_MOVE_DST(best_move)] += (depth * depth);
+        int bonus = score_history(pos, best_move, depth);
+        update_history(pos, best_move, bonus);
     }
 
     save_tt(pos, best_move, best_score, tt_flag, depth, ply);
@@ -294,7 +296,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
 
     // Clear information for root_info. Will have to do this for ID upon each depth
     unsigned int start = get_time_ms();
-    memset(history_score, 0, sizeof(history_score));
+    clear_history();
     root_info->nodes = 0ULL;
     root_info->ply = 0;
     memset(root_info->killer_moves, 0, sizeof(root_info->killer_moves));
