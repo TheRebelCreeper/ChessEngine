@@ -435,6 +435,7 @@ MoveList generate_moves_qsearch(const GameState *pos, int *size)
     return move_list;
 }
 
+// TODO return size, save movelist to pointer
 MoveList generate_moves(const GameState *pos, int *size)
 {
     MoveList move_list;
