@@ -6,6 +6,7 @@
 #include "move.h"
 #include "util.h"
 
+int history_table[2][64][64];
 int history_index = 0;
 
 inline void clear_history()
