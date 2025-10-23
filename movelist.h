@@ -10,4 +10,6 @@ typedef struct movelist {
     int score[MAX_MOVES];
 } MoveList;
 
+void clear_movelist(MoveList *l);
+
 #endif

@@ -16,14 +16,15 @@ inline void clear_history()
 inline int score_history(const GameState *pos, Move move, int depth)
 {
     assert(move != 0 && depth >= 0);
-    int bonus = history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)];
-    return MIN(bonus + (depth * depth), HISTORY_SCORE_MAX);
+    int bonus = depth * depth;
+    return bonus;
 }
 
 inline void update_history(const GameState *pos, Move move, int bonus)
 {
     assert(move != 0);
-    history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)] = bonus;
+    int tmp = history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)];
+    history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)] = MIN(tmp + bonus, HISTORY_SCORE_MAX);
 }
 
 inline int get_history(const GameState *pos, Move move)

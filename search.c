@@ -75,6 +75,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     int score;
 
     MoveList move_list;
+    MoveList fail_low_quiets;
+    clear_movelist(&fail_low_quiets);
     Move best_move = 0;
     int best_score = -INF;
 
@@ -124,8 +126,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     //int static_eval = evaluation(pos);
 
     unsigned char tt_flag = TT_UPPER;
-    int total_moves, legal;
-    move_list = generate_moves(pos, &total_moves);
+    int legal;
+    int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, info);
     int move_count = 0;
 
@@ -187,6 +189,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             }
         }
 
+        if (current != best_move && !is_noisy(current)) {
+            fail_low_quiets.move[fail_low_quiets.next_open++] = current;
+        }
+
         if (info->stopped)
             return 0;
     }
@@ -198,9 +204,14 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     }
 
     // Update history score if not a capture and beta cutoff
-    if (best_score >= beta && best_move && !is_noisy(best_move)) {
+    if (best_move && !is_noisy(best_move)) {
         int bonus = score_history(pos, best_move, depth);
+        int penalty = -bonus;
         update_history(pos, best_move, bonus);
+
+        for (int i = 0; i < fail_low_quiets.next_open; i++) {
+            update_history(pos, fail_low_quiets.move[i], penalty);
+        }
     }
 
     save_tt(pos, best_move, best_score, tt_flag, depth, ply);
@@ -243,9 +254,10 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 
     int best_score = static_eval;
 
-    int total_moves, legal;
+    int legal;
     int move_count = 0;
-    MoveList move_list = (!in_check) ? generate_moves_qsearch(pos, &total_moves) : generate_moves(pos, &total_moves);
+    MoveList move_list;
+    int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
     score_moves(&move_list, pos, 0, info);
 
     for (int i = 0; i < total_moves; i++) {
