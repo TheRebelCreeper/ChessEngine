@@ -134,7 +134,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     }
 
     int static_eval = evaluation(pos);
-    if (!pv_node && depth <= 5 && !in_check) {
+    if (!pv_node && depth <= 6 && !in_check) {
         int rfp_margin = 75 * depth;
         if (static_eval - rfp_margin >= beta)
             return static_eval;
