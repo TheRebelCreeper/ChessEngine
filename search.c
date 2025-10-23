@@ -189,7 +189,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             }
         }
 
-        if (current != best_move && !is_noisy(current)){
+        if (current != best_move && !is_noisy(current)) {
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
         }
 
@@ -209,7 +209,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         int penalty = -bonus;
         update_history(pos, best_move, bonus);
 
-        for (int i = 0; i < fail_low_quiets.next_open; i++){
+        for (int i = 0; i < fail_low_quiets.next_open; i++) {
             update_history(pos, fail_low_quiets.move[i], penalty);
         }
     }
