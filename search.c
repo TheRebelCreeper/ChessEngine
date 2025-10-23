@@ -66,6 +66,15 @@ inline int is_repetition(const GameState *pos)
     return 0; // Detects a single rep
 }
 
+inline int calculate_reduction(Move m, int move_count, int depth, int pv_node)
+{
+    int r = 0.77 + log(move_count) * log(depth) / 2.36;
+    if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
+        r = 0;
+    r += !pv_node;
+    return r;
+}
+
 int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
@@ -156,9 +165,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
         else {
-            int r = 0.77 + log(move_count) * log(depth) / 2.36;
-            if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
-                r = 0;
+            int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
 
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
