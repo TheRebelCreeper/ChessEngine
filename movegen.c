@@ -415,43 +415,39 @@ void generate_king_noisy(const GameState *pos, int turn, int piece_offset, MoveL
     move_list->next_open = i;
 }
 
-MoveList generate_moves_qsearch(const GameState *pos, int *size)
+int generate_moves_qsearch(const GameState *pos, MoveList *move_list)
 {
-    MoveList move_list;
-    move_list.next_open = 0;
-    memset(move_list.move, 0, sizeof(Move) * MAX_MOVES);
+    clear_movelist(move_list);
     int turn = pos->turn;
     int piece_offset = 6 * turn;
 
-    generate_pawn_noisy(pos, turn, piece_offset, &move_list);
-    generate_knight_noisy(pos, turn, piece_offset, &move_list);
-    generate_bishop_noisy(pos, turn, piece_offset, &move_list);
-    generate_rook_noisy(pos, turn, piece_offset, &move_list);
-    generate_queen_noisy(pos, turn, piece_offset, &move_list);
-    generate_king_noisy(pos, turn, piece_offset, &move_list);
+    generate_pawn_noisy(pos, turn, piece_offset, move_list);
+    generate_knight_noisy(pos, turn, piece_offset, move_list);
+    generate_bishop_noisy(pos, turn, piece_offset, move_list);
+    generate_rook_noisy(pos, turn, piece_offset, move_list);
+    generate_queen_noisy(pos, turn, piece_offset, move_list);
+    generate_king_noisy(pos, turn, piece_offset, move_list);
 
     // Maybe add an assert to make sure size isn't greater than MAX_MOVES
-    *size = move_list.next_open;
-    return move_list;
+    int size = move_list->next_open;
+    return size;
 }
 
 // TODO return size, save movelist to pointer
-MoveList generate_moves(const GameState *pos, int *size)
+int generate_moves(const GameState *pos, MoveList *move_list)
 {
-    MoveList move_list;
-    move_list.next_open = 0;
-    memset(move_list.move, 0, sizeof(Move) * MAX_MOVES);
+    clear_movelist(move_list);
     int turn = pos->turn;
     int piece_offset = 6 * turn;
 
-    generate_pawn_moves(pos, turn, piece_offset, &move_list);
-    generate_knight_moves(pos, turn, piece_offset, &move_list);
-    generate_bishop_moves(pos, turn, piece_offset, &move_list);
-    generate_rook_moves(pos, turn, piece_offset, &move_list);
-    generate_queen_moves(pos, turn, piece_offset, &move_list);
-    generate_king_moves(pos, turn, piece_offset, &move_list);
+    generate_pawn_moves(pos, turn, piece_offset, move_list);
+    generate_knight_moves(pos, turn, piece_offset, move_list);
+    generate_bishop_moves(pos, turn, piece_offset, move_list);
+    generate_rook_moves(pos, turn, piece_offset, move_list);
+    generate_queen_moves(pos, turn, piece_offset, move_list);
+    generate_king_moves(pos, turn, piece_offset, move_list);
 
     // Maybe add an assert to make sure size isn't greater than MAX_MOVES
-    *size = move_list.next_open;
-    return move_list;
+    int size = move_list->next_open;
+    return size;
 }

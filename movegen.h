@@ -3,7 +3,7 @@
 
 #include "movelist.h"
 
-MoveList generate_moves_qsearch(const GameState *position, int *size);
-MoveList generate_moves(const GameState *position, int *size);
+int generate_moves_qsearch(const GameState *position, MoveList *move_list);
+int generate_moves(const GameState *position, MoveList *move_list);
 
 #endif

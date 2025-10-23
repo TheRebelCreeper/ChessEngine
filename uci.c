@@ -73,7 +73,7 @@ void parse_position(char *line, GameState *pos)
         temp += 6; // Length of "moves "
 
         while (*temp) {
-            move_list = generate_moves(pos, &size);
+            size = generate_moves(pos, &move_list);
             int idx = parse_move(temp, &move_list);
             int piece = GET_MOVE_PIECE(move_list.move[idx]);
 
@@ -82,7 +82,7 @@ void parse_position(char *line, GameState *pos)
             }
 
             GameState temp_pos = play_move(pos, move_list.move[idx], &legal);
-            if (!legal) {
+            if (!legal && !size) {
                 break;
             }
 
