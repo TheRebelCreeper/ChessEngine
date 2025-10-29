@@ -322,8 +322,6 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 void search_root(GameState *pos, SearchInfo *root_info)
 {
     int max_search_depth = root_info->depth;
-    int alpha = -INF;
-    int beta = INF;
     int score = -INF;
     Move best_move = 0;
 
@@ -339,9 +337,30 @@ void search_root(GameState *pos, SearchInfo *root_info)
         memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
         root_info->depth = ID;
 
-        int new_score = search(alpha, beta, ID, pos, root_info);
-        Move new_move = root_info->pv_table[0][0];
+        int alpha = -INF;
+        int beta = INF;
 
+        int new_score = -INF;
+
+        if (ID >= 5) {
+            int delta = 25;
+            alpha = MAX(score - delta, -INF);
+            beta = MIN(score + delta, INF);
+        }
+
+        while (!root_info->stopped) {
+            new_score = search(alpha, beta, ID, pos, root_info);
+
+            if (new_score <= alpha || new_score >= beta) {
+                beta = INF;
+                alpha = -INF;
+            }
+            else {
+                break;
+            }
+        }
+
+        Move new_move = root_info->pv_table[0][0];
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!new_move || (root_info->stopped == 1 && ID > 1))
             break;
