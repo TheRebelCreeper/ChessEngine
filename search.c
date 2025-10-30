@@ -141,7 +141,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     }
 
     unsigned char tt_flag = TT_UPPER;
-    int legal;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, info);
     int move_count = 0;
@@ -149,9 +148,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     for (int i = 0; i < total_moves; i++) {
         pick_move(&move_list, i);
         Move current = move_list.move[i];
-        GameState new_pos = play_move(pos, current, &legal);
+        GameState new_pos;
 
-        if (!legal)
+        if (!play_move(pos, &new_pos, current))
             continue;
 
         move_count++;
@@ -275,7 +274,6 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 
     int best_score = static_eval;
 
-    int legal;
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
@@ -290,8 +288,8 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
             continue;
         }
 
-        GameState new_pos = play_move(pos, current, &legal);
-        if (!legal)
+        GameState new_pos;
+        if (!play_move(pos, &new_pos, current))
             continue;
         move_count++;
 
