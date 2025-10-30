@@ -46,7 +46,7 @@ typedef uint32_t Move;
 #define IS_MOVE_CASTLES(move) (((move) & IS_CASTLES) >> 26)
 
 int is_noisy(Move move);
-GameState play_move(const GameState *pos, Move move, int *is_legal);
+int play_move(const GameState *old_pos, GameState *new_pos, Move move);
 void print_move(Move m);
 
 #endif
