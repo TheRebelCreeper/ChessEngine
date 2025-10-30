@@ -8,7 +8,8 @@
 
 #define FULL_DEPTH_MOVES 3
 
-#define ASPIRATION_WINDOW
+#define INITIAL_ASP_WINDOW 30
+#define MIN_ASP_DEPTH 5
 
 extern int NUM_THREADS;
 
