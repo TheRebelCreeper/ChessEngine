@@ -4,7 +4,7 @@
 #include "move.h"
 #include "position.h"
 
-#define MAX_PLY 64
+#define MAX_PLY 128
 
 #define FULL_DEPTH_MOVES 3
 
