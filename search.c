@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "search.h"
 
@@ -153,7 +154,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
             info->ply--;
 
-            if (score >= beta)
+            if (score >= beta && abs(score) < MATE_SCORE)
                 return score;
         }
     }
