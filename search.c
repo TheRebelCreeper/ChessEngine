@@ -18,20 +18,19 @@ void report_search_info(SearchInfo *root_info, int score, unsigned int start, un
     // After searching all possible moves, compile stats
     root_info->ms = finish - start;
     root_info->nps = (unsigned int) (1000 * root_info->nodes / (root_info->ms));
-    root_info->best_score = score;
 
     int mated = 0;
-    if (root_info->best_score > MAX_MATE_SCORE) {
-        root_info->best_score = (MATE_SCORE - root_info->best_score) / 2 + 1;
+    if (score > MAX_MATE_SCORE) {
+        score = (MATE_SCORE - score) / 2 + 1;
         mated = 1;
     }
-    else if (root_info->best_score < -MAX_MATE_SCORE) {
-        root_info->best_score = (-MATE_SCORE - root_info->best_score) / 2;
+    else if (score < -MAX_MATE_SCORE) {
+        score = (-MATE_SCORE - score) / 2;
         mated = 1;
     }
 
     printf("info depth %d ", root_info->depth);
-    printf("score %s %d ", (mated) ? "mate" : "cp", root_info->best_score);
+    printf("score %s %d ", (mated) ? "mate" : "cp", score);
     printf("time %u ", root_info->ms);
     printf("nodes %llu ", root_info->nodes);
     printf("nps %u ", root_info->nps);
@@ -155,6 +154,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         move_count++;
         info->ply++;
+        info->stack[info->stack_index++] = current;
 
         // Save the current move into history
         history_index++;
@@ -184,6 +184,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // Unmake move by removing current move from history
         info->ply--;
         history_index--;
+        info->stack[info->stack_index--] = 0;
 
         // Update bestMove whenever found so all-nodes can be stored in TT
         if (score > best_score) {
@@ -330,6 +331,8 @@ void search_root(GameState *pos, SearchInfo *root_info)
     clear_history();
     root_info->nodes = 0ULL;
     root_info->ply = 0;
+    root_info->stopped = 0;
+    memset(root_info->stack, 0, sizeof(root_info->stack));
     memset(root_info->killer_moves, 0, sizeof(root_info->killer_moves));
 
     for (int ID = 1; ID <= max_search_depth; ID++) {
