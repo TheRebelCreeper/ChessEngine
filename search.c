@@ -151,11 +151,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             // Save null move to stack
             info->stack[ply] = 0;
 
-            score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
+            int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
             info->ply--;
 
-            if (score >= beta && abs(score) < MATE_SCORE)
-                return score;
+            if (null_score >= beta && abs(null_score) < MATE_SCORE)
+                return null_score;
         }
     }
 
