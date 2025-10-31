@@ -28,7 +28,6 @@ typedef struct info {
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
     Move stack[MAX_PLY];
-    int stack_index;
 } SearchInfo;
 
 /*

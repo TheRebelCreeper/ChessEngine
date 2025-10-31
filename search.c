@@ -132,11 +132,30 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return tt_entry.score;
     }
 
-    int static_eval = evaluation(pos);
-    if (!pv_node && depth <= 6 && !in_check) {
+    if (!pv_node && !in_check) {
+        int static_eval = evaluation(pos);
         int rfp_margin = 75 * depth;
-        if (static_eval - rfp_margin >= beta)
+        if (depth <= 6 && static_eval - rfp_margin >= beta) {
             return static_eval;
+        }
+
+        if (depth >= 4 && static_eval >= beta && info->stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
+            int r = 4;
+
+            // Make the null move
+            GameState new_pos;
+            make_null_move(pos, &new_pos);
+            info->ply++;
+
+            // Save null move to stack
+            info->stack[ply] = 0;
+
+            score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
+            info->ply--;
+
+            if (score >= beta)
+                return score;
+        }
     }
 
     unsigned char tt_flag = TT_UPPER;
@@ -149,12 +168,14 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         Move current = move_list.move[i];
         GameState new_pos;
 
-        if (!play_move(pos, &new_pos, current))
+        if (!make_move(pos, &new_pos, current))
             continue;
 
         move_count++;
         info->ply++;
-        info->stack[info->stack_index++] = current;
+
+        // Save current move to stack
+        info->stack[ply] = current;
 
         // Save the current move into history
         history_index++;
@@ -184,7 +205,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // Unmake move by removing current move from history
         info->ply--;
         history_index--;
-        info->stack[info->stack_index--] = 0;
 
         // Update bestMove whenever found so all-nodes can be stored in TT
         if (score > best_score) {
@@ -290,7 +310,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         }
 
         GameState new_pos;
-        if (!play_move(pos, &new_pos, current))
+        if (!make_move(pos, &new_pos, current))
             continue;
         move_count++;
 

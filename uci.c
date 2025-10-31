@@ -82,7 +82,7 @@ void parse_position(char *line, GameState *pos)
             }
 
             GameState temp_pos;
-            if (!play_move(pos, &temp_pos, move_list.move[idx]) && !size) {
+            if (!make_move(pos, &temp_pos, move_list.move[idx]) && !size) {
                 break;
             }
 
