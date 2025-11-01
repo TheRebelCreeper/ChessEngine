@@ -146,13 +146,15 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             // Make the null move
             GameState new_pos;
             make_null_move(pos, &new_pos);
-            info->ply++;
+            history_index++;
+            pos_history[history_index] = new_pos.key;
 
             // Save null move to stack
             info->stack[ply] = 0;
-
+            info->ply++;
             int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
             info->ply--;
+            history_index--;
 
             if (null_score >= beta && abs(null_score) < MATE_SCORE)
                 return null_score;

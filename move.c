@@ -169,6 +169,7 @@ void make_null_move(const GameState *old_pos, GameState *new_pos)
 {
     memcpy(new_pos, old_pos, sizeof(GameState));
     new_pos->turn ^= 1;
+    new_pos->half_move_clock += 1;
     new_pos->enpassant_square = none;
     new_pos->key ^= side_key;
     if (old_pos->enpassant_square != none)
