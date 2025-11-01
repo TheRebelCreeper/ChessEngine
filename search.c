@@ -134,12 +134,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     }
 
     if (!pv_node && !in_check) {
+        assert(!is_root);
         int static_eval = evaluation(pos);
+
+        // Reverse Futility Pruning
         int rfp_margin = 75 * depth;
         if (depth <= 6 && static_eval - rfp_margin >= beta) {
             return static_eval;
         }
 
+        // Null Move Pruning
         if (depth >= 4 && static_eval >= beta && info->move_stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
             int r = 4;
 
