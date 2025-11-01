@@ -27,7 +27,7 @@ typedef struct info {
     Move killer_moves[2][MAX_PLY];
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
-    Move stack[MAX_PLY];
+    Move move_stack[MAX_PLY];
 } SearchInfo;
 
 /*

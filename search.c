@@ -140,7 +140,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             return static_eval;
         }
 
-        if (depth >= 4 && static_eval >= beta && info->stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
+        if (depth >= 4 && static_eval >= beta && info->move_stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
             int r = 4;
 
             // Make the null move
@@ -149,8 +149,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             history_index++;
             pos_history[history_index] = new_pos.key;
 
-            // Save null move to stack
-            info->stack[ply] = 0;
+            // Save null move to move_stack
+            info->move_stack[ply] = 0;
             info->ply++;
             int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
             info->ply--;
@@ -177,8 +177,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         move_count++;
         info->ply++;
 
-        // Save current move to stack
-        info->stack[ply] = current;
+        // Save current move to move_stack
+        info->move_stack[ply] = current;
 
         // Save the current move into history
         history_index++;
@@ -355,7 +355,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
     root_info->nodes = 0ULL;
     root_info->ply = 0;
     root_info->stopped = 0;
-    memset(root_info->stack, 0, sizeof(root_info->stack));
+    memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
     memset(root_info->killer_moves, 0, sizeof(root_info->killer_moves));
 
     for (int ID = 1; ID <= max_search_depth; ID++) {
