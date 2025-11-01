@@ -18,7 +18,7 @@ U64 perft(int depth, GameState *pos)
 
     for (int i = 0; i < size; i++) {
         GameState new_pos;
-        if (play_move(pos, &new_pos, move_list.move[i])) {
+        if (make_move(pos, &new_pos, move_list.move[i])) {
             sum += perft(depth - 1, &new_pos);
         }
     }
@@ -41,7 +41,7 @@ U64 perft_divide(int depth, GameState *pos)
     for (i = 0; i < size; i++) {
         Move current = move_list.move[i];
         GameState new_pos;
-        if (play_move(pos, &new_pos, current)) {
+        if (make_move(pos, &new_pos, current)) {
             U64 res = perft(depth - 1, &new_pos);
             sum += res;
             print_move(current);

@@ -48,7 +48,7 @@ int is_noisy(Move move)
     return move & (IS_CAPTURE | IS_PROMOTION | IS_CASTLES);
 }
 
-int play_move(const GameState *old_pos, GameState *new_pos, Move move)
+int make_move(const GameState *old_pos, GameState *new_pos, Move move)
 {
     memcpy(new_pos, old_pos, sizeof(GameState));
     int turn = old_pos->turn;
@@ -163,6 +163,17 @@ int play_move(const GameState *old_pos, GameState *new_pos, Move move)
     // Legality Check
     int king_location = GET_FIRST_BIT_SQUARE(new_pos->piece_bitboards[K + offset]);
     return !is_square_attacked(new_pos, king_location, new_pos->turn);
+}
+
+void make_null_move(const GameState *old_pos, GameState *new_pos)
+{
+    memcpy(new_pos, old_pos, sizeof(GameState));
+    new_pos->turn ^= 1;
+    new_pos->half_move_clock += 1;
+    new_pos->enpassant_square = none;
+    new_pos->key ^= side_key;
+    if (old_pos->enpassant_square != none)
+        new_pos->key ^= epKey[old_pos->enpassant_square & 7];
 }
 
 void print_move(Move m)
