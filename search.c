@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "history.h"
 #include "move.h"
 #include "movegen.h"
@@ -12,6 +13,9 @@
 
 void report_search_info(SearchInfo *root_info, int score, unsigned int start, unsigned int finish)
 {
+    if (!root_info)
+        exit(EXIT_FAILURE);
+
     // After searching all possible moves, compile stats
     root_info->ms = finish - start;
     root_info->nps = (unsigned int) (1000 * root_info->nodes / (root_info->ms));
