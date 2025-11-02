@@ -2,8 +2,8 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include "history.h"
 #include "move.h"
 #include "movegen.h"
@@ -17,17 +17,17 @@ void report_search_info(SearchInfo *root_info, int score, unsigned int start, un
         exit(EXIT_FAILURE);
 
     // After searching all possible moves, compile stats
-    root_info->ms = finish - start;
+    root_info->ms = finish - start + 1;
     root_info->nps = (unsigned int) (1000 * root_info->nodes / (root_info->ms));
 
-    int mated = 0;
+    bool mated = false;
     if (score > MAX_MATE_SCORE) {
         score = (MATE_SCORE - score) / 2 + 1;
-        mated = 1;
+        mated = true;
     }
     else if (score < -MAX_MATE_SCORE) {
         score = (-MATE_SCORE - score) / 2;
-        mated = 1;
+        mated = true;
     }
 
     printf("info depth %d ", root_info->depth);
@@ -48,25 +48,25 @@ void report_search_info(SearchInfo *root_info, int score, unsigned int start, un
 void check_time_left(SearchInfo *info)
 {
     // Check if time up, or interrupt from GUI
-    if (info->timeset == 1 && get_time_ms() > info->stoptime) {
-        info->stopped = 1;
+    if (info->timeset && get_time_ms() > info->stoptime) {
+        info->stopped = true;
     }
     read_input(info);
 }
 
-inline int is_repetition(const GameState *pos)
+inline bool is_repetition(const GameState *pos)
 {
     for (int i = 1; i < pos->half_move_clock; i++) {
         int index = history_index - i;
         if (index < 0)
             break;
         if (pos_history[index] == pos->key)
-            return 1;
+            return true;
     }
-    return 0; // Detects a single rep
+    return false; // Detects a single rep
 }
 
-inline int calculate_reduction(Move m, int move_count, int depth, int pv_node)
+inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
     int r = 0.77 + log(move_count) * log(depth) / 2.36;
     if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
@@ -79,9 +79,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
-    int in_check = is_in_check(pos);
-    int pv_node = beta - alpha > 1;
-    int is_root = (ply == 0);
+    bool in_check = is_in_check(pos);
+    bool pv_node = beta - alpha > 1;
+    bool is_root = (ply == 0);
     int score;
 
     MoveList move_list;
@@ -131,7 +131,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
     // tt_hit is boolean
     TTEntry tt_entry;
-    int tt_hit = probe_tt(pos, &tt_entry, ply);
+    bool tt_hit = probe_tt(pos, &tt_entry, ply);
 
     // Cutoff when we find valid TT entry
     if (!pv_node && tt_hit && tt_entry.depth >= depth
@@ -285,7 +285,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
-    int in_check = is_in_check(pos);
+    bool in_check = is_in_check(pos);
 
     // Update time left
     if ((info->nodes & 2047) == 0) {
@@ -392,7 +392,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
         score = new_score;
         best_move = root_info->pv_table[0][0];
 
-        unsigned int finish = get_time_ms() + 1;
+        unsigned int finish = get_time_ms();
         report_search_info(root_info, score, start, finish);
     }
     // Print the best move

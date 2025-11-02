@@ -122,8 +122,8 @@ void parse_go(char *line, GameState *pos)
     int wtime = -1, btime = -1, time = -1, inc = 0;
 
     SearchInfo info;
-    info.stopped = 0;
-    info.timeset = 0;
+    info.stopped = false;
+    info.timeset = false;
 
     line += 3; // Start the line after the word "go"
     char *temp = line;
