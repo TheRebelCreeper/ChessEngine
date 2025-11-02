@@ -1,12 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #include "search.h"
-
 #include <assert.h>
 #include <math.h>
-
+#include <stdio.h>
+#include <string.h>
 #include "history.h"
 #include "move.h"
 #include "movegen.h"
