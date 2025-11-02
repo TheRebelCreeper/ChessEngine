@@ -48,13 +48,6 @@ static const int MVV_LVA_TABLE[6][12] =
     {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
-static const int RAZOR_MARGIN[4] = {
-    0,
-    280,
-    300,
-    320
-};
-
 // Original values were multiplied by 1.5
 static const int futility_margins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780};
 

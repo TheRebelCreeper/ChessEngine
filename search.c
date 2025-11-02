@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "history.h"
 #include "move.h"
 #include "movegen.h"
@@ -12,6 +13,9 @@
 
 void report_search_info(SearchInfo *root_info, int score, unsigned int start, unsigned int finish)
 {
+    if (!root_info)
+        exit(EXIT_FAILURE);
+
     // After searching all possible moves, compile stats
     root_info->ms = finish - start;
     root_info->nps = (unsigned int) (1000 * root_info->nodes / (root_info->ms));
@@ -137,6 +141,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         int rfp_margin = 75 * depth;
         if (depth <= 6 && static_eval - rfp_margin >= beta) {
             return static_eval;
+        }
+
+        // Razoring
+        if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
+            int razor_score = qsearch(alpha, alpha + 1, pos, info);
+            if (razor_score <= alpha)
+                return razor_score;
         }
 
         // Null Move Pruning
