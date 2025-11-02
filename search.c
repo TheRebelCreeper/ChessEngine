@@ -106,19 +106,27 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return evaluation(pos);
     }
 
+    if (!is_root) {
+        // Search for draws and repetitions
+        // Don't need to search for repetition if halfMoveClock is low
+        if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
+            insufficient_material(pos)) {
+            // Cut the pv line if this is a draw
+            info->pv_table_length[ply] = 0;
+            return 0;
+        }
+
+        // Mate distance pruning
+        alpha = MAX(alpha, -MATE_SCORE + ply);
+        beta = MIN(beta, MATE_SCORE - ply - 1);
+        if (alpha >= beta)
+            return alpha;
+    }
+
     // Enter qsearch
     if (depth <= 0) {
         info->pv_table_length[ply] = 0;
         return qsearch(alpha, beta, pos, info);
-    }
-
-    // Search for draws and repetitions
-    // Don't need to search for repetition if halfMoveClock is low
-    if (!is_root && ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
-                     insufficient_material(pos))) {
-        // Cut the pv line if this is a draw
-        info->pv_table_length[ply] = 0;
-        return 0;
     }
 
     // tt_hit is boolean
