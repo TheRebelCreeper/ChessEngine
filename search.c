@@ -139,6 +139,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             return static_eval;
         }
 
+        // Razoring
+        if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
+            int razor_score = qsearch(alpha, alpha + 1, pos, info);
+            if (razor_score <= alpha)
+                return razor_score;
+        }
+
         // Null Move Pruning
         if (depth >= 4 && static_eval >= beta && info->move_stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
             int r = 4;
