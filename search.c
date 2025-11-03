@@ -196,8 +196,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         Move current = move_list.move[i];
         GameState new_pos;
 
+        // Make move and skip if illegal
         if (!make_move(pos, &new_pos, current))
             continue;
+
+        bool noisy = is_noisy(current);
+        // SEE pruning
+        if (best_score > -MATE_SCORE) {
+            int see_threshold = noisy ? -75 * depth : -25 * depth;
+            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
+                continue;
+        }
 
         move_count++;
         info->ply++;
@@ -208,16 +217,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         // Save the current move into history
         history_index++;
         pos_history[history_index] = new_pos.key;
-
-
-        bool noisy = is_noisy(current);
-
-        // SEE pruning
-        if (best_score > -MATE_SCORE) {
-            int see_threshold = noisy ? -75 * depth : -25 * depth;
-            if (see(&new_pos, GET_MOVE_DST(current)) <= see_threshold)
-                continue;
-        }
 
         // PVS
         int new_depth = depth - 1;
