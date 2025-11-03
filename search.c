@@ -75,20 +75,21 @@ inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
     return r;
 }
 
-int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, bool cut_node)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
     bool in_check = is_in_check(pos);
     bool pv_node = beta - alpha > 1;
     bool is_root = (ply == 0);
-    int score;
+    assert(!(pv_node && cut_node));
 
     MoveList move_list;
     MoveList fail_low_quiets;
     clear_movelist(&fail_low_quiets);
     Move best_move = 0;
     int best_score = -INF;
+    int score;
 
     // Update node count
     info->nodes++;
@@ -129,7 +130,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return qsearch(alpha, beta, pos, info);
     }
 
-    // tt_hit is boolean
+    // tt_hit is boolean, if no entry found, move is set to 0
     TTEntry tt_entry;
     bool tt_hit = probe_tt(pos, &tt_entry, ply);
 
@@ -139,6 +140,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
             || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
         return tt_entry.score;
+    }
+
+    // IIR
+    if (depth >= MIN_IIR_DEPTH && (pv_node || cut_node) && !tt_entry.move) {
+        --depth;
     }
 
     if (!pv_node && !in_check) {
@@ -171,7 +177,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             // Save null move to move_stack
             info->move_stack[ply] = 0;
             info->ply++;
-            int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info);
+            int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info, !cut_node);
             info->ply--;
             history_index--;
 
@@ -209,18 +215,18 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // PVS
         int new_depth = depth - 1;
         if (move_count == 1) {
-            score = -search(-beta, -alpha, new_depth, &new_pos, info);
+            score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
         }
         else {
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
 
-            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
-                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
             }
             if (score > alpha && score < beta) {
-                score = -search(-beta, -alpha, new_depth, &new_pos, info);
+                score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
             }
         }
 
@@ -382,7 +388,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
         memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
         root_info->depth = ID;
 
-        int new_score = search(alpha, beta, ID, pos, root_info);
+        int new_score = search(alpha, beta, ID, pos, root_info, false);
         Move new_move = root_info->pv_table[0][0];
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
