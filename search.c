@@ -209,8 +209,15 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         history_index++;
         pos_history[history_index] = new_pos.key;
 
-        // Does this move give check
-        //int gives_check = is_in_check(&new_pos);
+
+        bool noisy = is_noisy(current);
+
+        // SEE pruning
+        if (best_score > -MATE_SCORE) {
+            int see_threshold = noisy ? -75 * depth : -25 * depth;
+            if (see(&new_pos, GET_MOVE_DST(current)) <= see_threshold)
+                continue;
+        }
 
         // PVS
         int new_depth = depth - 1;
@@ -258,7 +265,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             }
         }
 
-        if (current != best_move && !is_noisy(current)) {
+        if (current != best_move && !noisy) {
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
         }
 
