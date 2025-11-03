@@ -1,6 +1,8 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include <stdbool.h>
+
 #include "move.h"
 #include "position.h"
 
@@ -16,10 +18,10 @@ typedef struct info {
     int starttime;
     int stoptime;
     int depth;
-    int timeset;
+    bool timeset;
     int movestogo;
 
-    int stopped;
+    bool stopped;
     unsigned int ms;
     unsigned int nps;
     int ply;

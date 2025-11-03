@@ -45,8 +45,8 @@ typedef uint32_t Move;
 #define IS_MOVE_EP(move) (((move) & IS_EN_PASSANT) >> 25)
 #define IS_MOVE_CASTLES(move) (((move) & IS_CASTLES) >> 26)
 
-int is_noisy(Move move);
-int make_move(const GameState *old_pos, GameState *new_pos, Move move);
+bool is_noisy(Move move);
+bool make_move(const GameState *old_pos, GameState *new_pos, Move move);
 void make_null_move(const GameState *old_pos, GameState *new_pos);
 void print_move(Move m);
 

@@ -35,7 +35,7 @@ extern TT GLOBAL_TT;
 
 void init_tt(TT *table);
 void clear_tt(TT *table);
-int probe_tt(const GameState *pos, TTEntry *dst, int ply);
+bool probe_tt(const GameState *pos, TTEntry *dst, int ply);
 void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply);
 
 #endif

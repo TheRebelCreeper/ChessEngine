@@ -42,13 +42,13 @@ unsigned char adjust_castling_rights(const GameState *pos, int src, int dst, int
     return castling_rights;
 }
 
-int is_noisy(Move move)
+bool is_noisy(Move move)
 {
     assert(move != 0);
     return move & (IS_CAPTURE | IS_PROMOTION | IS_CASTLES);
 }
 
-int make_move(const GameState *old_pos, GameState *new_pos, Move move)
+bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
 {
     memcpy(new_pos, old_pos, sizeof(GameState));
     int turn = old_pos->turn;

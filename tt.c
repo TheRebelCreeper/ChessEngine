@@ -36,7 +36,7 @@ void clear_tt(TT *table)
 }
 
 // Should return a score
-int probe_tt(const GameState *pos, TTEntry *dst, int ply)
+bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 {
     /* Cool tech - mulhi trick
     size_t idx = (size_t)((U128)key * (U128)size) >> 64);
@@ -60,11 +60,11 @@ int probe_tt(const GameState *pos, TTEntry *dst, int ply)
         dst->flag = entry.flag;
         GLOBAL_TT.hit++;
 
-        return 1;
+        return true;
     }
     dst->flag = TT_NONE;
     dst->move = 0;
-    return 0;
+    return false;
 }
 
 void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply)
