@@ -1,5 +1,4 @@
 #include "movegen.h"
-#include <string.h>
 #include "bitboard.h"
 #include "movelist.h"
 #include "position.h"

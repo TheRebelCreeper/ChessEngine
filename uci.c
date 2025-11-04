@@ -68,7 +68,7 @@ void parse_position(char *line, GameState *pos)
 
     temp = strstr(line, "moves");
     if (temp != NULL) {
-        int size, legal;
+        int size;
         MoveList move_list;
         temp += 6; // Length of "moves "
 
@@ -81,8 +81,8 @@ void parse_position(char *line, GameState *pos)
                 break;
             }
 
-            GameState temp_pos = play_move(pos, move_list.move[idx], &legal);
-            if (!legal && !size) {
+            GameState temp_pos;
+            if (!make_move(pos, &temp_pos, move_list.move[idx]) && !size) {
                 break;
             }
 
@@ -122,8 +122,8 @@ void parse_go(char *line, GameState *pos)
     int wtime = -1, btime = -1, time = -1, inc = 0;
 
     SearchInfo info;
-    info.stopped = 0;
-    info.timeset = 0;
+    info.stopped = false;
+    info.timeset = false;
 
     line += 3; // Start the line after the word "go"
     char *temp = line;
