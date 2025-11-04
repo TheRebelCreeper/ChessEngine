@@ -77,18 +77,12 @@ bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
     // En Passant Moves
     if ((piece == P || piece == p) && IS_MOVE_EP(move)) {
         hash_key ^= epKey[old_pos->enpassant_square & 7];
-        if (turn == WHITE) {
-            hash_key ^= piece_keys[p][dst - 8];
-            CLEAR_SQUARE(new_pos->piece_bitboards[p], dst - 8);
-            CLEAR_SQUARE(new_pos->occupancies[BLACK], dst - 8);
-            new_pos->mailbox[dst - 8] = NO_PIECE;
-        }
-        else {
-            hash_key ^= piece_keys[P][dst + 8];
-            CLEAR_SQUARE(new_pos->piece_bitboards[P], dst + 8);
-            CLEAR_SQUARE(new_pos->occupancies[WHITE], dst + 8);
-            new_pos->mailbox[dst + 8] = NO_PIECE;
-        }
+        int ep_square = turn == WHITE ? dst - 8 : dst + 8;
+        int ep_pawn = p - offset;
+        hash_key ^= piece_keys[ep_pawn][ep_square];
+        CLEAR_SQUARE(new_pos->piece_bitboards[ep_pawn], ep_square);
+        CLEAR_SQUARE(new_pos->occupancies[turn ^ 1], ep_square);
+        new_pos->mailbox[ep_square] = NO_PIECE;
     }
 
     // Clear Destination
