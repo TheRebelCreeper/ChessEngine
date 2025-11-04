@@ -405,7 +405,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
         }
 
         while (!root_info->stopped) {
-            new_score = search(alpha, beta, ID, pos, root_info);
+            new_score = search(alpha, beta, ID, pos, root_info, false);
 
             if (new_score > alpha)
                 new_move = root_info->pv_table[0][0];
