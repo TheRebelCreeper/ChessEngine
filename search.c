@@ -108,6 +108,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     if (!is_root) {
+        // Check extensions
+        if (in_check)
+            depth++;
+
         // Search for draws and repetitions
         // Don't need to search for repetition if halfMoveClock is low
         if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
