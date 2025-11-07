@@ -25,7 +25,6 @@ typedef struct info {
     unsigned int nps;
     int ply;
     U64 nodes;
-    Move killer_moves[2][MAX_PLY];
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
     Move move_stack[MAX_PLY];

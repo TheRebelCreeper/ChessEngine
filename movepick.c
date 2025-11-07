@@ -29,7 +29,7 @@ void pick_move(MoveList *moves, int start_index)
     }
 }
 
-void score_moves(MoveList *moves, const GameState *pos, Move tt_move, SearchInfo *info)
+void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
 {
     for (int i = 0; i < moves->next_open; i++) {
         Move m = moves->move[i];
@@ -53,7 +53,12 @@ void score_moves(MoveList *moves, const GameState *pos, Move tt_move, SearchInfo
         }
         // Score quiet moves
         else {
-            moves->score[i] = get_history(pos, m);
+            if (m == get_killer_one(ply))
+                moves->score[i] = KILLER_ONE;
+            else if (m == get_killer_two(ply))
+                moves->score[i] = KILLER_TWO;
+            else
+                moves->score[i] = get_history(pos, m);
         }
     }
 }

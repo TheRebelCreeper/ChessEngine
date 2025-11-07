@@ -6,6 +6,7 @@
 #include "move.h"
 #include "util.h"
 
+Move killer_table[2][MAX_PLY];
 int history_table[2][64][64];
 int history_index = 0;
 
@@ -32,4 +33,23 @@ inline int get_history(const GameState *pos, Move move)
 {
     assert(move != 0);
     return history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)];
+}
+
+inline Move get_killer_one(int ply)
+{
+    return killer_table[0][ply];
+}
+
+inline Move get_killer_two(int ply)
+{
+    return killer_table[0][ply];
+}
+
+inline void push_killer_move(Move move, int ply)
+{
+    Move killer_one = killer_table[0][ply];
+    if (move != killer_one) {
+        killer_table[1][ply] = killer_one;
+        killer_table[0][ply] = move;
+    }
 }

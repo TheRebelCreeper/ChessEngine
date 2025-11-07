@@ -8,6 +8,6 @@
 #define KILLER_TWO			4400000
 
 void pick_move(MoveList *moves, int start_index);
-void score_moves(MoveList *moves, const GameState *pos, Move tt_move, SearchInfo *info);
+void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply);
 
 #endif
