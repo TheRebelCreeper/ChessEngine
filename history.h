@@ -13,5 +13,8 @@ void clear_history();
 int score_history(const GameState *pos, Move move, int depth);
 void update_history(const GameState *pos, Move move, int bonus);
 int get_history(const GameState *pos, Move move);
+Move get_killer_one(int ply);
+Move get_killer_two(int ply);
+void push_killer_move(Move move, int ply);
 
 #endif
