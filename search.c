@@ -207,7 +207,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         bool noisy = is_noisy(current);
         if (best_score > -MATE_SCORE && !in_check) {
             // Futility Pruning
-            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + 250 + depth * 50 <= alpha) {
+            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
                 continue;
             }
 
