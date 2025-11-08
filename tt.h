@@ -15,7 +15,7 @@ extern uint32_t TT_SIZE;
 #define TT_NONE 0x0
 
 typedef struct ttEntry {
-    U64 key;
+    int key;
     unsigned char depth;
     unsigned char flag;
     Move move;

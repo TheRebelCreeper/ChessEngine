@@ -108,6 +108,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     if (!is_root) {
+        // Check extensions
+        if (in_check)
+            depth++;
+
         // Search for draws and repetitions
         // Don't need to search for repetition if halfMoveClock is low
         if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
@@ -147,9 +151,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         --depth;
     }
 
+    int static_eval = evaluation(pos);
     if (!pv_node && !in_check) {
         assert(!is_root);
-        int static_eval = evaluation(pos);
 
         // Reverse Futility Pruning
         int rfp_margin = 75 * depth;
@@ -188,7 +192,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     unsigned char tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
-    score_moves(&move_list, pos, tt_entry.move, info);
+    score_moves(&move_list, pos, tt_entry.move, ply);
     int move_count = 0;
 
     for (int i = 0; i < total_moves; i++) {
@@ -201,8 +205,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             continue;
 
         bool noisy = is_noisy(current);
-        // SEE pruning
         if (best_score > -MATE_SCORE && !in_check) {
+            // Futility Pruning
+            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
+                continue;
+            }
+
+            // SEE pruning
             int see_threshold = noisy ? -75 * depth : -25 * depth;
             if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
                 continue;
@@ -280,6 +289,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // Update history score if not a capture and beta cutoff
     if (best_move && !is_noisy(best_move)) {
+        push_killer_move(best_move, ply);
+
         int bonus = score_history(pos, best_move, depth);
         int penalty = -bonus;
         update_history(pos, best_move, bonus);
@@ -332,7 +343,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
-    score_moves(&move_list, pos, 0, info);
+    score_moves(&move_list, pos, 0, ply);
 
     for (int i = 0; i < total_moves; i++) {
         pick_move(&move_list, i);
@@ -385,7 +396,6 @@ void search_root(GameState *pos, SearchInfo *root_info)
     root_info->ply = 0;
     root_info->stopped = 0;
     memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
-    memset(root_info->killer_moves, 0, sizeof(root_info->killer_moves));
 
     for (int ID = 1; ID <= max_search_depth; ID++) {
         memset(root_info->pv_table, 0, sizeof(root_info->pv_table));

@@ -38,13 +38,13 @@ void clear_tt(TT *table)
 // Should return a score
 bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 {
-    /* Cool tech - mulhi trick
-    size_t idx = (size_t)((U128)key * (U128)size) >> 64);
-    */
-    int i = pos->key % GLOBAL_TT.num_entries;
+    /* Cool tech - mulhi trick */
+    size_t i = (size_t) (((U128) pos->key * (U128) GLOBAL_TT.num_entries) >> 64);
+    int packed_key = (int) pos->key;
+
     TTEntry entry = GLOBAL_TT.hash_table[i];
 
-    if (entry.key == pos->key && entry.flag != TT_NONE) {
+    if (entry.key == packed_key && entry.flag != TT_NONE) {
         // Adjust mate score in TT
         int score = entry.score;
         if (score > MAX_MATE_SCORE) {
@@ -70,7 +70,10 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply)
 {
     assert(depth >= 0);
-    int i = pos->key % GLOBAL_TT.num_entries;
+
+    /* Cool tech - mulhi trick */
+    size_t i = (size_t) (((U128) pos->key * (U128) GLOBAL_TT.num_entries) >> 64);
+    int packed_key = (int) pos->key;
 
     if (score > MAX_MATE_SCORE) {
         score += ply;
@@ -79,11 +82,11 @@ void save_tt(const GameState *pos, Move move, int score, int flag, int depth, in
         score -= ply;
     }
 
-    if (move || GLOBAL_TT.hash_table[i].key != pos->key) {
+    if (move || GLOBAL_TT.hash_table[i].key != packed_key) {
         GLOBAL_TT.hash_table[i].move = move;
     }
 
-    GLOBAL_TT.hash_table[i].key = pos->key;
+    GLOBAL_TT.hash_table[i].key = packed_key;
     GLOBAL_TT.hash_table[i].flag = flag;
     GLOBAL_TT.hash_table[i].score = score;
     GLOBAL_TT.hash_table[i].depth = (unsigned char) depth;
