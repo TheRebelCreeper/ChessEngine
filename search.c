@@ -151,9 +151,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         --depth;
     }
 
+    int static_eval = evaluation(pos);
     if (!pv_node && !in_check) {
         assert(!is_root);
-        int static_eval = evaluation(pos);
 
         // Reverse Futility Pruning
         int rfp_margin = 75 * depth;
@@ -205,8 +205,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             continue;
 
         bool noisy = is_noisy(current);
-        // SEE pruning
         if (best_score > -MATE_SCORE && !in_check) {
+            // Futility Pruning
+            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + 250 + depth * 50 <= alpha) {
+                continue;
+            }
+
+            // SEE pruning
             int see_threshold = noisy ? -75 * depth : -25 * depth;
             if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
                 continue;
