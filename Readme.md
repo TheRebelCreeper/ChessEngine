@@ -24,6 +24,18 @@ This engine features many techniques in order to calculate both quickly and deep
 * History Heuristic Move Ordering
 * Killer Move Heuristic
 
+## TODO List
+
+Features that have not been implemented yet, but are planned
+
+* New NNUE
+* TT in qsearch
+* Aspiration Windows
+* Lazy SMP
+* Late Move Pruning
+* Tunability
+* Staged Move Generation
+
 ## Requirements
 
 Requires the NNUE weights to be in same directory as executable.  
