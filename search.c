@@ -417,10 +417,10 @@ void search_root(GameState *pos, SearchInfo *root_info)
             new_score = search(alpha, beta, ID, pos, root_info, false);
 
             if (new_score <= alpha) {
-                alpha = MAX(new_score - delta, -INF);
+                alpha = MAX(alpha - delta, -INF);
             }
             else if (new_score >= beta)
-                beta = MIN(new_score + delta, INF);
+                beta = MIN(beta + delta, INF);
             else
                 break;
             delta += delta;
