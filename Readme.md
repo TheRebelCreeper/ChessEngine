@@ -35,6 +35,7 @@ Features that have not been implemented yet, but are planned
 * Late Move Pruning
 * Tunability
 * Staged Move Generation
+* Improved uci print out (seldepth)
 
 ## Requirements
 
