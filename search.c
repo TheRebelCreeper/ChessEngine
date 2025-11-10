@@ -175,8 +175,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             // Make the null move
             GameState new_pos;
             make_null_move(pos, &new_pos);
-            history_index++;
-            pos_history[history_index] = new_pos.key;
+            pos_history[++history_index] = new_pos.key;
 
             // Save null move to move_stack
             info->move_stack[ply] = 0;
@@ -224,8 +223,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         info->move_stack[ply] = current;
 
         // Save the current move into history
-        history_index++;
-        pos_history[history_index] = new_pos.key;
+        pos_history[++history_index] = new_pos.key;
 
         // PVS
         int new_depth = depth - 1;
