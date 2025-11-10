@@ -387,6 +387,8 @@ void search_root(GameState *pos, SearchInfo *root_info)
 {
     int max_search_depth = root_info->depth;
     int score = -INF;
+    int alpha = -INF;
+    int beta = INF;
     Move best_move = 0;
 
     // Clear information for root_info. Will have to do this for ID upon each depth
@@ -402,29 +404,25 @@ void search_root(GameState *pos, SearchInfo *root_info)
         memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
         root_info->depth = ID;
 
-        int alpha = -INF;
-        int beta = INF;
         int delta = INITIAL_ASP_WINDOW;
 
         int new_score = -INF;
 
-        if (ID >= MIN_ASP_DEPTH) {
+        /*if (ID >= MIN_ASP_DEPTH) {
             alpha = MAX(score - delta, -INF);
             beta = MIN(score + delta, INF);
-        }
+        }*/
 
-        while (!root_info->stopped) {
-            new_score = search(alpha, beta, ID, pos, root_info, false);
+        new_score = search(alpha, beta, ID, pos, root_info, false);
 
-            if (new_score <= alpha) {
-                alpha = MAX(alpha - delta, -INF);
-            }
-            else if (new_score >= beta)
-                beta = MIN(beta + delta, INF);
-            else
-                break;
-            delta += delta;
+        if (new_score <= alpha || new_score >= beta) {
+            alpha = -INF;
+            beta = INF;
+            ID -= 1;
+            continue;
         }
+        alpha = new_score - delta;
+        beta = new_score + delta;
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (root_info->pv_table_length[0] == 0 || (root_info->stopped && ID > 1))
