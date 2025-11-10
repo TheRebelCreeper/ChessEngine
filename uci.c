@@ -1,4 +1,6 @@
 #include "uci.h"
+
+#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,8 +94,7 @@ void parse_position(char *line, GameState *pos)
             }
 
             // Add the legal move to history
-            pos_history[history_index] = temp_pos.key;
-            history_index++;
+            pos_history[history_index++] = temp_pos.key;
 
             *pos = temp_pos;
             // Increment temp till the next move
@@ -205,7 +206,7 @@ void parse_go(char *line, GameState *pos)
     else {
         info.depth = depth;
     }
-
+    pos_history[history_index] = pos->key;
     search_root(pos, &info);
 }
 
