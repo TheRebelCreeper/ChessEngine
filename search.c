@@ -57,10 +57,10 @@ void check_time_left(SearchInfo *info)
 inline bool is_repetition(const GameState *pos)
 {
     for (int i = 1; i < pos->half_move_clock; i++) {
-        int index = history_index - i;
+        int index = repetition_index - i;
         if (index < 0)
             break;
-        if (pos_history[index] == pos->key)
+        if (repetition_history[index] == pos->key)
             return true;
     }
     return false; // Detects a single rep
@@ -175,14 +175,14 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             // Make the null move
             GameState new_pos;
             make_null_move(pos, &new_pos);
-            pos_history[++history_index] = new_pos.key;
+            repetition_history[++repetition_index] = new_pos.key;
 
             // Save null move to move_stack
             info->move_stack[ply] = 0;
             info->ply++;
             int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info, !cut_node);
             info->ply--;
-            history_index--;
+            repetition_index--;
 
             if (null_score >= beta && null_score < MATE_SCORE)
                 return null_score;
@@ -223,7 +223,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         info->move_stack[ply] = current;
 
         // Save the current move into history
-        pos_history[++history_index] = new_pos.key;
+        repetition_history[++repetition_index] = new_pos.key;
 
         // PVS
         int new_depth = depth - 1;
@@ -245,7 +245,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         // Unmake move by removing current move from history
         info->ply--;
-        history_index--;
+        repetition_index--;
 
         // Update bestMove whenever found so all-nodes can be stored in TT
         if (score > best_score) {
@@ -397,16 +397,15 @@ void search_root(GameState *pos, SearchInfo *root_info)
     root_info->stopped = 0;
     memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
 
-    for (int ID = 1; ID <= max_search_depth; ID++) {
+    for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
         memset(root_info->pv_table, 0, sizeof(root_info->pv_table));
         memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
-        root_info->depth = ID;
+        root_info->depth = iterative_depth;
 
-        int new_score = search(alpha, beta, ID, pos, root_info, false);
-        Move new_move = root_info->pv_table[0][0];
+        int new_score = search(alpha, beta, iterative_depth, pos, root_info, false);
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
-        if (!new_move || (root_info->stopped == 1 && ID > 1))
+        if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
             break;
 
         score = new_score;
