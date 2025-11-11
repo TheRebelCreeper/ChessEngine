@@ -97,9 +97,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     // Update time left
     if ((info->nodes & 2047) == 0) {
         check_time_left(info);
-        // Ran out of time
-        if (info->stopped)
-            return 0;
+    }
+
+    // Ran out of time
+    if (info->stopped) {
+        info->pv_table_length[ply] = 0;
+        return 0;
     }
 
     // Search has exceeded max depth, return static eval
@@ -275,8 +278,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
         }
 
-        if (info->stopped)
+        if (info->stopped) {
+            info->pv_table_length[ply] = 0;
             return 0;
+        }
     }
 
     // When no more legal moves, return either mate score or draw
@@ -311,10 +316,10 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
     // Update time left
     if ((info->nodes & 2047) == 0) {
         check_time_left(info);
-        // Ran out of time
-        if (info->stopped)
-            return 0;
     }
+
+    if (info->stopped)
+        return 0;
 
     // Search has exceeded max depth, return static eval
     if (ply >= MAX_PLY) {
