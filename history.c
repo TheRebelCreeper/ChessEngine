@@ -8,7 +8,7 @@
 
 Move killer_table[2][MAX_PLY];
 int history_table[2][64][64];
-int history_index = 0;
+int repetition_index = 0;
 
 inline void clear_history()
 {

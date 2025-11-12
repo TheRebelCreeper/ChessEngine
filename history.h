@@ -6,8 +6,8 @@
 #include "move.h"
 #include "position.h"
 
-extern int history_index; // Used to index 50 move rule array
-U64 pos_history[256]; // Used to calculate 50 move rule array
+extern int repetition_index; // Used to index 50 move rule array
+U64 repetition_history[256]; // Used to calculate 50 move rule array
 
 void clear_history();
 int score_history(const GameState *pos, Move move, int depth);
