@@ -10,6 +10,7 @@
 
 #define FULL_DEPTH_MOVES 3
 #define MIN_IIR_DEPTH 3
+#define INITIAL_ASP_WINDOW 50
 
 extern int NUM_THREADS;
 

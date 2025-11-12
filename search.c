@@ -391,6 +391,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
     int max_search_depth = root_info->depth;
     int alpha = -INF;
     int beta = INF;
+    int delta = INITIAL_ASP_WINDOW;
     int score = -INF;
     Move best_move = 0;
 
@@ -412,6 +413,15 @@ void search_root(GameState *pos, SearchInfo *root_info)
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
             break;
+
+        if (new_score <= alpha || new_score >= beta) {
+            alpha = -INF;
+            beta = INF;
+            iterative_depth -= 1;
+            continue;
+        }
+        alpha = new_score - delta;
+        beta = new_score + delta;
 
         score = new_score;
         best_move = root_info->pv_table[0][0];
