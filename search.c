@@ -152,6 +152,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         if (!make_move(pos, &new_pos, current))
             continue;
 
+        bool noisy = is_noisy(current);
         move_count++;
         info->ply++;
 
@@ -198,6 +199,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 }
                 tt_flag = TT_EXACT;
             }
+        }
+
+        if (current != best_move && !noisy) {
+            fail_low_quiets.move[fail_low_quiets.next_open++] = current;
         }
 
         if (info->stopped) {
