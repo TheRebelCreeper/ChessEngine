@@ -128,8 +128,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
     // tt_hit is boolean, if no entry found, move is set to 0
     TTEntry tt_entry;
-    tt_entry.move = 0;
+    bool tt_hit = probe_tt(pos, &tt_entry, ply);
 
+    // Cutoff when we find valid TT entry
+    if (!pv_node && tt_hit && tt_entry.depth >= depth
+        && (tt_entry.flag == TT_EXACT
+            || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
+            || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
+        return tt_entry.score;
+    }
+
+    unsigned char tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
     int move_count = 0;
@@ -184,8 +193,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 }
 
                 if (score >= beta) {
+                    tt_flag = TT_LOWER;
                     break;
                 }
+                tt_flag = TT_EXACT;
             }
         }
 
@@ -200,6 +211,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return in_check ? -MATE_SCORE + ply : 0;
     }
 
+    save_tt(pos, best_move, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
