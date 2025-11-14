@@ -153,7 +153,15 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         repetition_history[++repetition_index] = new_pos.key;
 
         int new_depth = depth - 1;
-        score = -search(-beta, -alpha, new_depth, &new_pos, info);
+        if (move_count == 1) {
+            score = -search(-beta, -alpha, new_depth, &new_pos, info);
+        }
+        else {
+            score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+            if (score > alpha && score < beta) {
+                score = -search(-beta, -alpha, new_depth, &new_pos, info);
+            }
+        }
 
         // Unmake move by removing current move from history
         info->ply--;
@@ -166,7 +174,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
                 best_move = current;
                 alpha = score;
 
-                if (1) {
+                if (pv_node) {
                     info->pv_table[ply][ply] = current;
                     // Crazy memcpy which copies PV from lower depth to current depth
                     memcpy((info->pv_table[ply]) + ply + 1, (info->pv_table[ply + 1]) + ply + 1,
