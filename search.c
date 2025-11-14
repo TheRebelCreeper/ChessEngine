@@ -159,7 +159,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         // Reverse Futility Pruning
         int rfp_margin = 75 * depth;
-        if (depth <= 6 && static_eval - rfp_margin >= beta) {
+        if (depth <= 7 && static_eval - rfp_margin >= beta) {
             return static_eval;
         }
 
