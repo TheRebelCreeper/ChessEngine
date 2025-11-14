@@ -17,7 +17,6 @@ DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
 ifeq ($(OS), Windows_NT)
-	DEFINES += -Drandom=rand
 	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
 	EXEEXT = .exe
 	RM = del /Q
@@ -28,7 +27,7 @@ else
 endif
 
 # Executable name
-NAME = Remake
+NAME = Saxton
 VERSION = $(file < version.txt)
 TARGET = $(NAME)_v$(VERSION)$(EXEEXT)
 
