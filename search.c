@@ -17,7 +17,6 @@ void report_search_info(SearchInfo *root_info, int score, unsigned int start, un
         exit(EXIT_FAILURE);
 
     // After searching all possible moves, compile stats
-    root_info->ms = finish - start + 1;
     root_info->nps = (unsigned int) (1000 * root_info->nodes / (root_info->ms));
 
     bool mated = false;
@@ -399,7 +398,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
     clear_history();
     root_info->nodes = 0ULL;
     root_info->ply = 0;
-    root_info->stopped = 0;
+    root_info->stopped = false;
     memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
@@ -417,6 +416,8 @@ void search_root(GameState *pos, SearchInfo *root_info)
         best_move = root_info->pv_table[0][0];
 
         unsigned int finish = get_time_ms();
+        root_info->ms = (finish - start) > 0 ? finish - start : 1;
+
         report_search_info(root_info, score, start, finish);
     }
     // Print the best move
