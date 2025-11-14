@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "magic.h"
+#include "pcg.h"
 
-int history_index = 0;
 
 char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
 char *piece_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
@@ -100,6 +100,7 @@ void set_occupancies(GameState *pos)
 
 void init_keys()
 {
+    pcg32_srandom(42u, 54u);
     side_key = random_u64();
     for (int i = 0; i < 12; i++) {
         for (int j = 0; j < 64; j++) {

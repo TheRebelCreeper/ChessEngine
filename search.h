@@ -1,21 +1,15 @@
 #ifndef SEARCH_H
 #define SEARCH_H
 
+#include <stdbool.h>
+
 #include "move.h"
 #include "position.h"
 
-#define MAX_PLY 64
-
-#define TT_HIT_SCORE		10000000
-#define KILLER_ONE			4500000
-#define KILLER_TWO			4400000
-#define HISTORY_SCORE_MAX	4200000
-#define HISTORY_SCORE_MIN	600
+#define MAX_PLY 128
 
 #define FULL_DEPTH_MOVES 3
-#define REDUCTION_LIMIT 3
-
-#define ASPIRATION_WINDOW
+#define MIN_IIR_DEPTH 3
 
 extern int NUM_THREADS;
 
@@ -23,19 +17,18 @@ typedef struct info {
     int starttime;
     int stoptime;
     int depth;
-    int timeset;
+    bool timeset;
     int movestogo;
 
-    int stopped;
+    bool stopped;
+    bool benchmark;
     unsigned int ms;
     unsigned int nps;
-    int best_score;
     int ply;
     U64 nodes;
-    Move killer_moves[2][MAX_PLY];
-    int history[2][64][64];
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
+    Move move_stack[MAX_PLY];
 } SearchInfo;
 
 /*
@@ -56,18 +49,8 @@ static const int MVV_LVA_TABLE[6][12] =
     {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
-static const int RAZOR_MARGIN[4] = {
-    0,
-    280,
-    300,
-    320
-};
-
-// Original values were multiplied by 1.5
-static const int futility_margins[9] = {0, 150, 240, 330, 420, 510, 600, 690, 780};
-
-int qsearch(int alpha, int beta, int depth, GameState *pos, SearchInfo *info);
-void search_root(GameState *pos, SearchInfo *info);
+int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
+void search_root(GameState *pos, SearchInfo *root_info);
 void read_input(SearchInfo *info);
 
 #endif

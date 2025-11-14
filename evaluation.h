@@ -4,7 +4,8 @@
 #include "position.h"
 
 #define INF 1000000
-#define CHECKMATE 999900
+#define MATE_SCORE 999900
+#define MAX_MATE_SCORE 999700
 
 static const int piece_value[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
 

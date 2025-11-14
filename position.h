@@ -1,6 +1,8 @@
 #ifndef POSITION_H
 #define POSITION_H
 
+#include <stdbool.h>
+
 #include "bitboard.h"
 
 #define DELIMS "/ "
@@ -25,15 +27,9 @@ typedef struct gameState {
     int full_move;
 } GameState;
 
-enum {
-    P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
-};
-
-extern int history_index;
 extern char *piece_notation[12];
 extern int piece_lookup[2][6];
 
-U64 pos_history[256];
 U64 piece_keys[12][64];
 U64 castle_keys[16];
 U64 epKey[8];
@@ -92,12 +88,12 @@ inline int is_endgame(GameState *pos)
 } */
 
 
-inline int is_endgame(const GameState *pos)
+inline bool is_endgame(const GameState *pos)
 {
     return COUNT_BITS(pos->occupancies[BOTH]) <= 10;
 }
 
-inline int only_has_pawns(const GameState *pos, int side)
+inline bool only_has_pawns(const GameState *pos, int side)
 {
     int piece = (side == WHITE) ? P : p;
     int total_pieces = COUNT_BITS(pos->occupancies[side]);
@@ -105,7 +101,7 @@ inline int only_has_pawns(const GameState *pos, int side)
     return total_pieces - 1 == total_pawns;
 }
 
-inline int insufficient_material(const GameState *pos)
+inline bool insufficient_material(const GameState *pos)
 {
     int total_pieces = COUNT_BITS(pos->occupancies[BOTH]);
     int white_knights = COUNT_BITS(pos->piece_bitboards[N]);
@@ -116,42 +112,41 @@ inline int insufficient_material(const GameState *pos)
 
     // Not insufficient_material
     if (total_pieces - minors > 2)
-        return 0;
+        return false;
 
     // King vs King
     if (total_pieces == 2)
-        return 1;
+        return true;
 
     // K+N vs K or K+B vs K
     if (minors == 1)
-        return 1;
+        return true;
 
     if (minors == 2 && white_knights == 1 && black_knights == 1)
-        return 1;
-    else
-        return 0;
+        return true;
+    return false;
 }
 
-inline int is_square_attacked(const GameState *pos, int square, int by_color)
+inline bool is_square_attacked(const GameState *pos, int square, int by_color)
 {
     int offset = 6 * by_color;
     int pawn_attack_color = by_color ^ 1;
     U64 occupancy = pos->occupancies[BOTH];
 
     if (king_attacks[square] & pos->piece_bitboards[K + offset])
-        return 1;
+        return true;
     if (knight_attacks[square] & pos->piece_bitboards[N + offset])
-        return 1;
+        return true;
     if (pawn_attacks[pawn_attack_color][square] & pos->piece_bitboards[P + offset])
-        return 1;
+        return true;
     if (get_bishop_attacks(square, occupancy) & (pos->piece_bitboards[B + offset] | pos->piece_bitboards[
                                                      Q + offset]))
-        return 1;
+        return true;
     if (get_rook_attacks(square, occupancy) & (pos->piece_bitboards[R + offset] | pos->piece_bitboards[
                                                    Q + offset]))
-        return 1;
+        return true;
 
-    return 0;
+    return false;
 }
 
 inline int get_smallest_attacker(const GameState *pos, int square)
@@ -176,7 +171,7 @@ inline int get_smallest_attacker(const GameState *pos, int square)
     return -1;
 }
 
-inline int is_in_check(const GameState *pos)
+inline bool is_in_check(const GameState *pos)
 {
     int king_location = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[piece_lookup[pos->turn][K]]);
     return is_square_attacked(pos, king_location, pos->turn ^ 1);

@@ -1,10 +1,13 @@
 #include "uci.h"
+
+#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "et.h"
+#include "history.h"
 #include "movegen.h"
 #include "perft.h"
 #include "search.h"
@@ -20,7 +23,7 @@ int parse_move(char *input_string, MoveList *move_list)
     int promotion_piece = 0;
 
     for (int i = 0; i < move_list->next_open; i++) {
-        Move move = move_list->list[i];
+        Move move = move_list->move[i];
         promotion_piece = GET_MOVE_PROMOTION(move);
 
         if (GET_MOVE_SRC(move) == src && GET_MOVE_DST(move) == dst) {
@@ -51,8 +54,8 @@ void parse_position(char *line, GameState *pos)
 {
     line += 9; // Start the line after the word "position"
     char *temp = line;
-    history_index = 0;
-    memset(pos_history, 0, sizeof(pos_history));
+    repetition_index = 0;
+    memset(repetition_history, 0, sizeof(repetition_history));
 
     if (strncmp(line, "startpos", 8) == 0) {
         load_fen(pos, STARTING_FEN);
@@ -67,32 +70,31 @@ void parse_position(char *line, GameState *pos)
 
     temp = strstr(line, "moves");
     if (temp != NULL) {
-        int size, legal;
+        int size;
         MoveList move_list;
         temp += 6; // Length of "moves "
 
         while (*temp) {
-            move_list = generate_moves(pos, &size);
+            size = generate_moves(pos, &move_list);
             int idx = parse_move(temp, &move_list);
-            int piece = GET_MOVE_PIECE(move_list.list[idx]);
+            int piece = GET_MOVE_PIECE(move_list.move[idx]);
 
             if (idx == -1) {
                 break;
             }
 
-            GameState temp_pos = play_move(pos, move_list.list[idx], &legal);
-            if (!legal) {
+            GameState temp_pos;
+            if (!make_move(pos, &temp_pos, move_list.move[idx]) && !size) {
                 break;
             }
 
             // If the move is a pawn push or capture, reset history list
-            if (GET_MOVE_CAPTURED(move_list.list[idx]) != NO_CAPTURE || piece == P || piece == p) {
-                history_index = 0;
+            if (GET_MOVE_CAPTURED(move_list.move[idx]) != NO_CAPTURE || piece == P || piece == p) {
+                repetition_index = 0;
             }
 
             // Add the legal move to history
-            pos_history[history_index] = temp_pos.key;
-            history_index++;
+            repetition_history[repetition_index++] = temp_pos.key;
 
             *pos = temp_pos;
             // Increment temp till the next move
@@ -121,8 +123,9 @@ void parse_go(char *line, GameState *pos)
     int wtime = -1, btime = -1, time = -1, inc = 0;
 
     SearchInfo info;
-    info.stopped = 0;
-    info.timeset = 0;
+    info.stopped = false;
+    info.timeset = false;
+    info.benchmark = false;
 
     line += 3; // Start the line after the word "go"
     char *temp = line;
@@ -204,7 +207,7 @@ void parse_go(char *line, GameState *pos)
     else {
         info.depth = depth;
     }
-
+    repetition_history[repetition_index] = pos->key;
     search_root(pos, &info);
 }
 
@@ -269,8 +272,8 @@ void uci_loop()
             // Print engine info
             printf("id name Saxton\n");
             printf("id author Aaron Lampert\n");
-            //printf("option name Threads type spin default 1 min 1 max 12\n");
-            printf("option name Hash type spin default 64 min 1 max 1024\n");
+            printf("option name Threads type spin default 1 min 1 max 1\n");
+            printf("option name Hash type spin default 32 min 1 max 1024\n");
             printf("uciok\n");
         }
     }
