@@ -31,4 +31,21 @@ void pick_move(MoveList *moves, int start_index)
 
 void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
 {
+    for (int i = 0; i < moves->next_open; i++) {
+        // Score captures
+        if (moves->move[i] & IS_CAPTURE) {
+            int piece_offset = 6 * pos->turn;
+            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->move[i]) - piece_offset][
+                                  GET_MOVE_CAPTURED(moves->move[i])] + KILLER_ONE;
+
+            // Give bad score to results with negative SEE
+            if (see(pos, GET_MOVE_DST(moves->move[i])) < -100) {
+                moves->score[i] -= KILLER_ONE;
+            }
+        }
+        // Score quiet moves
+        else {
+            moves->score[i] = HISTORY_SCORE_MAX;
+        }
+    }
 }

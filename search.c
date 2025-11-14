@@ -181,7 +181,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         }
 
         if (info->stopped) {
-            info->pv_table_length[ply] = 0;
             return 0;
         }
     }
