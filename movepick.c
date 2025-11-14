@@ -31,4 +31,7 @@ void pick_move(MoveList *moves, int start_index)
 
 void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
 {
+    for (int i = 0; i < moves->next_open; i++) {
+        moves->score[i] = HISTORY_SCORE_MAX;
+    }
 }
