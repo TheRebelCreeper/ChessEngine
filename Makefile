@@ -29,7 +29,12 @@ endif
 # Executable name
 NAME = Saxton
 VERSION = $(file < version.txt)
+
+ifdef EXE
+TARGET = $(EXE)$(EXEEXT)
+else
 TARGET = $(NAME)_v$(VERSION)$(EXEEXT)
+endif
 
 all: release
 
