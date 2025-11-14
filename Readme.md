@@ -108,3 +108,5 @@ These are all the supported commands the engine gets from the interface.
 
 * quit  
   quit the program as soon as possible
+
+### Supports OpenBench
