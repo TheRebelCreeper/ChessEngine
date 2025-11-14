@@ -1,7 +1,5 @@
 #include "bench.h"
-
 #include <stdio.h>
-
 #include "history.h"
 #include "util.h"
 
