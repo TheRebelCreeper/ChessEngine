@@ -53,7 +53,7 @@ void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
         }
         // Score quiet moves
         else {
-            moves->score[i] = HISTORY_SCORE_MAX;
+            moves->score[i] = get_history(pos, m);
         }
     }
 }

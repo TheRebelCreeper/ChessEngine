@@ -211,6 +211,19 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return in_check ? -MATE_SCORE + ply : 0;
     }
 
+    // Update history score if not a capture and beta cutoff
+    if (best_move && !is_noisy(best_move)) {
+        //push_killer_move(best_move, ply);
+
+        int bonus = score_history(pos, best_move, depth);
+        int penalty = -bonus;
+        update_history(pos, best_move, bonus);
+
+        for (int i = 0; i < fail_low_quiets.next_open; i++) {
+            update_history(pos, fail_low_quiets.move[i], penalty);
+        }
+    }
+
     save_tt(pos, best_move, best_score, tt_flag, depth, ply);
     return best_score;
 }
