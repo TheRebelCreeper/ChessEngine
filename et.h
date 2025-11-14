@@ -13,7 +13,7 @@ extern uint32_t ET_SIZE;
 #define INVALID_EVALUATION (INF + 100)
 
 typedef struct etEntry {
-    int key;
+    U64 key;
     int eval;
 } ETEntry;
 

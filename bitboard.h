@@ -16,11 +16,6 @@
 (byte & 0x01 ? '1' : '0')
 
 typedef unsigned long long U64;
-typedef unsigned __int128 U128;
-
-enum {
-    P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
-};
 
 enum {
     a1, b1, c1, d1, e1, f1, g1, h1,
