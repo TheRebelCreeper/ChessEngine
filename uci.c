@@ -125,6 +125,7 @@ void parse_go(char *line, GameState *pos)
     SearchInfo info;
     info.stopped = false;
     info.timeset = false;
+    info.benchmark = false;
 
     line += 3; // Start the line after the word "go"
     char *temp = line;
@@ -271,8 +272,8 @@ void uci_loop()
             // Print engine info
             printf("id name Saxton\n");
             printf("id author Aaron Lampert\n");
-            //printf("option name Threads type spin default 1 min 1 max 12\n");
-            printf("option name Hash type spin default 64 min 1 max 1024\n");
+            printf("option name Threads type spin default 1 min 1 max 1\n");
+            printf("option name Hash type spin default 32 min 1 max 1024\n");
             printf("uciok\n");
         }
     }

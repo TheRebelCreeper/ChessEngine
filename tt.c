@@ -18,7 +18,6 @@ void init_tt(TT *table)
         perror("Failed to allocate hash table\n");
     }
     clear_tt(table);
-    printf("HashTable init complete with %d entries\n", table->num_entries);
 }
 
 void clear_tt(TT *table)
