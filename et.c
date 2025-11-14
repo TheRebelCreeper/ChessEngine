@@ -18,6 +18,7 @@ void init_et(ET *table)
         perror("Failed to allocate hash table\n");
     }
     clear_et(table);
+    printf("EvalTable init complete with %d entries\n", table->num_entries);
 }
 
 void clear_et(ET *table)
@@ -35,13 +36,10 @@ void clear_et(ET *table)
 // Should return a score
 int probe_et(const GameState *pos)
 {
-    /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((U128) pos->key * (U128) GLOBAL_ET.num_entries) >> 64);
-    int packed_key = (int) pos->key;
-
+    int i = pos->key % GLOBAL_ET.num_entries;
     ETEntry entry = GLOBAL_ET.hash_table[i];
 
-    if (entry.key == packed_key && entry.eval != INVALID_EVALUATION) {
+    if (entry.key == pos->key && entry.eval != INVALID_EVALUATION) {
         return entry.eval;
     }
     return INVALID_EVALUATION;
@@ -49,9 +47,7 @@ int probe_et(const GameState *pos)
 
 void save_et(GameState *pos, int eval)
 {
-    /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((U128) pos->key * (U128) GLOBAL_ET.num_entries) >> 64);
-    int packed_key = (int) pos->key;
-    GLOBAL_ET.hash_table[i].key = packed_key;
+    int i = pos->key % GLOBAL_ET.num_entries;
+    GLOBAL_ET.hash_table[i].key = pos->key;
     GLOBAL_ET.hash_table[i].eval = eval;
 }

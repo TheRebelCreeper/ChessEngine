@@ -1,9 +1,8 @@
 #ifndef MOVEGEN_H
 #define MOVEGEN_H
 
-#include "movelist.h"
+#include "list.h"
 
-int generate_moves_qsearch(const GameState *position, MoveList *move_list);
-int generate_moves(const GameState *position, MoveList *move_list);
+MoveList generate_moves(const GameState *position, int *size);
 
 #endif

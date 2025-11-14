@@ -1,6 +1,6 @@
 #ifndef UCI_H
 #define UCI_H
-#include "movelist.h"
+#include "list.h"
 #include "position.h"
 
 #define UCI_BUFFER_LEN 8192
