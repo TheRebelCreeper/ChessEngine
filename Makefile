@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Ofast -fcommon -flto
+CFLAGS = -Wall -O3 -fcommon -flto
 LIBS =
 
 # Source files
@@ -17,7 +17,6 @@ DEFINES += -DUSE_SSE2 -msse2
 DEFINES += -DUSE_SSE -msse
 
 ifeq ($(OS), Windows_NT)
-	DEFINES += -Drandom=rand
 	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
 	EXEEXT = .exe
 	RM = del /Q
@@ -30,20 +29,25 @@ endif
 # Executable name
 NAME = Saxton
 VERSION = $(file < version.txt)
-TARGET = $(NAME)_v$(VERSION)
+
+ifdef EXE
+TARGET = $(EXE)$(EXEEXT)
+else
+TARGET = $(NAME)_v$(VERSION)$(EXEEXT)
+endif
 
 all: release
 
-release: $(TARGET)$(EXEEXT)
+release: $(TARGET)
 
 debug: CFLAGS += -g
-debug: $(TARGET)$(EXEEXT)
+debug: $(TARGET)
 
-$(TARGET)$(EXEEXT): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(TARGET)$(EXEEXT) $(OBJECTS) $(LIBS) $(DEFINES)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS) $(LIBS) $(DEFINES)
 
 $(OBJECTS):$(SOURCES) $(INCLUDES)
 	$(CC) $(CFLAGS) -c $(SOURCES) $(DEFINES)
 
 clean:
-	$(RM) $(OBJECTS) $(TARGET)$(EXEEXT)
+	$(RM) $(OBJECTS) $(TARGET)
