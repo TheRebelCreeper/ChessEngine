@@ -21,6 +21,7 @@ typedef struct info {
     int movestogo;
 
     bool stopped;
+    bool benchmark;
     unsigned int ms;
     unsigned int nps;
     int ply;

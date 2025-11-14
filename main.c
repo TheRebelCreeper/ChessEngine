@@ -1,3 +1,6 @@
+#include <string.h>
+
+#include "bench.h"
 #include "bitboard.h"
 #include "et.h"
 #include "perft.h"
@@ -23,6 +26,11 @@ int main(int argc, char *argv[])
     init_attacks();
     init_tt(&GLOBAL_TT);
     init_et(&GLOBAL_ET);
+
+    if (argc > 1 && strcmp(argv[1], "bench") == 0) {
+        run_benchmark();
+        return 0;
+    }
 
 #ifdef VALIDATE
     moveGeneratorValidator();

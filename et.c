@@ -18,7 +18,6 @@ void init_et(ET *table)
         perror("Failed to allocate hash table\n");
     }
     clear_et(table);
-    printf("EvalTable init complete with %d entries\n", table->num_entries);
 }
 
 void clear_et(ET *table)
