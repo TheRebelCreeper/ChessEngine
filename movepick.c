@@ -32,14 +32,22 @@ void pick_move(MoveList *moves, int start_index)
 void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
 {
     for (int i = 0; i < moves->next_open; i++) {
+        Move m = moves->move[i];
+        int dst = GET_MOVE_DST(m);
+
+        // Score TT hits
+        if (tt_move != 0 && m == tt_move) {
+            moves->score[i] = TT_HIT_SCORE;
+            continue;
+        }
+
         // Score captures
-        if (moves->move[i] & IS_CAPTURE) {
+        if (m & IS_CAPTURE) {
             int piece_offset = 6 * pos->turn;
-            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(moves->move[i]) - piece_offset][
-                                  GET_MOVE_CAPTURED(moves->move[i])] + KILLER_ONE;
+            moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(m) - piece_offset][GET_MOVE_CAPTURED(m)] + KILLER_ONE;
 
             // Give bad score to results with negative SEE
-            if (see(pos, GET_MOVE_DST(moves->move[i])) < -100) {
+            if (see(pos, dst) < -100) {
                 moves->score[i] -= KILLER_ONE;
             }
         }
