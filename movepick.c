@@ -53,12 +53,7 @@ void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
         }
         // Score quiet moves
         else {
-            if (m == get_killer_one(ply))
-                moves->score[i] = KILLER_ONE;
-            else if (m == get_killer_two(ply))
-                moves->score[i] = KILLER_TWO;
-            else
-                moves->score[i] = get_history(pos, m);
+            moves->score[i] = get_history(pos, m);
         }
     }
 }

@@ -11,7 +11,7 @@
 #include "tt.h"
 #include "util.h"
 
-void report_search_info(SearchInfo *root_info, int score, unsigned int start, unsigned int finish)
+void report_search_info(SearchInfo *root_info, int score)
 {
     if (!root_info)
         exit(EXIT_FAILURE);
@@ -74,14 +74,14 @@ inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
     return r;
 }
 
-int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, bool cut_node)
+int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
     bool in_check = is_in_check(pos);
     bool pv_node = beta - alpha > 1;
     bool is_root = (ply == 0);
-    assert(!(pv_node && cut_node));
+    //assert(!(pv_node && cut_node));
 
     MoveList move_list;
     MoveList fail_low_quiets;
@@ -109,31 +109,21 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         return evaluation(pos);
     }
 
-    if (!is_root) {
-        // Check extensions
-        if (in_check)
-            depth++;
+    // Enter qsearch
+    if (depth <= 0) {
+        info->pv_table_length[ply] = 0;
+        return qsearch(alpha, beta, pos, info);
+    }
 
+    if (!is_root) {
         // Search for draws and repetitions
         // Don't need to search for repetition if halfMoveClock is low
-        if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
+        if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock >= 100 ||
             insufficient_material(pos)) {
             // Cut the pv line if this is a draw
             info->pv_table_length[ply] = 0;
             return 0;
         }
-
-        // Mate distance pruning
-        alpha = MAX(alpha, -MATE_SCORE + ply);
-        beta = MIN(beta, MATE_SCORE - ply - 1);
-        if (alpha >= beta)
-            return alpha;
-    }
-
-    // Enter qsearch
-    if (depth <= 0) {
-        info->pv_table_length[ply] = 0;
-        return qsearch(alpha, beta, pos, info);
     }
 
     // tt_hit is boolean, if no entry found, move is set to 0
@@ -146,49 +136,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
             || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
         return tt_entry.score;
-    }
-
-    // IIR
-    if (depth >= MIN_IIR_DEPTH && (pv_node || cut_node) && !tt_entry.move) {
-        --depth;
-    }
-
-    int static_eval = evaluation(pos);
-    if (!pv_node && !in_check) {
-        assert(!is_root);
-
-        // Reverse Futility Pruning
-        int rfp_margin = 75 * depth;
-        if (depth <= 6 && static_eval - rfp_margin >= beta) {
-            return static_eval;
-        }
-
-        // Razoring
-        if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
-            int razor_score = qsearch(alpha, alpha + 1, pos, info);
-            if (razor_score <= alpha)
-                return razor_score;
-        }
-
-        // Null Move Pruning
-        if (depth >= 4 && static_eval >= beta && info->move_stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
-            int r = 4;
-
-            // Make the null move
-            GameState new_pos;
-            make_null_move(pos, &new_pos);
-            repetition_history[++repetition_index] = new_pos.key;
-
-            // Save null move to move_stack
-            info->move_stack[ply] = 0;
-            info->ply++;
-            int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info, !cut_node);
-            info->ply--;
-            repetition_index--;
-
-            if (null_score >= beta && null_score < MATE_SCORE)
-                return null_score;
-        }
     }
 
     unsigned char tt_flag = TT_UPPER;
@@ -206,18 +153,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             continue;
 
         bool noisy = is_noisy(current);
-        if (best_score > -MATE_SCORE && !in_check) {
-            // Futility Pruning
-            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
-                continue;
-            }
-
-            // SEE pruning
-            int see_threshold = noisy ? -75 * depth : -25 * depth;
-            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
-                continue;
-        }
-
         move_count++;
         info->ply++;
 
@@ -230,18 +165,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         // PVS
         int new_depth = depth - 1;
         if (move_count == 1) {
-            score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
+            score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
         else {
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
-
-            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
             if (score > alpha && reduced < new_depth) {
-                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
+                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
             }
             if (score > alpha && score < beta) {
-                score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
+                score = -search(-beta, -alpha, new_depth, &new_pos, info);
             }
         }
 
@@ -249,7 +183,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         info->ply--;
         repetition_index--;
 
-        // Update bestMove whenever found so all-nodes can be stored in TT
         if (score > best_score) {
             best_score = score;
 
@@ -278,7 +211,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
 
         if (info->stopped) {
-            info->pv_table_length[ply] = 0;
             return 0;
         }
     }
@@ -291,7 +223,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // Update history score if not a capture and beta cutoff
     if (best_move && !is_noisy(best_move)) {
-        push_killer_move(best_move, ply);
+        //push_killer_move(best_move, ply);
 
         int bonus = score_history(pos, best_move, depth);
         int penalty = -bonus;
@@ -310,13 +242,14 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
-    bool in_check = is_in_check(pos);
+    int in_check = is_in_check(pos);
 
     // Update time left
     if ((info->nodes & 2047) == 0) {
         check_time_left(info);
     }
 
+    // Ran out of time
     if (info->stopped)
         return 0;
 
@@ -352,7 +285,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         Move current = move_list.move[i];
 
         // Prune captures with bad SEE when not in check
-        if (!in_check && see(pos, GET_MOVE_DST(current)) < -105) {
+        if (!in_check && see(pos, GET_MOVE_DST(current)) < -100) {
             continue;
         }
 
@@ -369,7 +302,6 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
             best_score = score;
             if (score > alpha) {
                 alpha = score;
-
                 if (score >= beta) {
                     break;
                 }
@@ -406,7 +338,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
         memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
         root_info->depth = iterative_depth;
 
-        int new_score = search(alpha, beta, iterative_depth, pos, root_info, false);
+        int new_score = search(alpha, beta, iterative_depth, pos, root_info);
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
@@ -417,8 +349,7 @@ void search_root(GameState *pos, SearchInfo *root_info)
 
         unsigned int finish = get_time_ms();
         root_info->ms = (finish - start) > 0 ? finish - start : 1;
-
-        report_search_info(root_info, score, start, finish);
+        report_search_info(root_info, score);
     }
     // Print the best move
     printf("bestmove ");

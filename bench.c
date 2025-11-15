@@ -73,7 +73,7 @@ void run_benchmark()
         load_fen(&pos, fen);
         repetition_index = 0;
         repetition_history[repetition_index] = pos.key;
-        info.depth = 14;
+        info.depth = BENCH_DEPTH;
         search_root(&pos, &info);
         total_time += info.ms;
         total_nodes += info.nodes;

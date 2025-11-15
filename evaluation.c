@@ -88,18 +88,18 @@ int nnue_eval(const GameState *pos)
 
 int evaluation(GameState *pos)
 {
-    int score = probe_et(pos);
+    //int score = probe_et(pos);
 
-    if (score == INVALID_EVALUATION) {
-        score = 0;
-        int mat_pawns = COUNT_BITS(pos->piece_bitboards[P] | pos->piece_bitboards[p]);
-        int mat = non_pawn_material(pos) + mat_pawns * piece_value[P];
-        if (FOUND_NETWORK)
-            score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
-        else
-            score += material_count(pos);
-        save_et(pos, score);
-    }
+    //if (score == INVALID_EVALUATION) {
+    int score = 0;
+    int mat_pawns = COUNT_BITS(pos->piece_bitboards[P] | pos->piece_bitboards[p]);
+    int mat = non_pawn_material(pos) + mat_pawns * piece_value[P];
+    if (FOUND_NETWORK)
+        score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
+    else
+        score += material_count(pos);
+    //save_et(pos, score);
+    //}
 
     return score * (100 - pos->half_move_clock) / 100;
 }
