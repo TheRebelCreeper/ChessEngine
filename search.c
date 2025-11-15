@@ -340,6 +340,15 @@ void search_root(GameState *pos, SearchInfo *root_info)
 
         int new_score = search(alpha, beta, iterative_depth, pos, root_info);
 
+        if (new_score <= alpha || new_score >= beta) {
+            alpha = -INF;
+            beta = INF;
+            iterative_depth -= 1;
+            continue;
+        }
+        alpha = new_score - 50;
+        beta = new_score + 50;
+
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
             break;
