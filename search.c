@@ -138,6 +138,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return tt_entry.score;
     }
 
+    int static_eval = evaluation(pos);
+    if (!pv_node & !in_check) {
+        assert(!is_root);
+
+        // Reverse Futility Pruning
+        int rfp_margin = 75 * depth;
+        if (depth <= 6 && static_eval - rfp_margin >= beta)
+            return static_eval;
+    }
+
     unsigned char tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
