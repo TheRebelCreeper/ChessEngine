@@ -168,12 +168,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
         else {
-            int r = calculate_reduction(current, move_count, depth, pv_node);
+            //int r = calculate_reduction(current, move_count, depth, pv_node);
+            int r = 0;
             int reduced = CLAMP(new_depth - r, 0, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
-            if (score > alpha && reduced < new_depth) {
-                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
-            }
+            //if (score > alpha && reduced < new_depth) {
+            //    score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+            //}
             if (score > alpha && score < beta) {
                 score = -search(-beta, -alpha, new_depth, &new_pos, info);
             }
@@ -339,6 +340,15 @@ void search_root(GameState *pos, SearchInfo *root_info)
         root_info->depth = iterative_depth;
 
         int new_score = search(alpha, beta, iterative_depth, pos, root_info);
+
+        if (new_score <= alpha || new_score >= beta) {
+            alpha = -INF;
+            beta = INF;
+            iterative_depth -= 1;
+            continue;
+        }
+        alpha = new_score - 50;
+        beta = new_score + 50;
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
