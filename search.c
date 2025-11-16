@@ -138,6 +138,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return tt_entry.score;
     }
 
+    int static_eval = evaluation(pos);
+    if (!pv_node & !in_check) {
+        assert(!is_root);
+
+        // Reverse Futility Pruning
+        int rfp_margin = 75 * depth;
+        if (depth <= 6 && static_eval - rfp_margin >= beta)
+            return static_eval;
+    }
+
     unsigned char tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
@@ -317,39 +327,39 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
     return best_score;
 }
 
-void search_root(GameState *pos, SearchInfo *root_info)
+void search_root(GameState *pos, SearchInfo *search_info)
 {
-    int max_search_depth = root_info->depth;
+    int max_search_depth = search_info->depth;
     int alpha = -INF;
     int beta = INF;
     int score = -INF;
     Move best_move = 0;
 
-    // Clear information for root_info. Will have to do this for ID upon each depth
+    // Clear information for search_info. Will have to do this for ID upon each depth
     unsigned int start = get_time_ms();
     clear_history();
-    root_info->nodes = 0ULL;
-    root_info->ply = 0;
-    root_info->stopped = false;
-    memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
+    search_info->nodes = 0ULL;
+    search_info->ply = 0;
+    search_info->stopped = false;
+    memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
-        memset(root_info->pv_table, 0, sizeof(root_info->pv_table));
-        memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
-        root_info->depth = iterative_depth;
+        memset(search_info->pv_table, 0, sizeof(search_info->pv_table));
+        memset(search_info->pv_table_length, 0, sizeof(search_info->pv_table_length));
+        search_info->depth = iterative_depth;
 
-        int new_score = search(alpha, beta, iterative_depth, pos, root_info);
+        int new_score = search(alpha, beta, iterative_depth, pos, search_info);
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
-        if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
+        if (!search_info->pv_table_length[0] || (search_info->stopped && iterative_depth > 1))
             break;
 
         score = new_score;
-        best_move = root_info->pv_table[0][0];
+        best_move = search_info->pv_table[0][0];
 
         unsigned int finish = get_time_ms();
-        root_info->ms = (finish - start) > 0 ? finish - start : 1;
-        report_search_info(root_info, score);
+        search_info->ms = (finish - start) > 0 ? finish - start : 1;
+        report_search_info(search_info, score);
     }
     // Print the best move
     printf("bestmove ");
