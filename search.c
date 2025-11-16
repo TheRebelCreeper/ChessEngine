@@ -88,7 +88,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     clear_movelist(&fail_low_quiets);
     Move best_move = 0;
     int best_score = -INF;
-    int score;
+    int score = 0;
 
     // Update node count
     info->nodes++;
@@ -162,8 +162,27 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // Save the current move into history
         repetition_history[++repetition_index] = new_pos.key;
 
-        // PVS
+        // SF style PVS
         int new_depth = depth - 1;
+
+        // LMR conditions
+        if (move_count >= FULL_DEPTH_MOVES && depth >= 2) {
+            int r = calculate_reduction(current, move_count, depth, pv_node);
+            int reduced = CLAMP(new_depth - r, 0, new_depth);
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
+            if (score > alpha && reduced < new_depth) {
+                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+            }
+        }
+        else if (!pv_node || move_count > 1) {
+            score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+        }
+
+        if (pv_node && (move_count == 1 || score > alpha)) {
+            score = -search(-beta, -alpha, new_depth, &new_pos, info);
+        }
+
+        /*
         if (move_count == 1) {
             score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
@@ -171,13 +190,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
-            if (score > alpha && reduced < new_depth) {
-                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
-            }
+
             if (score > alpha && score < beta) {
                 score = -search(-beta, -alpha, new_depth, &new_pos, info);
             }
-        }
+        }*/
 
         // Unmake move by removing current move from history
         info->ply--;
