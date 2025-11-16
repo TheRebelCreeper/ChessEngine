@@ -68,7 +68,7 @@ inline bool is_repetition(const GameState *pos)
 inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
     int r = 0.77 + log(move_count) * log(depth) / 2.36;
-    if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
+    if (move_count <= MIN_LMR_MOVES || depth <= MIN_LMR_DEPTH)
         r = 0;
     r += !pv_node;
     return r;
@@ -88,7 +88,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
     clear_movelist(&fail_low_quiets);
     Move best_move = 0;
     int best_score = -INF;
-    int score;
+    int score = -INF;
 
     // Update node count
     info->nodes++;
@@ -164,19 +164,20 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         // PVS
         int new_depth = depth - 1;
-        if (move_count == 1) {
-            score = -search(-beta, -alpha, new_depth, &new_pos, info);
-        }
-        else {
+        if (move_count >= MIN_LMR_MOVES && depth >= MIN_LMR_DEPTH) {
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
             if (score > alpha && reduced < new_depth) {
                 score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
             }
-            if (score > alpha && score < beta) {
-                score = -search(-beta, -alpha, new_depth, &new_pos, info);
-            }
+        }
+        else if (!pv_node || move_count > 1) {
+            score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+        }
+
+        if (pv_node && (move_count == 1 || score > alpha)) {
+            score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
 
         // Unmake move by removing current move from history
