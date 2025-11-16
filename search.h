@@ -50,7 +50,7 @@ static const int MVV_LVA_TABLE[6][12] =
 };
 
 int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
-void search_root(GameState *pos, SearchInfo *root_info);
+void search_root(GameState *pos, SearchInfo *search_info);
 void read_input(SearchInfo *info);
 
 #endif
