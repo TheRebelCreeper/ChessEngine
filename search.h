@@ -50,8 +50,6 @@ static const int MVV_LVA_TABLE[6][12] =
     {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
-int lmr_table[MAX_PLY][MAX_MOVES];
-
 void init_lmr_table();
 int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
 void search_root(GameState *pos, SearchInfo *search_info);

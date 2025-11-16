@@ -11,6 +11,8 @@
 #include "tt.h"
 #include "util.h"
 
+static int lmr_table[MAX_PLY][MAX_MOVES];
+
 void report_search_info(SearchInfo *root_info, int score)
 {
     if (!root_info)
@@ -74,8 +76,11 @@ void init_lmr_table()
     }
 }
 
-inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
+    // Prevent out of bounds error when approachine max ply
+    if (depth >= MAX_PLY)
+        depth = MAX_PLY - 1;
     int r = lmr_table[depth][move_count];
     if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
         r = 0;
