@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     init_attacks();
     init_tt(&GLOBAL_TT);
     init_et(&GLOBAL_ET);
+    init_lmr_table();
 
     if (argc > 1 && strcmp(argv[1], "bench") == 0) {
         run_benchmark();

@@ -65,9 +65,18 @@ inline bool is_repetition(const GameState *pos)
     return false; // Detects a single rep
 }
 
+void init_lmr_table()
+{
+    for (int depth = 0; depth < MAX_PLY; depth++) {
+        for (int move_count = 0; move_count < MAX_MOVES; move_count++) {
+            lmr_table[depth][move_count] = 0.77 + log(move_count) * log(depth) / 2.36;
+        }
+    }
+}
+
 inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
-    int r = 0.77 + log(move_count) * log(depth) / 2.36;
+    int r = lmr_table[depth][move_count];
     if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
         r = 0;
     r += !pv_node;
