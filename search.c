@@ -78,7 +78,7 @@ void init_lmr_table()
 
 int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
-    // Prevent out of bounds error when approachine max ply
+    // Prevent out of bounds error when approaching max ply
     if (depth >= MAX_PLY)
         depth = MAX_PLY - 1;
     int r = lmr_table[depth][move_count];
