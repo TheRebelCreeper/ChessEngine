@@ -11,6 +11,8 @@
 #include "tt.h"
 #include "util.h"
 
+static int lmr_table[MAX_PLY][MAX_MOVES];
+
 void report_search_info(SearchInfo *root_info, int score)
 {
     if (!root_info)
@@ -65,9 +67,21 @@ inline bool is_repetition(const GameState *pos)
     return false; // Detects a single rep
 }
 
-inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+void init_lmr_table()
 {
-    int r = 0.77 + log(move_count) * log(depth) / 2.36;
+    for (int depth = 0; depth < MAX_PLY; depth++) {
+        for (int move_count = 0; move_count < MAX_MOVES; move_count++) {
+            lmr_table[depth][move_count] = 0.77 + log(move_count) * log(depth) / 2.36;
+        }
+    }
+}
+
+int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+{
+    // Prevent out of bounds error when approaching max ply
+    if (depth >= MAX_PLY)
+        depth = MAX_PLY - 1;
+    int r = lmr_table[depth][move_count];
     if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
         r = 0;
     r += !pv_node;
