@@ -207,6 +207,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         info->ply--;
         repetition_index--;
 
+        if (info->stopped) {
+            return 0;
+        }
+
         if (score > best_score) {
             best_score = score;
 
@@ -232,10 +236,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         if (current != best_move && !noisy) {
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
-        }
-
-        if (info->stopped) {
-            return 0;
         }
     }
 
@@ -321,6 +321,10 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         info->ply++;
         int score = -qsearch(-beta, -alpha, &new_pos, info);
         info->ply--;
+
+        if (info->stopped) {
+            return 0;
+        }
 
         if (score > best_score) {
             best_score = score;
