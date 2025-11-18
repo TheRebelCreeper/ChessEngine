@@ -56,7 +56,7 @@ enum {
 #define RANK_7 (RANK_1 << (8 * 6))
 #define RANK_8 (RANK_1 << (8 * 7))
 
-extern char *square_names[65];
+extern const char *square_names[65];
 
 U64 king_attacks[64];
 U64 knight_attacks[64];

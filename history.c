@@ -6,8 +6,8 @@
 #include "move.h"
 #include "util.h"
 
-Move killer_table[2][MAX_PLY];
-int history_table[2][64][64];
+static Move killer_table[2][MAX_PLY];
+static int history_table[2][64][64];
 int repetition_index = 0;
 
 inline void clear_history()
