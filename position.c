@@ -7,10 +7,10 @@
 #include "pcg.h"
 
 
-char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
-char *piece_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
+static const char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
+const char *promotion_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
 
-int piece_lookup[2][6] =
+const int piece_lookup[2][6] =
 {
     {P, N, B, R, Q, K},
     {p, n, b, r, q, k}
@@ -234,7 +234,7 @@ void print_board(GameState state)
 
         for (int file = 0; file < 8; file++) {
             int square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-            char *piece = piece_chars[state.mailbox[square]];
+            const char *piece = piece_chars[state.mailbox[square]];
 
             printf("|");
 #ifndef _WIN32

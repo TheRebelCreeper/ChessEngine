@@ -11,6 +11,8 @@
 #include "tt.h"
 #include "util.h"
 
+static int lmr_table[MAX_PLY][MAX_MOVES];
+
 void report_search_info(SearchInfo *root_info, int score)
 {
     if (!root_info)
@@ -65,9 +67,21 @@ inline bool is_repetition(const GameState *pos)
     return false; // Detects a single rep
 }
 
-inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+void init_lmr_table()
 {
-    int r = 0.77 + log(move_count) * log(depth) / 2.36;
+    for (int depth = 0; depth < MAX_PLY; depth++) {
+        for (int move_count = 0; move_count < MAX_MOVES; move_count++) {
+            lmr_table[depth][move_count] = 0.77 + log(move_count) * log(depth) / 2.36;
+        }
+    }
+}
+
+int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+{
+    // Prevent out of bounds error when approaching max ply
+    if (depth >= MAX_PLY)
+        depth = MAX_PLY - 1;
+    int r = lmr_table[depth][move_count];
     if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
         r = 0;
     r += !pv_node;
@@ -138,6 +152,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return tt_entry.score;
     }
 
+    int static_eval = evaluation(pos);
+    if (!pv_node & !in_check) {
+        assert(!is_root);
+
+        // Reverse Futility Pruning
+        int rfp_margin = 75 * depth;
+        if (depth <= 6 && static_eval - rfp_margin >= beta)
+            return static_eval;
+    }
+
     unsigned char tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
@@ -165,6 +189,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // SF style PVS
         int new_depth = depth - 1;
 
+      /*
         // LMR conditions
         if (move_count >= FULL_DEPTH_MOVES && depth >= 2) {
             int r = calculate_reduction(current, move_count, depth, pv_node);
@@ -180,9 +205,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         if (pv_node && (move_count == 1 || score > alpha)) {
             score = -search(-beta, -alpha, new_depth, &new_pos, info);
-        }
-
-        /*
+        }*/
+      
         if (move_count == 1) {
             score = -search(-beta, -alpha, new_depth, &new_pos, info);
         }
@@ -194,11 +218,15 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             if (score > alpha && score < beta) {
                 score = -search(-beta, -alpha, new_depth, &new_pos, info);
             }
-        }*/
+        }
 
         // Unmake move by removing current move from history
         info->ply--;
         repetition_index--;
+
+        if (info->stopped) {
+            return 0;
+        }
 
         if (score > best_score) {
             best_score = score;
@@ -225,10 +253,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
 
         if (current != best_move && !noisy) {
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
-        }
-
-        if (info->stopped) {
-            return 0;
         }
     }
 
@@ -314,6 +338,10 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         info->ply++;
         int score = -qsearch(-beta, -alpha, &new_pos, info);
         info->ply--;
+
+        if (info->stopped) {
+            return 0;
+        }
 
         if (score > best_score) {
             best_score = score;

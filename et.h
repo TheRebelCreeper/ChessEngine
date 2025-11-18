@@ -1,14 +1,11 @@
 #ifndef ET_H
 #define ET_H
 
-#include <stdint.h>
 #include "position.h"
 
 #ifndef INF
 #define INF 1000000
 #endif
-
-extern uint32_t ET_SIZE;
 
 #define INVALID_EVALUATION (INF + 100)
 
@@ -26,10 +23,9 @@ typedef struct et {
     int cut;
 } ET;
 
-extern ET GLOBAL_ET;
-
-void init_et(ET *table);
-void clear_et(ET *table);
+void init_et();
+void clear_et();
+void set_et_size(int mb);
 int probe_et(const GameState *pos);
 void save_et(GameState *pos, int eval);
 

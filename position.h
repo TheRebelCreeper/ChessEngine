@@ -27,8 +27,8 @@ typedef struct gameState {
     int full_move;
 } GameState;
 
-extern char *piece_notation[12];
-extern int piece_lookup[2][6];
+extern const char *promotion_notation[12];
+extern const int piece_lookup[2][6];
 
 U64 piece_keys[12][64];
 U64 castle_keys[16];
