@@ -13,6 +13,7 @@
 #define INITIAL_ASP_WINDOW 30
 #define MIN_LMR_MOVES 3
 #define MIN_LMR_DEPTH 2
+#define MIN_NMP_DEPTH 4
 #define MIN_IIR_DEPTH 3
 
 extern int NUM_THREADS;
