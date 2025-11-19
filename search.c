@@ -79,8 +79,7 @@ void init_lmr_table()
 int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
 {
     // Prevent out of bounds error when approaching max ply
-    if (depth >= MAX_PLY)
-        depth = MAX_PLY - 1;
+    depth = MIN(depth, MAX_PLY - 1);
     int r = lmr_table[depth][move_count];
     if (move_count <= MIN_LMR_MOVES || depth <= MIN_LMR_DEPTH)
         r = 0;
@@ -88,14 +87,14 @@ int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
     return r;
 }
 
-int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
+int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, bool cut_node)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
     bool in_check = is_in_check(pos);
     bool pv_node = beta - alpha > 1;
     bool is_root = (ply == 0);
-    //assert(!(pv_node && cut_node));
+    assert(!(pv_node && cut_node));
 
     MoveList move_list;
     MoveList fail_low_quiets;
@@ -152,6 +151,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         return tt_entry.score;
     }
 
+    // IIR
+    if (depth >= MIN_IIR_DEPTH && (pv_node || cut_node) && !tt_entry.move) {
+        depth--;
+    }
+
     int static_eval = evaluation(pos);
     if (!pv_node & !in_check) {
         assert(!is_root);
@@ -173,7 +177,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
             info->move_stack[ply] = 0;
 
             info->ply++;
-            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info);
+            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
             repetition_index--;
 
@@ -209,17 +213,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         // PVS
         int new_depth = depth - 1;
         if (move_count == 1) {
-            score = -search(-beta, -alpha, new_depth, &new_pos, info);
+            score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
         }
         else {
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
-            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info);
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
-                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info);
+                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
             }
             if (score > alpha && score < beta) {
-                score = -search(-beta, -alpha, new_depth, &new_pos, info);
+                score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
             }
         }
 
@@ -396,7 +400,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
         int new_score = 0;
 
         while (!search_info->stopped) {
-            new_score = search(alpha, beta, iterative_depth, pos, search_info);
+            new_score = search(alpha, beta, iterative_depth, pos, search_info, false);
 
             if (new_score <= alpha) {
                 alpha = MAX(new_score - delta, -INF);
