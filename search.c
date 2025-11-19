@@ -157,7 +157,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-
     int static_eval = evaluation(pos);
     if (!pv_node & !in_check) {
         assert(!is_root);
@@ -178,7 +177,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->move_stack[ply] = 0;
 
             info->ply++;
-            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info);
+            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
             repetition_index--;
 
