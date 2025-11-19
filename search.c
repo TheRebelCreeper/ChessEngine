@@ -350,6 +350,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
     int max_search_depth = search_info->depth;
     int alpha = -INF;
     int beta = INF;
+    int delta = 0;
     int score = -INF;
     Move best_move = 0;
 
@@ -367,7 +368,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
         search_info->depth = iterative_depth;
 
         if (iterative_depth >= MIN_ASP_DEPTH) {
-            int delta = INITIAL_ASP_WINDOW;
+            delta = INITIAL_ASP_WINDOW;
             alpha = MAX(score - delta, -INF);
             beta = MIN(score + delta, INF);
         }
@@ -377,13 +378,16 @@ void search_root(GameState *pos, SearchInfo *search_info)
         while (!search_info->stopped) {
             new_score = search(alpha, beta, iterative_depth, pos, search_info);
 
-            if (new_score <= alpha || new_score >= beta) {
-                alpha = -INF;
-                beta = INF;
+            if (new_score <= alpha) {
+                alpha = MAX(new_score - delta, -INF);
+            }
+            else if (new_score >= beta) {
+                beta = MIN(new_score + delta, INF);
             }
             else {
                 break;
             }
+            delta *= 2;
         }
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
