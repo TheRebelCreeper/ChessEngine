@@ -9,7 +9,10 @@
 
 #define MAX_PLY 128
 
-#define FULL_DEPTH_MOVES 3
+#define MIN_ASP_DEPTH 5
+#define INITIAL_ASP_WINDOW 30
+#define MIN_LMR_MOVES 3
+#define MIN_LMR_DEPTH 2
 #define MIN_IIR_DEPTH 3
 
 extern int NUM_THREADS;

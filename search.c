@@ -82,7 +82,7 @@ int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
     if (depth >= MAX_PLY)
         depth = MAX_PLY - 1;
     int r = lmr_table[depth][move_count];
-    if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
+    if (move_count <= MIN_LMR_MOVES || depth <= MIN_LMR_DEPTH)
         r = 0;
     r += !pv_node;
     return r;
@@ -350,6 +350,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
     int max_search_depth = search_info->depth;
     int alpha = -INF;
     int beta = INF;
+    int delta = 0;
     int score = -INF;
     Move best_move = 0;
 
@@ -366,16 +367,28 @@ void search_root(GameState *pos, SearchInfo *search_info)
         memset(search_info->pv_table_length, 0, sizeof(search_info->pv_table_length));
         search_info->depth = iterative_depth;
 
-        int new_score = search(alpha, beta, iterative_depth, pos, search_info);
-
-        if (new_score <= alpha || new_score >= beta) {
-            alpha = -INF;
-            beta = INF;
-            iterative_depth -= 1;
-            continue;
+        if (iterative_depth >= MIN_ASP_DEPTH) {
+            delta = INITIAL_ASP_WINDOW;
+            alpha = MAX(score - delta, -INF);
+            beta = MIN(score + delta, INF);
         }
-        alpha = new_score - 50;
-        beta = new_score + 50;
+
+        int new_score = 0;
+
+        while (!search_info->stopped) {
+            new_score = search(alpha, beta, iterative_depth, pos, search_info);
+
+            if (new_score <= alpha) {
+                alpha = MAX(new_score - delta, -INF);
+            }
+            else if (new_score >= beta) {
+                beta = MIN(new_score + delta, INF);
+            }
+            else {
+                break;
+            }
+            delta *= 2;
+        }
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
         if (!search_info->pv_table_length[0] || (search_info->stopped && iterative_depth > 1))
