@@ -168,7 +168,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         // Null Move Pruning
         if (depth >= MIN_NMP_DEPTH && static_eval >= beta && info->move_stack[ply - 1]
             && !only_has_pawns(pos, pos->turn)) {
-            int r = 4;
+            int r = 4 + depth / 4;
 
             // Make the null move
             GameState null_pos;
