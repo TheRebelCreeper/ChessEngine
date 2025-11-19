@@ -1,5 +1,7 @@
 #ifndef CHESSENGINE_BENCH_H
 #define CHESSENGINE_BENCH_H
 
-#endif
+#define BENCH_DEPTH 14
 void run_benchmark();
+
+#endif

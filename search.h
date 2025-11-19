@@ -4,11 +4,16 @@
 #include <stdbool.h>
 
 #include "move.h"
+#include "movelist.h"
 #include "position.h"
 
 #define MAX_PLY 128
 
-#define FULL_DEPTH_MOVES 3
+#define MIN_ASP_DEPTH 5
+#define INITIAL_ASP_WINDOW 30
+#define MIN_LMR_MOVES 3
+#define MIN_LMR_DEPTH 2
+#define MIN_NMP_DEPTH 4
 #define MIN_IIR_DEPTH 3
 
 extern int NUM_THREADS;
@@ -49,8 +54,9 @@ static const int MVV_LVA_TABLE[6][12] =
     {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
+void init_lmr_table();
 int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
-void search_root(GameState *pos, SearchInfo *root_info);
+void search_root(GameState *pos, SearchInfo *search_info);
 void read_input(SearchInfo *info);
 
 #endif

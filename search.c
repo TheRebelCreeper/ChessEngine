@@ -11,7 +11,9 @@
 #include "tt.h"
 #include "util.h"
 
-void report_search_info(SearchInfo *root_info, int score, unsigned int start, unsigned int finish)
+static int lmr_table[MAX_PLY][MAX_MOVES];
+
+void report_search_info(SearchInfo *root_info, int score)
 {
     if (!root_info)
         exit(EXIT_FAILURE);
@@ -65,10 +67,21 @@ inline bool is_repetition(const GameState *pos)
     return false; // Detects a single rep
 }
 
-inline int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+void init_lmr_table()
 {
-    int r = 0.77 + log(move_count) * log(depth) / 2.36;
-    if (move_count <= FULL_DEPTH_MOVES || depth <= 2)
+    for (int depth = 0; depth < MAX_PLY; depth++) {
+        for (int move_count = 0; move_count < MAX_MOVES; move_count++) {
+            lmr_table[depth][move_count] = 0.77 + log(move_count) * log(depth) / 2.36;
+        }
+    }
+}
+
+int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+{
+    // Prevent out of bounds error when approaching max ply
+    depth = MIN(depth, MAX_PLY - 1);
+    int r = lmr_table[depth][move_count];
+    if (move_count <= MIN_LMR_MOVES || depth <= MIN_LMR_DEPTH)
         r = 0;
     r += !pv_node;
     return r;
@@ -109,31 +122,21 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         return evaluation(pos);
     }
 
-    if (!is_root) {
-        // Check extensions
-        if (in_check)
-            depth++;
+    // Enter qsearch
+    if (depth <= 0) {
+        info->pv_table_length[ply] = 0;
+        return qsearch(alpha, beta, pos, info);
+    }
 
+    if (!is_root) {
         // Search for draws and repetitions
         // Don't need to search for repetition if halfMoveClock is low
-        if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock == 100 ||
+        if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock >= 100 ||
             insufficient_material(pos)) {
             // Cut the pv line if this is a draw
             info->pv_table_length[ply] = 0;
             return 0;
         }
-
-        // Mate distance pruning
-        alpha = MAX(alpha, -MATE_SCORE + ply);
-        beta = MIN(beta, MATE_SCORE - ply - 1);
-        if (alpha >= beta)
-            return alpha;
-    }
-
-    // Enter qsearch
-    if (depth <= 0) {
-        info->pv_table_length[ply] = 0;
-        return qsearch(alpha, beta, pos, info);
     }
 
     // tt_hit is boolean, if no entry found, move is set to 0
@@ -150,18 +153,17 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // IIR
     if (depth >= MIN_IIR_DEPTH && (pv_node || cut_node) && !tt_entry.move) {
-        --depth;
+        depth--;
     }
 
     int static_eval = evaluation(pos);
-    if (!pv_node && !in_check) {
+    if (!pv_node & !in_check) {
         assert(!is_root);
 
         // Reverse Futility Pruning
         int rfp_margin = 75 * depth;
-        if (depth <= 6 && static_eval - rfp_margin >= beta) {
+        if (depth <= 6 && static_eval - rfp_margin >= beta)
             return static_eval;
-        }
 
         // Razoring
         if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
@@ -171,18 +173,18 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
 
         // Null Move Pruning
-        if (depth >= 4 && static_eval >= beta && info->move_stack[ply - 1] && !only_has_pawns(pos, pos->turn)) {
-            int r = 4;
+        if (depth >= MIN_NMP_DEPTH && static_eval >= beta && info->move_stack[ply - 1]
+            && !only_has_pawns(pos, pos->turn)) {
+            int r = 4 + depth / 4;
 
             // Make the null move
-            GameState new_pos;
-            make_null_move(pos, &new_pos);
-            repetition_history[++repetition_index] = new_pos.key;
-
-            // Save null move to move_stack
+            GameState null_pos;
+            make_null_move(pos, &null_pos);
+            repetition_history[++repetition_index] = null_pos.key;
             info->move_stack[ply] = 0;
+
             info->ply++;
-            int null_score = -search(-beta, -beta + 1, depth - r, &new_pos, info, !cut_node);
+            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
             repetition_index--;
 
@@ -206,18 +208,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             continue;
 
         bool noisy = is_noisy(current);
-        if (best_score > -MATE_SCORE && !in_check) {
-            // Futility Pruning
-            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
-                continue;
-            }
-
-            // SEE pruning
-            int see_threshold = noisy ? -75 * depth : -25 * depth;
-            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
-                continue;
-        }
-
         move_count++;
         info->ply++;
 
@@ -235,7 +225,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         else {
             int r = calculate_reduction(current, move_count, depth, pv_node);
             int reduced = CLAMP(new_depth - r, 0, new_depth);
-
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
                 score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
@@ -249,7 +238,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         info->ply--;
         repetition_index--;
 
-        // Update bestMove whenever found so all-nodes can be stored in TT
+        if (info->stopped) {
+            return 0;
+        }
+
         if (score > best_score) {
             best_score = score;
 
@@ -276,11 +268,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         if (current != best_move && !noisy) {
             fail_low_quiets.move[fail_low_quiets.next_open++] = current;
         }
-
-        if (info->stopped) {
-            info->pv_table_length[ply] = 0;
-            return 0;
-        }
     }
 
     // When no more legal moves, return either mate score or draw
@@ -291,7 +278,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // Update history score if not a capture and beta cutoff
     if (best_move && !is_noisy(best_move)) {
-        push_killer_move(best_move, ply);
+        //push_killer_move(best_move, ply);
 
         int bonus = score_history(pos, best_move, depth);
         int penalty = -bonus;
@@ -310,13 +297,14 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
-    bool in_check = is_in_check(pos);
+    int in_check = is_in_check(pos);
 
     // Update time left
     if ((info->nodes & 2047) == 0) {
         check_time_left(info);
     }
 
+    // Ran out of time
     if (info->stopped)
         return 0;
 
@@ -352,7 +340,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         Move current = move_list.move[i];
 
         // Prune captures with bad SEE when not in check
-        if (!in_check && see(pos, GET_MOVE_DST(current)) < -105) {
+        if (!in_check && see(pos, GET_MOVE_DST(current)) < -100) {
             continue;
         }
 
@@ -365,11 +353,14 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         int score = -qsearch(-beta, -alpha, &new_pos, info);
         info->ply--;
 
+        if (info->stopped) {
+            return 0;
+        }
+
         if (score > best_score) {
             best_score = score;
             if (score > alpha) {
                 alpha = score;
-
                 if (score >= beta) {
                     break;
                 }
@@ -385,40 +376,61 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
     return best_score;
 }
 
-void search_root(GameState *pos, SearchInfo *root_info)
+void search_root(GameState *pos, SearchInfo *search_info)
 {
-    int max_search_depth = root_info->depth;
+    int max_search_depth = search_info->depth;
     int alpha = -INF;
     int beta = INF;
+    int delta = 0;
     int score = -INF;
     Move best_move = 0;
 
-    // Clear information for root_info. Will have to do this for ID upon each depth
+    // Clear information for search_info. Will have to do this for ID upon each depth
     unsigned int start = get_time_ms();
     clear_history();
-    root_info->nodes = 0ULL;
-    root_info->ply = 0;
-    root_info->stopped = false;
-    memset(root_info->move_stack, 0, sizeof(root_info->move_stack));
+    search_info->nodes = 0ULL;
+    search_info->ply = 0;
+    search_info->stopped = false;
+    memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
-        memset(root_info->pv_table, 0, sizeof(root_info->pv_table));
-        memset(root_info->pv_table_length, 0, sizeof(root_info->pv_table_length));
-        root_info->depth = iterative_depth;
+        memset(search_info->pv_table, 0, sizeof(search_info->pv_table));
+        memset(search_info->pv_table_length, 0, sizeof(search_info->pv_table_length));
+        search_info->depth = iterative_depth;
 
-        int new_score = search(alpha, beta, iterative_depth, pos, root_info, false);
+        if (iterative_depth >= MIN_ASP_DEPTH) {
+            delta = INITIAL_ASP_WINDOW;
+            alpha = MAX(score - delta, -INF);
+            beta = MIN(score + delta, INF);
+        }
+
+        int new_score = 0;
+
+        while (!search_info->stopped) {
+            new_score = search(alpha, beta, iterative_depth, pos, search_info, false);
+
+            if (new_score <= alpha) {
+                alpha = MAX(new_score - delta, -INF);
+            }
+            else if (new_score >= beta) {
+                beta = MIN(new_score + delta, INF);
+            }
+            else {
+                break;
+            }
+            delta *= 2;
+        }
 
         // If time is up, and we have completed at least depth 1 search, break out of loop
-        if (!root_info->pv_table_length[0] || (root_info->stopped == 1 && iterative_depth > 1))
+        if (!search_info->pv_table_length[0] || (search_info->stopped && iterative_depth > 1))
             break;
 
         score = new_score;
-        best_move = root_info->pv_table[0][0];
+        best_move = search_info->pv_table[0][0];
 
         unsigned int finish = get_time_ms();
-        root_info->ms = (finish - start) > 0 ? finish - start : 1;
-
-        report_search_info(root_info, score, start, finish);
+        search_info->ms = (finish - start) > 0 ? finish - start : 1;
+        report_search_info(search_info, score);
     }
     // Print the best move
     printf("bestmove ");

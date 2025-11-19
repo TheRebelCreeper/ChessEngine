@@ -174,7 +174,7 @@ void print_move(Move m)
 {
     int promotion = GET_MOVE_PROMOTION(m);
     if (m) {
-        printf("%s%s%s", square_names[GET_MOVE_SRC(m)], square_names[GET_MOVE_DST(m)], piece_notation[promotion]);
+        printf("%s%s%s", square_names[GET_MOVE_SRC(m)], square_names[GET_MOVE_DST(m)], promotion_notation[promotion]);
     }
     else {
         printf("0000");
