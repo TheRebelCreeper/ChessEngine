@@ -165,6 +165,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         if (depth <= 6 && static_eval - rfp_margin >= beta)
             return static_eval;
 
+        // Razoring
+        if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
+            int razor_score = qsearch(alpha, alpha + 1, pos, info);
+            if (razor_score <= alpha)
+                return razor_score;
+        }
+
         // Null Move Pruning
         if (depth >= MIN_NMP_DEPTH && static_eval >= beta && info->move_stack[ply - 1]
             && !only_has_pawns(pos, pos->turn)) {
