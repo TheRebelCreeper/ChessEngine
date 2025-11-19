@@ -160,6 +160,25 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info)
         int rfp_margin = 75 * depth;
         if (depth <= 6 && static_eval - rfp_margin >= beta)
             return static_eval;
+
+        if (depth >= MIN_NMP_DEPTH && static_eval >= beta && info->move_stack[ply - 1]
+            && !only_has_pawns(pos, pos->turn)) {
+            int r = 4;
+
+            // Make the null move
+            GameState null_pos;
+            make_null_move(pos, &null_pos);
+            repetition_history[++repetition_index] = null_pos.key;
+            info->move_stack[ply] = 0;
+
+            info->ply++;
+            int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info);
+            info->ply--;
+            repetition_index--;
+
+            if (null_score >= beta && null_score < MATE_SCORE)
+                return null_score;
+        }
     }
 
     unsigned char tt_flag = TT_UPPER;
