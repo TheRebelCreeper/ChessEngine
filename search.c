@@ -135,6 +135,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->pv_table_length[ply] = 0;
             return 0;
         }
+
+        // Mate distance pruning
+        alpha = MAX(alpha, -MATE_SCORE + ply);
+        beta = MIN(beta, MATE_SCORE - ply - 1);
+        if (alpha >= beta)
+            return alpha;
     }
 
     // Enter qsearch
