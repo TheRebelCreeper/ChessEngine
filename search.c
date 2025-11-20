@@ -208,6 +208,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             continue;
 
         bool noisy = is_noisy(current);
+        if (best_score > -MATE_SCORE && !in_check) {
+            // SEE pruning
+            int see_threshold = noisy ? -75 * depth : -25 * depth;
+            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
+                continue;
+        }
+
         move_count++;
         info->ply++;
 
