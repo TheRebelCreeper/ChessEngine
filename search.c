@@ -122,13 +122,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         return evaluation(pos);
     }
 
-    // Enter qsearch
-    if (depth <= 0) {
-        info->pv_table_length[ply] = 0;
-        return qsearch(alpha, beta, pos, info);
-    }
-
     if (!is_root) {
+        // Check extension
+        if (in_check)
+            depth++;
+
         // Search for draws and repetitions
         // Don't need to search for repetition if halfMoveClock is low
         if ((pos->half_move_clock > 4 && is_repetition(pos)) || pos->half_move_clock >= 100 ||
@@ -137,6 +135,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->pv_table_length[ply] = 0;
             return 0;
         }
+    }
+
+    // Enter qsearch
+    if (depth <= 0) {
+        info->pv_table_length[ply] = 0;
+        return qsearch(alpha, beta, pos, info);
     }
 
     // tt_hit is boolean, if no entry found, move is set to 0
