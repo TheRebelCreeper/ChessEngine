@@ -294,7 +294,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // Update history score if not a capture and beta cutoff
     if (best_move && !is_noisy(best_move)) {
-        //push_killer_move(best_move, ply);
+        push_killer_move(best_move, ply);
 
         int bonus = score_history(pos, best_move, depth);
         int penalty = -bonus;
