@@ -135,6 +135,20 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->pv_table_length[ply] = 0;
             return 0;
         }
+
+        int distance = MATE_SCORE - ply;
+        if (distance < beta) {
+            beta = distance;
+            if (alpha >= distance)
+                return distance;
+        }
+
+        distance = -MATE_SCORE + ply;
+        if (distance > alpha) {
+            alpha = distance;
+            if (beta <= distance)
+                return distance;
+        }
     }
 
     // Enter qsearch
