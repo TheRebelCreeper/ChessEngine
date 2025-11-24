@@ -167,7 +167,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     int static_eval = evaluation(pos);
-    if (!pv_node & !in_check) {
+    if (!pv_node && !in_check) {
         assert(!is_root);
 
         // Reverse Futility Pruning
