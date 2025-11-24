@@ -18,6 +18,7 @@ This engine features many techniques in order to calculate both quickly and deep
 * SEE pruning
 * Reverse Futility Pruning
 * Null Move Pruning
+* Late Move Pruning
 * Razoring
 * Mate Distance Pruning
 * Check Extensions
@@ -32,7 +33,6 @@ Features that have not been implemented yet, but are planned
 * New NNUE
 * TT in qsearch
 * Lazy SMP
-* Late Move Pruning
 * Tunability
 * Staged Move Generation
 * Improved uci print out (seldepth)
