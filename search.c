@@ -216,11 +216,18 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         // Make move and skip if illegal
         if (!make_move(pos, &new_pos, current))
             continue;
+        
+        move_count++;
 
         bool noisy = is_noisy(current);
         if (best_score > -MATE_SCORE && !in_check) {
             // Futility Pruning
             if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
+                continue;
+            }
+
+            // Late Move Pruning
+            if (!noisy && move_count >= 3 + depth * depth){
                 continue;
             }
 
@@ -230,7 +237,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
                 continue;
         }
 
-        move_count++;
         info->ply++;
 
         // Save current move to move_stack
