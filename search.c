@@ -167,7 +167,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     int static_eval = evaluation(pos);
-    if (!pv_node & !in_check) {
+    if (!pv_node && !in_check) {
         assert(!is_root);
 
         // Reverse Futility Pruning
@@ -319,7 +319,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
-    int in_check = is_in_check(pos);
+    bool in_check = is_in_check(pos);
 
     // Update time left
     if ((info->nodes & 2047) == 0) {
