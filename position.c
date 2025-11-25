@@ -118,13 +118,13 @@ void init_keys()
     }
 }
 
-U64 generate_pos_key(const GameState *pos)
+u64 generate_pos_key(const GameState *pos)
 {
-    U64 final_key = 0ULL;
+    u64 final_key = 0ULL;
 
     for (int i = P; i <= k; i++) {
         // Generate Knight Moves
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int src = GET_FIRST_BIT_SQUARE(piece_bb);
             final_key ^= piece_keys[i][src];

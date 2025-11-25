@@ -6,11 +6,11 @@
 #include <string.h>
 #include "util.h"
 
-U64 perft(int depth, GameState *pos)
+u64 perft(int depth, GameState *pos)
 {
     MoveList move_list;
     int size;
-    U64 sum = 0;
+    u64 sum = 0;
     if (depth == 0) {
         return 1ULL;
     }
@@ -26,11 +26,11 @@ U64 perft(int depth, GameState *pos)
     return sum;
 }
 
-U64 perft_divide(int depth, GameState *pos)
+u64 perft_divide(int depth, GameState *pos)
 {
     MoveList move_list;
     int size, i;
-    U64 sum = 0;
+    u64 sum = 0;
 
     if (depth == 0) {
         return 1ULL;
@@ -43,7 +43,7 @@ U64 perft_divide(int depth, GameState *pos)
         Move current = move_list.move[i];
         GameState new_pos;
         if (make_move(pos, &new_pos, current)) {
-            U64 res = perft(depth - 1, &new_pos);
+            u64 res = perft(depth - 1, &new_pos);
             sum += res;
             print_move(current);
             printf(": %"PRIu64"\n", res);
@@ -52,10 +52,10 @@ U64 perft_divide(int depth, GameState *pos)
     return sum;
 }
 
-U64 run_perft(int depth, GameState *pos)
+u64 run_perft(int depth, GameState *pos)
 {
     unsigned int start = get_time_ms();
-    U64 size = perft_divide(depth, pos);
+    u64 size = perft_divide(depth, pos);
     printf("Nodes searched: %"PRIu64"\n\n", size);
     unsigned int finish = get_time_ms();
     double seconds = (finish - start) / 1000.0;
@@ -91,9 +91,9 @@ void parse_perft_line(char *line, GameState *pos)
         str += 2;
         int depth = str[0] - '0';
         str += 2;
-        U64 expected = strtoll(str, NULL, 10);
+        u64 expected = strtoll(str, NULL, 10);
         printf("Depth: %d | FEN: %s | Expected: %"PRIu64"\n", depth, line, expected);
-        U64 found = perft(depth, pos);
+        u64 found = perft(depth, pos);
         if (found != expected) {
             fprintf(stderr, "PERFT FAILURE. Found %"PRIu64"\n", found);
             exit(1);

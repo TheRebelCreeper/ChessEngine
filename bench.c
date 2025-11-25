@@ -59,7 +59,7 @@ static char *bench_positions[50] = {
 
 void run_benchmark()
 {
-    U64 total_nodes = 0ULL;
+    u64 total_nodes = 0ULL;
     unsigned int total_time = 0;
 
     GameState pos;

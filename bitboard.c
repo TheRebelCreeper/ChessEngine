@@ -36,9 +36,9 @@ const char *square_names[65] = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "-"
 };
 
-U64 occupancy_from_index(int index, U64 board)
+u64 occupancy_from_index(int index, u64 board)
 {
-    U64 occupancy = 0ULL;
+    u64 occupancy = 0ULL;
     int bits = COUNT_BITS(board);
 
     // Cannot be easily parallelized since order matters regarding 1st least significant bit
@@ -55,10 +55,10 @@ U64 occupancy_from_index(int index, U64 board)
     return occupancy;
 }
 
-U64 calculate_knight_attacks(int square)
+u64 calculate_knight_attacks(int square)
 {
-    U64 piece_location = 0ULL;
-    U64 attacks = 0ULL;
+    u64 piece_location = 0ULL;
+    u64 attacks = 0ULL;
     SET_SQUARE(piece_location, square);
 
     attacks |= (piece_location << 17 & ~FILE_A); // Up 2 right 1
@@ -73,10 +73,10 @@ U64 calculate_knight_attacks(int square)
     return attacks;
 }
 
-U64 calculate_king_attacks(int square)
+u64 calculate_king_attacks(int square)
 {
-    U64 piece_location = 0ULL;
-    U64 attacks = 0ULL;
+    u64 piece_location = 0ULL;
+    u64 attacks = 0ULL;
     SET_SQUARE(piece_location, square);
 
     attacks |= (piece_location << 1 & ~FILE_A); // Left
@@ -92,10 +92,10 @@ U64 calculate_king_attacks(int square)
     return attacks;
 }
 
-U64 calculate_pawn_attacks(int side, int square)
+u64 calculate_pawn_attacks(int side, int square)
 {
-    U64 piece_location = 0ULL;
-    U64 attacks = 0ULL;
+    u64 piece_location = 0ULL;
+    u64 attacks = 0ULL;
     SET_SQUARE(piece_location, square);
 
     // White attacks
@@ -110,9 +110,9 @@ U64 calculate_pawn_attacks(int side, int square)
     return attacks;
 }
 
-U64 calculate_bishop_occupancy(int square)
+u64 calculate_bishop_occupancy(int square)
 {
-    U64 occupancy = 0ULL;
+    u64 occupancy = 0ULL;
     int s;
 
     int rank = square / 8;
@@ -160,9 +160,9 @@ U64 calculate_bishop_occupancy(int square)
     return occupancy;
 }
 
-U64 calculate_rook_occupancy(int square)
+u64 calculate_rook_occupancy(int square)
 {
-    U64 occupancy = 0ULL;
+    u64 occupancy = 0ULL;
     int s;
 
     int rank = square / 8;
@@ -206,9 +206,9 @@ U64 calculate_rook_occupancy(int square)
     return occupancy;
 }
 
-U64 generate_bishop_attacks(int square, U64 blockers)
+u64 generate_bishop_attacks(int square, u64 blockers)
 {
-    U64 occupancy = 0ULL;
+    u64 occupancy = 0ULL;
     int s;
 
     int rank = square / 8;
@@ -268,9 +268,9 @@ U64 generate_bishop_attacks(int square, U64 blockers)
     return occupancy;
 }
 
-U64 generate_rook_attacks(int square, U64 blockers)
+u64 generate_rook_attacks(int square, u64 blockers)
 {
-    U64 occupancy = 0ULL;
+    u64 occupancy = 0ULL;
     int s;
 
     int rank = square / 8;
@@ -326,7 +326,7 @@ U64 generate_rook_attacks(int square, U64 blockers)
     return occupancy;
 }
 
-inline U64 get_bishop_attacks(int square, U64 blockers)
+inline u64 get_bishop_attacks(int square, u64 blockers)
 {
     blockers &= bishop_occupancy[square];
     blockers *= bishop_magic[square];
@@ -335,7 +335,7 @@ inline U64 get_bishop_attacks(int square, U64 blockers)
     return bishop_attacks[square][magic_index];
 }
 
-inline U64 get_rook_attacks(int square, U64 blockers)
+inline u64 get_rook_attacks(int square, u64 blockers)
 {
     blockers &= rook_occupancy[square];
     blockers *= rook_magic[square];
@@ -344,7 +344,7 @@ inline U64 get_rook_attacks(int square, U64 blockers)
     return rook_attacks[square][magic_index];
 }
 
-inline U64 get_queen_attacks(int square, U64 blockers)
+inline u64 get_queen_attacks(int square, u64 blockers)
 {
     return get_bishop_attacks(square, blockers) | get_rook_attacks(square, blockers);
 }
@@ -362,13 +362,13 @@ void init_sliders()
 
     for (square = a1; square <= h8; square++) {
         for (int i = 0; i < (1 << bishop_bits[square]); i++) {
-            U64 occupancy = occupancy_from_index(i, bishop_occupancy[square]);
+            u64 occupancy = occupancy_from_index(i, bishop_occupancy[square]);
             int magic_index = (occupancy * bishop_magic[square]) >> (64 - bishop_bits[square]);
             bishop_attacks[square][magic_index] = generate_bishop_attacks(square, occupancy);
         }
 
         for (int i = 0; i < (1 << rook_bits[square]); i++) {
-            U64 occupancy = occupancy_from_index(i, rook_occupancy[square]);
+            u64 occupancy = occupancy_from_index(i, rook_occupancy[square]);
             int magic_index = (occupancy * rook_magic[square]) >> (64 - rook_bits[square]);
             rook_attacks[square][magic_index] = generate_rook_attacks(square, occupancy);
         }
@@ -391,7 +391,7 @@ void init_attacks()
     init_leapers();
 }
 
-void print_bitboard(U64 board)
+void print_bitboard(u64 board)
 {
     printf("  +---+---+---+---+---+---+---+---+\n");
     for (int i = 7; i >= 0; i--) {

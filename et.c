@@ -42,7 +42,7 @@ void set_et_size(int mb)
 int probe_et(const GameState *pos)
 {
     /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((U128) pos->key * (U128) eval_table.num_entries) >> 64);
+    size_t i = (size_t) (((u128) pos->key * (u128) eval_table.num_entries) >> 64);
     int packed_key = (int) pos->key;
 
     ETEntry entry = eval_table.hash_table[i];
@@ -56,7 +56,7 @@ int probe_et(const GameState *pos)
 void save_et(GameState *pos, int eval)
 {
     /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((U128) pos->key * (U128) eval_table.num_entries) >> 64);
+    size_t i = (size_t) (((u128) pos->key * (u128) eval_table.num_entries) >> 64);
     int packed_key = (int) pos->key;
     eval_table.hash_table[i].key = packed_key;
     eval_table.hash_table[i].eval = eval;
