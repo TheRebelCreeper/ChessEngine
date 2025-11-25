@@ -1,4 +1,5 @@
 #include "bench.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include "history.h"
 #include "util.h"
@@ -58,7 +59,7 @@ static char *bench_positions[50] = {
 
 void run_benchmark()
 {
-    U64 total_nodes = 0ULL;
+    u64 total_nodes = 0ULL;
     unsigned int total_time = 0;
 
     GameState pos;
@@ -80,5 +81,5 @@ void run_benchmark()
     }
 
     unsigned int nps = (unsigned int) (1000 * total_nodes / (total_time));
-    printf("%llu nodes %u nps\n", total_nodes, nps);
+    printf("%"PRIu64" nodes %u nps\n", total_nodes, nps);
 }

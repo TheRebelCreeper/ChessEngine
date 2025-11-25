@@ -57,7 +57,7 @@ bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
     int dst = GET_MOVE_DST(move);
     int promotion = GET_MOVE_PROMOTION(move);
     int offset = 0;
-    U64 hash_key = old_pos->key;
+    u64 hash_key = old_pos->key;
 
     if (turn == BLACK) {
         offset = 6;

@@ -30,7 +30,7 @@ typedef struct info {
     unsigned int ms;
     unsigned int nps;
     int ply;
-    U64 nodes;
+    u64 nodes;
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
     Move move_stack[MAX_PLY];

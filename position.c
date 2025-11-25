@@ -1,5 +1,6 @@
 #include "position.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,13 +118,13 @@ void init_keys()
     }
 }
 
-U64 generate_pos_key(const GameState *pos)
+u64 generate_pos_key(const GameState *pos)
 {
-    U64 final_key = 0ULL;
+    u64 final_key = 0ULL;
 
     for (int i = P; i <= k; i++) {
         // Generate Knight Moves
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int src = GET_FIRST_BIT_SQUARE(piece_bb);
             final_key ^= piece_keys[i][src];
@@ -273,5 +274,5 @@ void print_board(GameState state)
     printf("En Passant Square: %s\n", square_names[state.enpassant_square]);
     printf("Halfmove Clock: %d\n", state.half_move_clock);
     printf("Move: %d\n", state.full_move);
-    printf("Hash Key: %llx\n", state.key);
+    printf("Hash Key: %"PRIx64"\n", state.key);
 }

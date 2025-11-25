@@ -10,7 +10,7 @@ int material_count(const GameState *pos)
 {
     int eval = 0;
     for (int i = P; i <= k; i++) {
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             eval += piece_value[i];
@@ -61,7 +61,7 @@ int nnue_eval(const GameState *pos)
     int pieces[65];
     int squares[65];
     for (int i = P; i <= k; i++) {
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             if (i == K) {

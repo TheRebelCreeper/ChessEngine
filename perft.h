@@ -4,6 +4,6 @@
 #define PERFT_H
 
 void moveGeneratorValidator();
-U64 run_perft(int depth, GameState *pos);
+u64 run_perft(int depth, GameState *pos);
 
 #endif

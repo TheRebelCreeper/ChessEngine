@@ -16,9 +16,9 @@
 #define STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 typedef struct gameState {
-    U64 piece_bitboards[12];
-    U64 occupancies[3];
-    U64 key;
+    u64 piece_bitboards[12];
+    u64 occupancies[3];
+    u64 key;
     int turn;
     unsigned char castling_rights;
     unsigned char mailbox[64];
@@ -30,12 +30,12 @@ typedef struct gameState {
 extern const char *promotion_notation[12];
 extern const int piece_lookup[2][6];
 
-U64 piece_keys[12][64];
-U64 castle_keys[16];
-U64 epKey[8];
-U64 side_key;
+u64 piece_keys[12][64];
+u64 castle_keys[16];
+u64 epKey[8];
+u64 side_key;
 
-U64 generate_pos_key(const GameState *pos);
+u64 generate_pos_key(const GameState *pos);
 int get_square_from_notation(const char *str);
 void load_fen(GameState *state, const char *fen);
 void set_occupancies(GameState *pos);
@@ -131,7 +131,7 @@ inline bool is_square_attacked(const GameState *pos, int square, int by_color)
 {
     int offset = 6 * by_color;
     int pawn_attack_color = by_color ^ 1;
-    U64 occupancy = pos->occupancies[BOTH];
+    u64 occupancy = pos->occupancies[BOTH];
 
     if (king_attacks[square] & pos->piece_bitboards[K + offset])
         return true;
@@ -153,7 +153,7 @@ inline int get_smallest_attacker(const GameState *pos, int square)
 {
     int offset = 6 * pos->turn;
     int pawn_attack_color = pos->turn ^ 1;
-    U64 occupancy = pos->occupancies[BOTH];
+    u64 occupancy = pos->occupancies[BOTH];
 
     if (pawn_attacks[pawn_attack_color][square] & pos->piece_bitboards[P + offset])
         return P + offset;

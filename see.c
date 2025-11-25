@@ -7,8 +7,8 @@
 
 int see(const GameState *pos, int square)
 {
-    U64 occupied = pos->occupancies[BOTH]; // all pieces
-    U64 attackers[2]; // white & black attackers
+    u64 occupied = pos->occupancies[BOTH]; // all pieces
+    u64 attackers[2]; // white & black attackers
     int gain[32]; // swap values
     int depth = 0;
 
@@ -44,7 +44,7 @@ int see(const GameState *pos, int square)
         int offset = stm * 6;
 
         for (int i = P; i <= K; i++) {
-            U64 bb = pos->piece_bitboards[i + offset] & attackers[stm];
+            u64 bb = pos->piece_bitboards[i + offset] & attackers[stm];
             if (bb) {
                 int sq = GET_FIRST_BIT_SQUARE(bb);
                 int val = abs(piece_value[i + offset]);

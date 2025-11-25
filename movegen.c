@@ -7,12 +7,12 @@ void generate_pawn_moves(const GameState *pos, int turn, int piece_offset, MoveL
 {
     int i = move_list->next_open;
     int src, dst, piece = P + piece_offset;
-    U64 single_push_target, double_push_target;
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 single_push_target, double_push_target;
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate pawn moves
-    U64 piece_bb = pos->piece_bitboards[P + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[P + piece_offset];
 
     // Pawn pushes
     if (turn == WHITE) {
@@ -49,11 +49,11 @@ void generate_pawn_moves(const GameState *pos, int turn, int piece_offset, MoveL
     // Pawn Captures
     while (piece_bb) {
         src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = pawn_attacks[turn][src] & enemy_pieces;
+        u64 piece_attacks = pawn_attacks[turn][src] & enemy_pieces;
 
         // EP captures
         if (pos->enpassant_square != none) {
-            U64 epAttacks = pawn_attacks[turn][src] & (1ULL << pos->enpassant_square);
+            u64 epAttacks = pawn_attacks[turn][src] & (1ULL << pos->enpassant_square);
             if (epAttacks) {
                 dst = pos->enpassant_square;
                 move_list->move[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, p - piece_offset, 0, 1, 0);
@@ -85,11 +85,11 @@ void generate_king_moves(const GameState *pos, int turn, int piece_offset, MoveL
 {
     int i = move_list->next_open;
     int piece = K + piece_offset;
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 friendly_pieces = pos->occupancies[turn];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 friendly_pieces = pos->occupancies[turn];
 
     // Generate castling moves, does not support 960
-    U64 piece_bb = pos->piece_bitboards[K + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[K + piece_offset];
     unsigned char castling_rights = pos->castling_rights;
     int src = GET_FIRST_BIT_SQUARE(piece_bb);
     if (turn == WHITE) {
@@ -122,7 +122,7 @@ void generate_king_moves(const GameState *pos, int turn, int piece_offset, MoveL
     // Generate King Moves
     while (piece_bb) {
         src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = king_attacks[src] & ~friendly_pieces;
+        u64 piece_attacks = king_attacks[src] & ~friendly_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
@@ -139,13 +139,13 @@ void generate_knight_moves(const GameState *pos, int turn, int piece_offset, Mov
     int i = move_list->next_open;
     int piece = N + piece_offset;
 
-    U64 friendly_pieces = pos->occupancies[turn];
+    u64 friendly_pieces = pos->occupancies[turn];
 
     // Generate Knight Moves
-    U64 piece_bb = pos->piece_bitboards[N + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[N + piece_offset];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = knight_attacks[src] & ~friendly_pieces;
+        u64 piece_attacks = knight_attacks[src] & ~friendly_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
@@ -162,14 +162,14 @@ void generate_bishop_moves(const GameState *pos, int turn, int piece_offset, Mov
     int i = move_list->next_open;
     int piece = B + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 friendly_pieces = pos->occupancies[turn];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 friendly_pieces = pos->occupancies[turn];
 
     // Generate Bishop Moves
-    U64 piece_bb = pos->piece_bitboards[B + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[B + piece_offset];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_bishop_attacks(src, occupancy) & ~friendly_pieces;
+        u64 piece_attacks = get_bishop_attacks(src, occupancy) & ~friendly_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
@@ -186,14 +186,14 @@ void generate_rook_moves(const GameState *pos, int turn, int piece_offset, MoveL
     int i = move_list->next_open;
     int piece = R + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 friendly_pieces = pos->occupancies[turn];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 friendly_pieces = pos->occupancies[turn];
 
     // Generate Rook Moves
-    U64 piece_bb = pos->piece_bitboards[piece];
+    u64 piece_bb = pos->piece_bitboards[piece];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_rook_attacks(src, occupancy) & ~friendly_pieces;
+        u64 piece_attacks = get_rook_attacks(src, occupancy) & ~friendly_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
@@ -210,14 +210,14 @@ void generate_queen_moves(const GameState *pos, int turn, int piece_offset, Move
     int i = move_list->next_open;
     int piece = Q + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 friendly_pieces = pos->occupancies[turn];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 friendly_pieces = pos->occupancies[turn];
 
     // Generate Queen Moves
-    U64 piece_bb = pos->piece_bitboards[piece];
+    u64 piece_bb = pos->piece_bitboards[piece];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_queen_attacks(src, occupancy) & ~friendly_pieces;
+        u64 piece_attacks = get_queen_attacks(src, occupancy) & ~friendly_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = (pos->mailbox[dst] == NO_PIECE) ? NO_CAPTURE : pos->mailbox[dst];
@@ -233,12 +233,12 @@ void generate_pawn_noisy(const GameState *pos, int turn, int piece_offset, MoveL
 {
     int i = move_list->next_open;
     int src, dst, piece = P + piece_offset;
-    U64 single_push_target;
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 single_push_target;
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate pawn moves
-    U64 piece_bb = pos->piece_bitboards[P + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[P + piece_offset];
 
     // Pawn pushes
     if (turn == WHITE) {
@@ -264,11 +264,11 @@ void generate_pawn_noisy(const GameState *pos, int turn, int piece_offset, MoveL
     // Pawn Captures
     while (piece_bb) {
         src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = pawn_attacks[turn][src] & enemy_pieces;
+        u64 piece_attacks = pawn_attacks[turn][src] & enemy_pieces;
 
         // EP captures
         if (pos->enpassant_square != none) {
-            U64 epAttacks = pawn_attacks[turn][src] & (1ULL << pos->enpassant_square);
+            u64 epAttacks = pawn_attacks[turn][src] & (1ULL << pos->enpassant_square);
             if (epAttacks) {
                 dst = pos->enpassant_square;
                 move_list->move[i++] = CREATE_MOVE(src, dst, piece, NO_PROMOTION, p - piece_offset, 0, 1, 0);
@@ -301,13 +301,13 @@ void generate_knight_noisy(const GameState *pos, int turn, int piece_offset, Mov
     int i = move_list->next_open;
     int piece = N + piece_offset;
 
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate Knight Moves
-    U64 piece_bb = pos->piece_bitboards[N + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[N + piece_offset];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = knight_attacks[src] & enemy_pieces;
+        u64 piece_attacks = knight_attacks[src] & enemy_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = pos->mailbox[dst];
@@ -324,14 +324,14 @@ void generate_bishop_noisy(const GameState *pos, int turn, int piece_offset, Mov
     int i = move_list->next_open;
     int piece = B + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate Bishop Moves
-    U64 piece_bb = pos->piece_bitboards[B + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[B + piece_offset];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_bishop_attacks(src, occupancy) & enemy_pieces;
+        u64 piece_attacks = get_bishop_attacks(src, occupancy) & enemy_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = pos->mailbox[dst];
@@ -348,14 +348,14 @@ void generate_rook_noisy(const GameState *pos, int turn, int piece_offset, MoveL
     int i = move_list->next_open;
     int piece = R + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate Rook Moves
-    U64 piece_bb = pos->piece_bitboards[piece];
+    u64 piece_bb = pos->piece_bitboards[piece];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_rook_attacks(src, occupancy) & enemy_pieces;
+        u64 piece_attacks = get_rook_attacks(src, occupancy) & enemy_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = pos->mailbox[dst];
@@ -372,14 +372,14 @@ void generate_queen_noisy(const GameState *pos, int turn, int piece_offset, Move
     int i = move_list->next_open;
     int piece = Q + piece_offset;
 
-    U64 occupancy = pos->occupancies[BOTH];
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 occupancy = pos->occupancies[BOTH];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
     // Generate Queen Moves
-    U64 piece_bb = pos->piece_bitboards[piece];
+    u64 piece_bb = pos->piece_bitboards[piece];
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = get_queen_attacks(src, occupancy) & enemy_pieces;
+        u64 piece_attacks = get_queen_attacks(src, occupancy) & enemy_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = pos->mailbox[dst];
@@ -395,14 +395,14 @@ void generate_king_noisy(const GameState *pos, int turn, int piece_offset, MoveL
 {
     int i = move_list->next_open;
     int piece = K + piece_offset;
-    U64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
+    u64 enemy_pieces = (turn == WHITE) ? pos->occupancies[BLACK] : pos->occupancies[WHITE];
 
-    U64 piece_bb = pos->piece_bitboards[K + piece_offset];
+    u64 piece_bb = pos->piece_bitboards[K + piece_offset];
 
     // Generate King Moves
     while (piece_bb) {
         int src = GET_FIRST_BIT_SQUARE(piece_bb);
-        U64 piece_attacks = king_attacks[src] & enemy_pieces;
+        u64 piece_attacks = king_attacks[src] & enemy_pieces;
         while (piece_attacks) {
             int dst = GET_FIRST_BIT_SQUARE(piece_attacks);
             int victim = pos->mailbox[dst];
