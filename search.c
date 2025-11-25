@@ -77,14 +77,13 @@ void init_lmr_table()
     }
 }
 
-int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
+int calculate_reduction(Move m, int move_count, int depth)
 {
     // Prevent out of bounds error when approaching max ply
     depth = MIN(depth, MAX_PLY - 1);
     int r = lmr_table[depth][move_count];
     if (move_count <= MIN_LMR_MOVES || depth <= MIN_LMR_DEPTH)
         r = 0;
-    r += !pv_node;
     return r;
 }
 
@@ -252,7 +251,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
         }
         else {
-            int r = calculate_reduction(current, move_count, depth, pv_node);
+            int r = calculate_reduction(current, move_count, depth);
+            r += !pv_node;
+            r -= in_check;
             int reduced = CLAMP(new_depth - r, 0, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
