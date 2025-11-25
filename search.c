@@ -1,5 +1,6 @@
 #include "search.h"
 #include <assert.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +35,7 @@ void report_search_info(SearchInfo *root_info, int score)
     printf("info depth %d ", root_info->depth);
     printf("score %s %d ", (mated) ? "mate" : "cp", score);
     printf("time %u ", root_info->ms);
-    printf("nodes %llu ", root_info->nodes);
+    printf("nodes %"PRIu64" ", root_info->nodes);
     printf("nps %u ", root_info->nps);
     printf("pv");
     for (int i = 0; i < root_info->pv_table_length[0]; i++) {

@@ -1,6 +1,8 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#include <stdint.h>
+
 #define WHITE 0
 #define BLACK 1
 
@@ -15,7 +17,9 @@
 (byte & 0x02 ? '1' : '0'), \
 (byte & 0x01 ? '1' : '0')
 
-typedef unsigned long long U64;
+typedef uint64_t U64;
+typedef uint32_t U32;
+typedef uint16_t U16;
 typedef unsigned __int128 U128;
 
 enum {

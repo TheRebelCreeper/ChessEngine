@@ -1,5 +1,6 @@
 #include "position.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -273,5 +274,5 @@ void print_board(GameState state)
     printf("En Passant Square: %s\n", square_names[state.enpassant_square]);
     printf("Halfmove Clock: %d\n", state.half_move_clock);
     printf("Move: %d\n", state.full_move);
-    printf("Hash Key: %llx\n", state.key);
+    printf("Hash Key: %"PRIx64"\n", state.key);
 }

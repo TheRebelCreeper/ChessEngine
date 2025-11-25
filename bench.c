@@ -1,4 +1,5 @@
 #include "bench.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include "history.h"
 #include "util.h"
@@ -80,5 +81,5 @@ void run_benchmark()
     }
 
     unsigned int nps = (unsigned int) (1000 * total_nodes / (total_time));
-    printf("%llu nodes %u nps\n", total_nodes, nps);
+    printf("%"PRIu64" nodes %u nps\n", total_nodes, nps);
 }

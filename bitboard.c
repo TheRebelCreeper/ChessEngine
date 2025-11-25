@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include "magic.h"
 
@@ -402,5 +403,5 @@ void print_bitboard(U64 board)
         printf("  +---+---+---+---+---+---+---+---+\n");
     }
     printf("    a   b   c   d   e   f   g   h\n");
-    printf("Bitboard: 0x%llx\n\n", board);
+    printf("Bitboard: 0x%"PRIx64"\n\n", board);
 }
