@@ -220,6 +220,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         move_count++;
 
         bool noisy = is_noisy(current);
+        bool gives_check = is_in_check(&new_pos);
         if (best_score > -MATE_SCORE && !in_check) {
             // Futility Pruning
             if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
@@ -253,7 +254,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         else {
             int r = calculate_reduction(current, move_count, depth);
             r += !pv_node;
-            r -= in_check;
+            r -= gives_check;
             int reduced = CLAMP(new_depth - r, 0, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
