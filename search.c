@@ -245,7 +245,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             }
 
             // Late Move Pruning
-            if (!noisy && move_count >= 3 + depth * depth){
+            if (!noisy && move_count >= (3 + depth * depth) / (2 - improving)){
                 continue;
             }
 
