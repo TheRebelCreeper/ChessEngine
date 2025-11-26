@@ -103,6 +103,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     Move best_move = 0;
     int best_score = -INF;
     int score;
+    int static_eval;
 
     // Update node count
     info->nodes++;
@@ -167,7 +168,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval = evaluation(pos);
+    if (tt_hit && tt_entry.static_eval != INVALID_SCORE)
+        static_eval = tt_entry.static_eval;
+    else
+        static_eval = evaluation(pos);
     if (!pv_node && !in_check) {
         assert(!is_root);
 
@@ -318,7 +322,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, best_score, tt_flag, depth, ply);
+    save_tt(pos, best_move, best_score, static_eval, tt_flag, depth, ply);
     return best_score;
 }
 
