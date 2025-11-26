@@ -30,6 +30,7 @@ void clear_tt()
             e->move = 0;
             e->depth = 0;
             e->score = INVALID_SCORE;
+            e->static_eval = INVALID_SCORE;
             e->flag = TT_NONE;
         }
         transposition_table.new_write = 0;
@@ -61,6 +62,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
         }
 
         dst->score = score;
+        dst->static_eval = entry.static_eval;
         dst->depth = entry.depth;
         dst->move = entry.move;
         dst->flag = entry.flag;
@@ -73,7 +75,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
     return false;
 }
 
-void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply)
+void save_tt(const GameState *pos, Move move, int score, int static_eval, int flag, int depth, int ply)
 {
     assert(depth >= 0);
 
@@ -95,5 +97,6 @@ void save_tt(const GameState *pos, Move move, int score, int flag, int depth, in
     transposition_table.hash_table[i].key = packed_key;
     transposition_table.hash_table[i].flag = flag;
     transposition_table.hash_table[i].score = score;
+    transposition_table.hash_table[i].static_eval = static_eval;
     transposition_table.hash_table[i].depth = (unsigned char) depth;
 }

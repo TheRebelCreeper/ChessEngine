@@ -17,6 +17,7 @@ typedef struct ttEntry {
     unsigned char flag;
     Move move;
     int score;
+    int static_eval;
 } TTEntry;
 
 typedef struct tt {
@@ -32,6 +33,6 @@ void init_tt();
 void clear_tt();
 void set_tt_size(int mb);
 bool probe_tt(const GameState *pos, TTEntry *dst, int ply);
-void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply);
+void save_tt(const GameState *pos, Move move, int score, int static_eval, int flag, int depth, int ply);
 
 #endif
