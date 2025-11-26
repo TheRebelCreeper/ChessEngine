@@ -29,8 +29,8 @@ void clear_tt()
             e->key = 0ULL;
             e->move = 0;
             e->depth = 0;
-            e->score = INVALID_SCORE;
-            e->static_eval = INVALID_SCORE;
+            e->score = -INF;
+            e->static_eval = -INF;
             e->flag = TT_NONE;
         }
         transposition_table.new_write = 0;

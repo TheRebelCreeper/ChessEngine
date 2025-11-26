@@ -168,10 +168,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    if (tt_hit && tt_entry.static_eval != INVALID_SCORE)
+    if (tt_hit && tt_entry.static_eval != -INF)
         static_eval = tt_entry.static_eval;
     else
-        static_eval = evaluation(pos);
+        static_eval = in_check ? -INF : evaluation(pos);
     if (!pv_node && !in_check) {
         assert(!is_root);
 
