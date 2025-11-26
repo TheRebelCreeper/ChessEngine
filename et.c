@@ -27,7 +27,7 @@ void clear_et()
     if (eval_table.hash_table != NULL) {
         for (e = eval_table.hash_table; e < eval_table.hash_table + eval_table.num_entries; e++) {
             e->key = 0ULL;
-            e->eval = INVALID_EVALUATION;
+            e->eval = -INF;
         }
         eval_table.new_write = 0;
     }
@@ -47,10 +47,10 @@ int probe_et(const GameState *pos)
 
     ETEntry entry = eval_table.hash_table[i];
 
-    if (entry.key == packed_key && entry.eval != INVALID_EVALUATION) {
+    if (entry.key == packed_key && entry.eval != -INF) {
         return entry.eval;
     }
-    return INVALID_EVALUATION;
+    return -INF;
 }
 
 void save_et(GameState *pos, int eval)

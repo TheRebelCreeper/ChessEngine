@@ -181,7 +181,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval = evaluation(pos);
+    int static_eval = in_check ? -INF : evaluation(pos);
     info->static_eval_stack[ply] = static_eval;
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check) {
