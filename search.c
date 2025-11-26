@@ -88,6 +88,11 @@ int calculate_reduction(Move m, int move_count, int depth, bool pv_node)
     return r;
 }
 
+bool calculate_improving(SearchInfo *info, bool in_check)
+{
+    return true;
+}
+
 int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, bool cut_node)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
@@ -168,6 +173,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     int static_eval = evaluation(pos);
+    info->static_eval_stack[ply] = static_eval;
     if (!pv_node && !in_check) {
         assert(!is_root);
 
@@ -421,6 +427,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
     search_info->ply = 0;
     search_info->stopped = false;
     memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
+    memset(search_info->static_eval_stack, -INF, sizeof(search_info->static_eval_stack));
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
         memset(search_info->pv_table, 0, sizeof(search_info->pv_table));
