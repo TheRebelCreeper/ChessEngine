@@ -87,7 +87,7 @@ int calculate_reduction(Move m, int move_count, int depth)
     return r;
 }
 
-bool calculate_improving(SearchInfo *info, int static_eval, bool in_check)
+inline bool calculate_improving(SearchInfo *info, int static_eval, bool in_check)
 {
     int ply = info->ply;
     if (in_check){
