@@ -4,8 +4,6 @@
 #include "evaluation.h"
 #include "move.h"
 
-#define INVALID_SCORE (INF + 100)
-
 #define TT_EXACT   0x4
 #define TT_UPPER  0x2
 #define TT_LOWER  0x1

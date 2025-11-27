@@ -1,13 +1,8 @@
 #ifndef ET_H
 #define ET_H
 
+#include "evaluation.h"
 #include "position.h"
-
-#ifndef INF
-#define INF 1000000
-#endif
-
-#define INVALID_EVALUATION (INF + 100)
 
 typedef struct etEntry {
     int key;

@@ -93,10 +93,10 @@ bool calculate_improving(SearchInfo *info, int static_eval, bool in_check)
     if (in_check){
         return false;
     }
-    else if (ply > 1){
+    else if (ply > 1 && info->static_eval_stack[ply - 2] != -INF){
         return static_eval > info->static_eval_stack[ply - 2];
     }
-    else if (ply > 3){
+    else if (ply > 3 && info->static_eval_stack[ply - 4] != -INF){
         return static_eval > info->static_eval_stack[ply - 4];
     }
     return true;
@@ -181,7 +181,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval = evaluation(pos);
+    int static_eval = in_check ? -INF : evaluation(pos);
     info->static_eval_stack[ply] = static_eval;
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check) {
