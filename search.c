@@ -272,7 +272,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             int r = calculate_reduction(current, move_count, depth);
             r += !pv_node;
             r -= gives_check;
-            int reduced = CLAMP(new_depth - r, 0, new_depth);
+            int reduced = CLAMP(new_depth - r, 1, new_depth);
             score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
                 score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
