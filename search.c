@@ -265,6 +265,25 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         // PVS
         int new_depth = depth - 1;
+        if (move_count >= MIN_LMR_MOVES && depth >= MIN_LMR_DEPTH) {
+            int r = calculate_reduction(current, move_count, depth);
+            r += !pv_node;
+            r -= gives_check;
+            r -= improving;
+            int reduced = CLAMP(new_depth - r, 1, new_depth);
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true); 
+            if (score > alpha && reduced < new_depth) {
+                score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
+            }
+        }
+        else if (!pv_node || move_count > 1) {
+            score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
+        }
+        if (pv_node && (move_count == 1 || score > alpha)) {
+            score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
+        }
+
+        /*
         if (move_count == 1) {
             score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
         }
@@ -281,7 +300,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             if (score > alpha && score < beta) {
                 score = -search(-beta, -alpha, new_depth, &new_pos, info, false);
             }
-        }
+        }*/
 
         // Unmake move by removing current move from history
         info->ply--;
