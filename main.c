@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
     init_tt();
     init_et();
     init_lmr_table();
+    init_lmp_table();
 
     if (argc > 1 && strcmp(argv[1], "bench") == 0) {
         run_benchmark();

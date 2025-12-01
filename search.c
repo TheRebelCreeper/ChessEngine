@@ -13,6 +13,7 @@
 #include "util.h"
 
 static int lmr_table[MAX_PLY][MAX_MOVES];
+static int lmp_table[16][2];
 
 void report_search_info(SearchInfo *root_info, int score)
 {
@@ -73,6 +74,15 @@ void init_lmr_table()
     for (int depth = 0; depth < MAX_PLY; depth++) {
         for (int move_count = 0; move_count < MAX_MOVES; move_count++) {
             lmr_table[depth][move_count] = 0.77 + log(move_count) * log(depth) / 2.36;
+        }
+    }
+}
+
+void init_lmp_table()
+{
+    for (int depth = 0; depth < 16; depth++) {
+        for (int imp = 0; imp < 2; imp++) {
+            lmp_table[depth][imp] = (MIN_LMP_MOVES + depth * depth) / (2 - imp);
         }
     }
 }
@@ -245,7 +255,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             }
 
             // Late Move Pruning
-            if (!noisy && move_count >= (3 + depth * depth) / (2 - improving)){
+            if (!noisy && move_count >= lmp_table[MIN(depth, 15)][improving]){
                 continue;
             }
 

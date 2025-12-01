@@ -13,6 +13,7 @@
 #define INITIAL_ASP_WINDOW 30
 #define MIN_LMR_MOVES 3
 #define MIN_LMR_DEPTH 2
+#define MIN_LMP_MOVES 3
 #define MIN_NMP_DEPTH 4
 #define MIN_IIR_DEPTH 3
 
@@ -56,6 +57,7 @@ static const int MVV_LVA_TABLE[6][12] =
 };
 
 void init_lmr_table();
+void init_lmp_table();
 int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node);
 void search_root(GameState *pos, SearchInfo *search_info);
 void read_input(SearchInfo *info);
