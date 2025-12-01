@@ -56,7 +56,7 @@ static const int MVV_LVA_TABLE[6][12] =
 };
 
 void init_lmr_table();
-int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
+int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node);
 void search_root(GameState *pos, SearchInfo *search_info);
 void read_input(SearchInfo *info);
 
