@@ -80,6 +80,7 @@ void init_lmr_table()
 
 void init_lmp_table()
 {
+    // Capped at 15 depth since cannot have more than 256 possible legal moves
     for (int depth = 0; depth < 16; depth++) {
         for (int imp = 0; imp < 2; imp++) {
             lmp_table[depth][imp] = (MIN_LMP_MOVES + depth * depth) / (2 - imp);
