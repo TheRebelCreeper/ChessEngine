@@ -161,7 +161,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     // Enter qsearch
     if (depth <= 0) {
         info->pv_table_length[ply] = 0;
-        return qsearch(alpha, beta, pos, info);
+        return qsearch(alpha, beta, pos, info, pv_node);
     }
 
     // tt_hit is boolean, if no entry found, move is set to 0
@@ -194,7 +194,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         // Razoring
         if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
-            int razor_score = qsearch(alpha, alpha + 1, pos, info);
+            int razor_score = qsearch(alpha, alpha + 1, pos, info, pv_node);
             if (razor_score <= alpha)
                 return razor_score;
         }
@@ -345,7 +345,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     return best_score;
 }
 
-int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
+int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
 {
     assert(info->ply >= 0 && info->ply <= MAX_PLY);
     int ply = info->ply;
@@ -365,6 +365,17 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         return evaluation(pos);
     }
 
+    // tt_hit is boolean, if no entry found, move is set to 0
+    TTEntry tt_entry;
+    bool tt_hit = probe_tt(pos, &tt_entry, ply);
+    // Cutoff when we find valid TT entry
+    if (!pv_node && tt_hit
+        && (tt_entry.flag == TT_EXACT
+            || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
+            || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
+        return tt_entry.score;
+    }
+
     int static_eval;
     if (in_check) {
         static_eval = -MATE_SCORE + ply;
@@ -381,7 +392,9 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
     }
 
     int best_score = static_eval;
+    Move best_move = 0;
 
+    unsigned char tt_flag = TT_UPPER;
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
@@ -402,7 +415,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         move_count++;
 
         info->ply++;
-        int score = -qsearch(-beta, -alpha, &new_pos, info);
+        int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
         info->ply--;
 
         if (info->stopped) {
@@ -411,12 +424,15 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
 
         if (score > best_score) {
             best_score = score;
-            if (score > alpha) {
-                alpha = score;
-                if (score >= beta) {
-                    break;
-                }
-            }
+        }
+        if (score > alpha) {
+            alpha = score;
+            best_move = current;
+            tt_flag = TT_EXACT;
+        }
+        if (score >= beta) {
+            tt_flag = TT_LOWER;
+            break;
         }
     }
 
@@ -425,6 +441,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info)
         return -MATE_SCORE + ply;
     }
 
+    save_tt(pos, best_move, best_score, tt_flag, 0, ply);
     return best_score;
 }
 
