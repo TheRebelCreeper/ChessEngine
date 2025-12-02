@@ -160,7 +160,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }        
 
         // Don't need to search for repetition if halfMoveClock is low
-        if (alpha < 0 && is_repetition(pos)) {
+        if (alpha < 0 && pos->half_move_clock > 4 && is_repetition(pos)) {
             alpha = 0;
             if (alpha >= beta) {
                 info->pv_table_length[ply] = 0;
@@ -382,7 +382,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return evaluation(pos);
     }
 
-    if (alpha < 0 && is_repetition(pos)) {
+    if (pos->half_move_clock > 4 && alpha < 0 && is_repetition(pos)) {
         alpha = 0;
         if (alpha >= beta)
             return alpha;
