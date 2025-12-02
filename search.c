@@ -381,7 +381,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return evaluation(pos);
     }
 
-    if (pos->half_move_clock > 4 && alpha < 0 && is_repetition(pos)) {
+    if (pos->half_move_clock > 4 && is_repetition(pos)) {
         alpha = 0;
         if (alpha >= beta)
             return alpha;
