@@ -101,13 +101,13 @@ int calculate_reduction(Move m, int move_count, int depth)
 inline bool calculate_improving(SearchInfo *info, int static_eval, bool in_check)
 {
     int ply = info->ply;
-    if (in_check){
+    if (in_check) {
         return false;
     }
-    else if (ply > 1 && info->static_eval_stack[ply - 2] != -INF){
+    else if (ply > 1 && info->static_eval_stack[ply - 2] != -INF) {
         return static_eval > info->static_eval_stack[ply - 2];
     }
-    else if (ply > 3 && info->static_eval_stack[ply - 4] != -INF){
+    else if (ply > 3 && info->static_eval_stack[ply - 4] != -INF) {
         return static_eval > info->static_eval_stack[ply - 4];
     }
     return true;
@@ -127,7 +127,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     clear_movelist(&fail_low_quiets);
     Move best_move = 0;
     int best_score = -INF;
-    int score;
+    int score = -INF;
 
     // Update node count
     info->nodes++;
@@ -157,7 +157,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         if (pos->half_move_clock >= 100 || insufficient_material(pos)) {
             info->pv_table_length[ply] = 0;
             return 0;
-        }        
+        }
 
         // Don't need to search for repetition if halfMoveClock is low
         if (pos->half_move_clock > 4 && is_repetition(pos)) {
@@ -247,7 +247,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         // Make move and skip if illegal
         if (!make_move(pos, &new_pos, current))
             continue;
-        
+
         move_count++;
 
         bool noisy = is_noisy(current);
@@ -259,7 +259,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             }
 
             // Late Move Pruning
-            if (!noisy && move_count >= lmp_table[MIN(depth, 15)][improving]){
+            if (!noisy && move_count >= lmp_table[MIN(depth, 15)][improving]) {
                 continue;
             }
 
@@ -286,7 +286,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             r -= gives_check;
             r -= improving;
             int reduced = CLAMP(new_depth - r, 1, new_depth);
-            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true); 
+            score = -search(-alpha - 1, -alpha, reduced, &new_pos, info, true);
             if (score > alpha && reduced < new_depth) {
                 score = -search(-alpha - 1, -alpha, new_depth, &new_pos, info, !cut_node);
             }
@@ -383,7 +383,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
     if (pos->half_move_clock >= 100 || insufficient_material(pos)) {
         info->pv_table_length[ply] = 0;
         return 0;
-    }        
+    }
 
     // Don't need to search for repetition if halfMoveClock is low
     if (pos->half_move_clock > 4 && is_repetition(pos)) {
