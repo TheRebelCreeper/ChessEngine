@@ -242,7 +242,6 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     for (int i = 0; i < total_moves; i++) {
         pick_move(&move_list, i);
         Move current = move_list.move[i];
-        GameState new_pos;
 
         bool noisy = is_noisy(current);
         if (best_score > -MATE_SCORE && !in_check) {
@@ -263,12 +262,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
 
         // Make move and skip if illegal
+        GameState new_pos;
         if (!make_move(pos, &new_pos, current))
             continue;
 
         move_count++;
         info->ply++;
-        bool gives_check = is_in_check(&new_pos);
 
         // Save current move to move_stack
         info->move_stack[ply] = current;
@@ -277,6 +276,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         repetition_history[++repetition_index] = new_pos.key;
 
         // PVS
+        bool gives_check = is_in_check(&new_pos);
         int new_depth = depth - 1;
         // Start with Late Move Reduction
         if (move_count >= MIN_LMR_MOVES && depth >= MIN_LMR_DEPTH) {
@@ -434,11 +434,12 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
             continue;
         }
 
+        // Make move and skip if illegal
         GameState new_pos;
         if (!make_move(pos, &new_pos, current))
             continue;
-        move_count++;
 
+        move_count++;
         info->ply++;
         int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
         info->ply--;
