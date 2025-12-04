@@ -441,6 +441,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         if (!make_move(pos, &new_pos, current))
             continue;
 
+        prefetch_tt(new_pos.key);
         move_count++;
         info->ply++;
         int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
