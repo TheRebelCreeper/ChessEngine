@@ -225,6 +225,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->move_stack[ply] = 0;
 
             info->ply++;
+            prefetch_tt(null_pos.key);
             int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
             repetition_index--;
@@ -268,6 +269,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         move_count++;
         info->ply++;
+        prefetch_tt(new_pos.key);
 
         // Save current move to move_stack
         info->move_stack[ply] = current;
@@ -441,6 +443,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
 
         move_count++;
         info->ply++;
+        prefetch_tt(new_pos.key);
         int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
         info->ply--;
 

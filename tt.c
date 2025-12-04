@@ -41,11 +41,16 @@ void set_tt_size(int mb)
     tt_size = (1 << 20) * mb;
 }
 
-// Should return a score
+void prefetch_tt(u64 key)
+{
+    u64 i = (u64) (((u128) key * (u128) transposition_table.num_entries) >> 64);
+    __builtin_prefetch(&transposition_table.hash_table[i]);
+}
+
 bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 {
     /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((u128) pos->key * (u128) transposition_table.num_entries) >> 64);
+    u64 i = (u64) (((u128) pos->key * (u128) transposition_table.num_entries) >> 64);
     int packed_key = (int) pos->key;
 
     TTEntry entry = transposition_table.hash_table[i];
@@ -78,7 +83,7 @@ void save_tt(const GameState *pos, Move move, int score, int flag, int depth, in
     assert(depth >= 0);
 
     /* Cool tech - mulhi trick */
-    size_t i = (size_t) (((u128) pos->key * (u128) transposition_table.num_entries) >> 64);
+    u64 i = (u64) (((u128) pos->key * (u128) transposition_table.num_entries) >> 64);
     int packed_key = (int) pos->key;
 
     if (score > MAX_MATE_SCORE) {
