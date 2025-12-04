@@ -222,6 +222,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             GameState null_pos;
             make_null_move(pos, &null_pos);
             repetition_history[++repetition_index] = null_pos.key;
+            prefetch_tt(null_pos.key);
             info->move_stack[ply] = 0;
 
             info->ply++;
@@ -268,6 +269,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         move_count++;
         info->ply++;
+        prefetch_tt(new_pos.key);
 
         // Save current move to move_stack
         info->move_stack[ply] = current;

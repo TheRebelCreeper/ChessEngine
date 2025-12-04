@@ -29,6 +29,7 @@ typedef struct tt {
 void init_tt();
 void clear_tt();
 void set_tt_size(int mb);
+void prefetch_tt(u64 key);
 bool probe_tt(const GameState *pos, TTEntry *dst, int ply);
 void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply);
 
