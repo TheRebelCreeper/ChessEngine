@@ -222,10 +222,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             GameState null_pos;
             make_null_move(pos, &null_pos);
             repetition_history[++repetition_index] = null_pos.key;
-            prefetch_tt(null_pos.key);
             info->move_stack[ply] = 0;
 
             info->ply++;
+            prefetch_tt(null_pos.key);
             int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
             repetition_index--;
