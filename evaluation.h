@@ -3,9 +3,9 @@
 
 #include "position.h"
 
-#define INF 30000
-#define MATE_SCORE 29900
-#define MAX_MATE_SCORE 29600
+extern int INF;
+extern int MATE_SCORE;
+extern int MAX_MATE_SCORE;
 
 static const int piece_value[12] = {100, 310, 330, 500, 900, 10000, -100, -310, -330, -500, -900, -10000};
 
