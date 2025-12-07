@@ -16,28 +16,7 @@ int material_count(const GameState *pos)
     for (int i = P; i <= k; i++) {
         u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
-            int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             eval += piece_value[i];
-            if (i == P)
-                eval += pawn_score[mirrored_square[sqr]];
-            else if (i == p)
-                eval -= pawn_score[sqr];
-            else if (i == N)
-                eval += knight_score[mirrored_square[sqr]];
-            else if (i == n)
-                eval -= knight_score[sqr];
-            else if (i == B)
-                eval += bishop_score[mirrored_square[sqr]];
-            else if (i == b)
-                eval -= bishop_score[sqr];
-            else if (i == R)
-                eval += rook_score[mirrored_square[sqr]];
-            else if (i == r)
-                eval -= rook_score[sqr];
-            else if (i == K)
-                eval += king_score[mirrored_square[sqr]];
-            else if (i == k)
-                eval -= king_score[sqr];
             CLEAR_LSB(piece_bb);
         }
     }
