@@ -11,15 +11,15 @@
 
 typedef struct ttEntry {
     int key;
-    unsigned char depth;
-    unsigned char flag;
     Move move;
-    int score;
+    i16 score;
+    u8 depth;
+    u8 flag;
 } TTEntry;
 
 typedef struct tt {
     TTEntry *hash_table;
-    int num_entries;
+    u32 num_entries;
     int new_write;
     int over_write;
     int hit;
