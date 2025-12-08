@@ -17,11 +17,16 @@
 (byte & 0x02 ? '1' : '0'), \
 (byte & 0x01 ? '1' : '0')
 
+typedef unsigned __int128 u128;
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
-typedef unsigned __int128 u128;
+
+typedef int64_t i64;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t i8;
 
 enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE

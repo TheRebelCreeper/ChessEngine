@@ -65,7 +65,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
             score += ply;
         }
 
-        dst->score = score;
+        dst->score = (i16) score;
         dst->depth = entry.depth;
         dst->move = entry.move;
         dst->flag = entry.flag;
@@ -99,6 +99,6 @@ void save_tt(const GameState *pos, Move move, int score, int flag, int depth, in
 
     transposition_table.hash_table[i].key = packed_key;
     transposition_table.hash_table[i].flag = flag;
-    transposition_table.hash_table[i].score = score;
-    transposition_table.hash_table[i].depth = (unsigned char) depth;
+    transposition_table.hash_table[i].score = (i16) score;
+    transposition_table.hash_table[i].depth = depth;
 }
