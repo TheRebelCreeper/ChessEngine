@@ -235,7 +235,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    unsigned char tt_flag = TT_UPPER;
+    u8 tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
     int move_count = 0;
@@ -356,7 +356,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, best_score, tt_flag, depth, ply);
+    save_tt(pos, best_move, static_eval, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
@@ -421,7 +421,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
     int best_score = static_eval;
     Move best_move = 0;
 
-    unsigned char tt_flag = TT_UPPER;
+    u8 tt_flag = TT_UPPER;
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
@@ -470,7 +470,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return -MATE_SCORE + ply;
     }
 
-    save_tt(pos, best_move, best_score, tt_flag, 0, ply);
+    save_tt(pos, best_move, static_eval, best_score, tt_flag, 0, ply);
     return best_score;
 }
 

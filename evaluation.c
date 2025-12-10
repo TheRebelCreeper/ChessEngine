@@ -7,6 +7,7 @@
 #include "wrapper.h"
 
 int INF = 30000;
+int NO_SCORE = -30000;
 int MATE_SCORE = 29900;
 int MAX_MATE_SCORE = 29600;
 

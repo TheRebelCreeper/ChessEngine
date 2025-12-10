@@ -4,6 +4,7 @@
 #include "position.h"
 
 extern int INF;
+extern int NO_SCORE;
 extern int MATE_SCORE;
 extern int MAX_MATE_SCORE;
 
