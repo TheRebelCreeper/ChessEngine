@@ -101,7 +101,7 @@ int evaluation(GameState *pos)
     else
         score += material_count(pos);
 
-    return score * (199 - pos->half_move_clock) / 199;
+    return score;
 }
 
 void print_evaluation(int score)

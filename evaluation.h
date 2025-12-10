@@ -94,4 +94,9 @@ int nnue_eval(const GameState *pos);
 int evaluation(GameState *pos);
 int see(const GameState *pos, int square);
 
+inline int correct_static_eval(const GameState *pos, int score)
+{
+    return score * (199 - pos->half_move_clock) / 199;
+}
+
 #endif

@@ -195,8 +195,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval = in_check ? -INF : evaluation(pos);
-    info->static_eval_stack[ply] = static_eval;
+    int static_eval;
+    if (in_check) {
+        static_eval = -INF;
+        info->static_eval_stack[ply] = static_eval;
+    }
+    else {
+        static_eval = evaluation(pos);
+        info->static_eval_stack[ply] = static_eval;
+        static_eval = correct_static_eval(pos, static_eval);
+    }
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check) {
         assert(!is_root);
@@ -356,7 +364,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, static_eval, best_score, tt_flag, depth, ply);
+    save_tt(pos, best_move, info->static_eval_stack[ply], best_score, tt_flag, depth, ply);
     return best_score;
 }
 
