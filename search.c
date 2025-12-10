@@ -195,16 +195,16 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval;
+    int static_eval, static_eval_raw;
     if (in_check) {
+        static_eval_raw = -INF;
         static_eval = -INF;
-        info->static_eval_stack[ply] = static_eval;
     }
     else {
-        static_eval = evaluation(pos);
-        info->static_eval_stack[ply] = static_eval;
-        static_eval = correct_static_eval(pos, static_eval);
+        static_eval_raw = evaluation(pos);
+        static_eval = correct_static_eval(pos, static_eval_raw);
     }
+    info->static_eval_stack[ply] = static_eval;
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check) {
         assert(!is_root);
@@ -364,7 +364,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, info->static_eval_stack[ply], best_score, tt_flag, depth, ply);
+    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
@@ -411,12 +411,14 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return tt_entry.score;
     }
 
-    int static_eval;
+    int static_eval, static_eval_raw;
     if (in_check) {
+        static_eval_raw = -INF;
         static_eval = -MATE_SCORE + ply;
     }
     else {
-        static_eval = evaluation(pos);
+        static_eval_raw = evaluation(pos);
+        static_eval = correct_static_eval(pos, static_eval_raw);
         if (static_eval >= beta) {
             return static_eval;
         }
@@ -478,7 +480,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return -MATE_SCORE + ply;
     }
 
-    save_tt(pos, best_move, static_eval, best_score, tt_flag, 0, ply);
+    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, 0, ply);
     return best_score;
 }
 
