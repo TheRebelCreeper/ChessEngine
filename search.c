@@ -201,7 +201,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         static_eval = -INF;
     }
     else {
-        static_eval_raw = evaluation(pos);
+        if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
+            static_eval_raw = tt_entry.static_eval;
+        }
+        else {
+            static_eval_raw = evaluation(pos);
+        }
         static_eval = correct_static_eval(pos, static_eval_raw);
     }
     info->static_eval_stack[ply] = static_eval;
@@ -480,7 +485,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return -MATE_SCORE + ply;
     }
 
-    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, 0, ply);
+    save_tt(pos, best_move, -INF, best_score, tt_flag, 0, ply);
     return best_score;
 }
 
