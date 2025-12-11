@@ -485,7 +485,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return -MATE_SCORE + ply;
     }
 
-    save_tt(pos, best_move, -INF, best_score, tt_flag, 0, ply);
+    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, 0, ply);
     return best_score;
 }
 
