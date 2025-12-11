@@ -58,7 +58,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 
     if (entry.key == packed_key && entry.flag != TT_NONE) {
         // Adjust mate score in TT
-        int score = entry.score;
+        i16 score = entry.score;
         if (score > MAX_MATE_SCORE) {
             score -= ply;
         }
@@ -66,7 +66,8 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
             score += ply;
         }
 
-        dst->score = (i16) score;
+        dst->static_eval = entry.static_eval;
+        dst->score = score;
         dst->depth = entry.depth;
         dst->move = entry.move;
         dst->flag = entry.flag;
