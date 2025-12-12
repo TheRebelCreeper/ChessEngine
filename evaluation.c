@@ -44,14 +44,16 @@ int material_count(const GameState *pos)
     return (pos->turn == WHITE) ? eval : -eval;
 }
 
-int non_pawn_material(const GameState *pos)
+int material(const GameState *pos)
 {
     int m = 0;
+    m += COUNT_BITS(pos->piece_bitboards[P]) * piece_value[P];
     m += COUNT_BITS(pos->piece_bitboards[N]) * piece_value[N];
     m += COUNT_BITS(pos->piece_bitboards[B]) * piece_value[B];
     m += COUNT_BITS(pos->piece_bitboards[R]) * piece_value[R];
     m += COUNT_BITS(pos->piece_bitboards[Q]) * piece_value[Q];
 
+    m += COUNT_BITS(pos->piece_bitboards[p]) * piece_value[p];
     m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[n];
     m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[b];
     m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[r];
@@ -90,11 +92,10 @@ int nnue_eval(const GameState *pos)
     return evaluate_nnue(pos->turn, pieces, squares);
 }
 
-int evaluation(GameState *pos)
+int evaluation(const GameState *pos)
 {
     int score = 0;
-    int mat_pawns = COUNT_BITS(pos->piece_bitboards[P] | pos->piece_bitboards[p]);
-    int mat = non_pawn_material(pos) + mat_pawns * piece_value[P];
+    int mat = material(pos);
     if (FOUND_NETWORK)
         score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
     else

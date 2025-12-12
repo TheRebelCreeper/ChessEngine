@@ -90,7 +90,7 @@ static const int nnue_pieces[12] =
 
 void print_evaluation(int score);
 int nnue_eval(const GameState *pos);
-int evaluation(GameState *pos);
+int evaluation(const GameState *pos);
 int see(const GameState *pos, int square);
 
 #endif
