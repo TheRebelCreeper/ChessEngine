@@ -29,7 +29,8 @@ void clear_tt()
             e->key = 0ULL;
             e->move = 0;
             e->depth = 0;
-            e->score = -INF;
+            e->static_eval = (i16) NO_SCORE;
+            e->score = (i16) NO_SCORE;
             e->flag = TT_NONE;
         }
         transposition_table.new_write = 0;
@@ -57,7 +58,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
 
     if (entry.key == packed_key && entry.flag != TT_NONE) {
         // Adjust mate score in TT
-        int score = entry.score;
+        i16 score = entry.score;
         if (score > MAX_MATE_SCORE) {
             score -= ply;
         }
@@ -65,7 +66,8 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
             score += ply;
         }
 
-        dst->score = (i16) score;
+        dst->static_eval = entry.static_eval;
+        dst->score = score;
         dst->depth = entry.depth;
         dst->move = entry.move;
         dst->flag = entry.flag;
@@ -78,7 +80,7 @@ bool probe_tt(const GameState *pos, TTEntry *dst, int ply)
     return false;
 }
 
-void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply)
+void save_tt(const GameState *pos, Move move, int static_eval, int score, int flag, int depth, int ply)
 {
     assert(depth >= 0);
 
@@ -99,6 +101,7 @@ void save_tt(const GameState *pos, Move move, int score, int flag, int depth, in
 
     transposition_table.hash_table[i].key = packed_key;
     transposition_table.hash_table[i].flag = flag;
+    transposition_table.hash_table[i].static_eval = (i16) static_eval;
     transposition_table.hash_table[i].score = (i16) score;
     transposition_table.hash_table[i].depth = depth;
 }

@@ -195,7 +195,20 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
-    int static_eval = in_check ? -INF : evaluation(pos);
+    int static_eval, static_eval_raw;
+    if (in_check) {
+        static_eval_raw = -INF;
+        static_eval = -INF;
+    }
+    else {
+        if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
+            static_eval_raw = tt_entry.static_eval;
+        }
+        else {
+            static_eval_raw = evaluation(pos);
+        }
+        static_eval = correct_static_eval(pos, static_eval_raw);
+    }
     info->static_eval_stack[ply] = static_eval;
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check) {
@@ -235,7 +248,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    unsigned char tt_flag = TT_UPPER;
+    u8 tt_flag = TT_UPPER;
     int total_moves = generate_moves(pos, &move_list);
     score_moves(&move_list, pos, tt_entry.move, ply);
     int move_count = 0;
@@ -356,7 +369,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, best_score, tt_flag, depth, ply);
+    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
@@ -403,12 +416,14 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return tt_entry.score;
     }
 
-    int static_eval;
+    int static_eval, static_eval_raw;
     if (in_check) {
+        static_eval_raw = -INF;
         static_eval = -MATE_SCORE + ply;
     }
     else {
-        static_eval = evaluation(pos);
+        static_eval_raw = evaluation(pos);
+        static_eval = correct_static_eval(pos, static_eval_raw);
         if (static_eval >= beta) {
             return static_eval;
         }
@@ -421,7 +436,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
     int best_score = static_eval;
     Move best_move = 0;
 
-    unsigned char tt_flag = TT_UPPER;
+    u8 tt_flag = TT_UPPER;
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
@@ -470,7 +485,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return -MATE_SCORE + ply;
     }
 
-    save_tt(pos, best_move, best_score, tt_flag, 0, ply);
+    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, 0, ply);
     return best_score;
 }
 

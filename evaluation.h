@@ -4,6 +4,7 @@
 #include "position.h"
 
 extern int INF;
+extern int NO_SCORE;
 extern int MATE_SCORE;
 extern int MAX_MATE_SCORE;
 
@@ -92,5 +93,10 @@ void print_evaluation(int score);
 int nnue_eval(const GameState *pos);
 int evaluation(const GameState *pos);
 int see(const GameState *pos, int square);
+
+inline int correct_static_eval(const GameState *pos, int score)
+{
+    return score * (199 - pos->half_move_clock) / 199;
+}
 
 #endif
