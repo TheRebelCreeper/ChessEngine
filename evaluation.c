@@ -7,6 +7,7 @@
 #include "wrapper.h"
 
 int INF = 30000;
+int NO_SCORE = -30000;
 int MATE_SCORE = 29900;
 int MAX_MATE_SCORE = 29600;
 
@@ -100,7 +101,7 @@ int evaluation(GameState *pos)
     else
         score += material_count(pos);
 
-    return score * (199 - pos->half_move_clock) / 199;
+    return score;
 }
 
 void print_evaluation(int score)
