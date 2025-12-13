@@ -95,14 +95,11 @@ int nnue_eval(const GameState *pos)
 
 int evaluation(const GameState *pos)
 {
-    int score = 0;
-    int mat = material(pos);
-    if (FOUND_NETWORK)
-        score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
-    else
-        score += material_count(pos);
-
-    return score;
+    if (FOUND_NETWORK) {
+        int mat = material(pos);
+        return nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
+    }
+    return material_count(pos);
 }
 
 void print_evaluation(int score)
