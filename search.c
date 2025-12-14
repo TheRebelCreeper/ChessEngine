@@ -445,7 +445,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
     int move_count = 0;
     MoveList move_list;
     int total_moves = (!in_check) ? generate_moves_qsearch(pos, &move_list) : generate_moves(pos, &move_list);
-    score_moves(&move_list, pos, 0, ply);
+    score_moves(&move_list, pos, tt_entry.move, ply);
 
     for (int i = 0; i < total_moves; i++) {
         pick_move(&move_list, i);
