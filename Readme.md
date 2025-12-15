@@ -30,6 +30,8 @@ This engine features many techniques in order to calculate both quickly and deep
 
 Features that have not been implemented yet, but are planned
 
+* Improved time management
+* Singular Extensions
 * New NNUE
 * Lazy SMP
 * Tunability
