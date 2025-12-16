@@ -45,7 +45,7 @@ unsigned char adjust_castling_rights(const GameState *pos, int src, int dst, int
 bool is_noisy(Move move)
 {
     assert(move != 0);
-    return move & (IS_CAPTURE | IS_PROMOTION | IS_CASTLES);
+    return move & (IS_CAPTURE | IS_PROMOTION);
 }
 
 bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
