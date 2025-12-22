@@ -2,7 +2,6 @@
 
 #include "bench.h"
 #include "bitboard.h"
-#include "et.h"
 #include "perft.h"
 #include "search.h"
 #include "tt.h"
@@ -25,7 +24,6 @@ int main(int argc, char *argv[])
     init_keys();
     init_attacks();
     init_tt();
-    init_et();
     init_lmr_table();
     init_lmp_table();
 

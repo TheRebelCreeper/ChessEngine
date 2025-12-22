@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "et.h"
 #include "history.h"
 #include "movegen.h"
 #include "perft.h"
@@ -265,8 +264,6 @@ void uci_loop()
             }
             set_tt_size(mb);
             init_tt();
-            //set_et_size(mb >> 2);
-            //init_et();
         }
         else if (strncmp(buf, "uci", 3) == 0) {
             // Print engine info
