@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "et.h"
 #include "history.h"
 #include "movegen.h"
 #include "perft.h"
@@ -259,14 +258,12 @@ void uci_loop()
             return;
         }
         else if (strncmp(buf, "setoption name Hash", 19) == 0) {
-            int MB = atoi(buf + 25);
-            if (MB <= 0 || MB > 1024) {
-                MB = 1;
+            int mb = atoi(buf + 25);
+            if (mb <= 0 || mb > 1024) {
+                mb = 1;
             }
-            TT_SIZE = (1 << 20) * MB;
-            ET_SIZE = (TT_SIZE >> 2);
-            init_tt(&GLOBAL_TT);
-            init_et(&GLOBAL_ET);
+            set_tt_size(mb);
+            init_tt();
         }
         else if (strncmp(buf, "uci", 3) == 0) {
             // Print engine info

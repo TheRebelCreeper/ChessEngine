@@ -4,11 +4,17 @@
 #include <stdbool.h>
 
 #include "move.h"
+#include "movelist.h"
 #include "position.h"
 
 #define MAX_PLY 128
 
-#define FULL_DEPTH_MOVES 3
+#define MIN_ASP_DEPTH 5
+#define INITIAL_ASP_WINDOW 30
+#define MIN_LMR_MOVES 3
+#define MIN_LMR_DEPTH 2
+#define MIN_LMP_MOVES 3
+#define MIN_NMP_DEPTH 4
 #define MIN_IIR_DEPTH 3
 
 extern int NUM_THREADS;
@@ -25,10 +31,11 @@ typedef struct info {
     unsigned int ms;
     unsigned int nps;
     int ply;
-    U64 nodes;
+    u64 nodes;
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
     Move move_stack[MAX_PLY];
+    int static_eval_stack[MAX_PLY];
 } SearchInfo;
 
 /*
@@ -49,8 +56,10 @@ static const int MVV_LVA_TABLE[6][12] =
     {100, 200, 300, 400, 500, 0, 100, 200, 300, 400, 500, 0}
 };
 
-int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info);
-void search_root(GameState *pos, SearchInfo *root_info);
+void init_lmr_table();
+void init_lmp_table();
+int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node);
+void search_root(GameState *pos, SearchInfo *search_info);
 void read_input(SearchInfo *info);
 
 #endif

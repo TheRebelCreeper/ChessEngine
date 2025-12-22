@@ -11,12 +11,14 @@ This engine features many techniques in order to calculate both quickly and deep
 * PVS Search
 * Transposition Table
 * Iterative Deepening
+* Aspiration Windows
 * Internal Iterative Reduction
 * Late Move Reductions
 * Futility Pruning
 * SEE pruning
 * Reverse Futility Pruning
 * Null Move Pruning
+* Late Move Pruning
 * Razoring
 * Mate Distance Pruning
 * Check Extensions
@@ -28,11 +30,10 @@ This engine features many techniques in order to calculate both quickly and deep
 
 Features that have not been implemented yet, but are planned
 
+* Improved time management
+* Singular Extensions
 * New NNUE
-* TT in qsearch
-* Aspiration Windows
 * Lazy SMP
-* Late Move Pruning
 * Tunability
 * Staged Move Generation
 * Improved uci print out (seldepth)

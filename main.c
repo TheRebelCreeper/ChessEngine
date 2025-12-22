@@ -2,7 +2,6 @@
 
 #include "bench.h"
 #include "bitboard.h"
-#include "et.h"
 #include "perft.h"
 #include "search.h"
 #include "tt.h"
@@ -24,8 +23,9 @@ int main(int argc, char *argv[])
     init_nnue("nn-62ef826d1a6d.nnue");
     init_keys();
     init_attacks();
-    init_tt(&GLOBAL_TT);
-    init_et(&GLOBAL_ET);
+    init_tt();
+    init_lmr_table();
+    init_lmp_table();
 
     if (argc > 1 && strcmp(argv[1], "bench") == 0) {
         run_benchmark();

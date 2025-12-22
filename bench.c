@@ -1,9 +1,10 @@
 #include "bench.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include "history.h"
 #include "util.h"
 
-char *bench_positions[50] = {
+static char *bench_positions[50] = {
     "r3k2r/2pb1ppp/2pp1q2/p7/1nP1B3/1P2P3/P2N1PPP/R2QK2R w KQkq - 0 14",
     "4rrk1/2p1b1p1/p1p3q1/4p3/2P2n1p/1P1NR2P/PB3PP1/3R1QK1 b - - 2 24",
     "r3qbrk/6p1/2b2pPp/p3pP1Q/PpPpP2P/3P1B2/2PB3K/R5R1 w - - 16 42",
@@ -58,7 +59,7 @@ char *bench_positions[50] = {
 
 void run_benchmark()
 {
-    U64 total_nodes = 0ULL;
+    u64 total_nodes = 0ULL;
     unsigned int total_time = 0;
 
     GameState pos;
@@ -73,12 +74,12 @@ void run_benchmark()
         load_fen(&pos, fen);
         repetition_index = 0;
         repetition_history[repetition_index] = pos.key;
-        info.depth = 14;
+        info.depth = BENCH_DEPTH;
         search_root(&pos, &info);
         total_time += info.ms;
         total_nodes += info.nodes;
     }
 
     unsigned int nps = (unsigned int) (1000 * total_nodes / (total_time));
-    printf("%llu nodes %u nps\n", total_nodes, nps);
+    printf("%"PRIu64" nodes %u nps\n", total_nodes, nps);
 }

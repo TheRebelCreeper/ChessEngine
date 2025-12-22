@@ -45,7 +45,7 @@ unsigned char adjust_castling_rights(const GameState *pos, int src, int dst, int
 bool is_noisy(Move move)
 {
     assert(move != 0);
-    return move & (IS_CAPTURE | IS_PROMOTION | IS_CASTLES);
+    return move & (IS_CAPTURE | IS_PROMOTION);
 }
 
 bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
@@ -57,7 +57,7 @@ bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
     int dst = GET_MOVE_DST(move);
     int promotion = GET_MOVE_PROMOTION(move);
     int offset = 0;
-    U64 hash_key = old_pos->key;
+    u64 hash_key = old_pos->key;
 
     if (turn == BLACK) {
         offset = 6;
@@ -174,7 +174,7 @@ void print_move(Move m)
 {
     int promotion = GET_MOVE_PROMOTION(m);
     if (m) {
-        printf("%s%s%s", square_names[GET_MOVE_SRC(m)], square_names[GET_MOVE_DST(m)], piece_notation[promotion]);
+        printf("%s%s%s", square_names[GET_MOVE_SRC(m)], square_names[GET_MOVE_DST(m)], promotion_notation[promotion]);
     }
     else {
         printf("0000");

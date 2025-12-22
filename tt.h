@@ -1,13 +1,8 @@
 #ifndef TT_H
 #define TT_H
 
-#include <stdint.h>
 #include "evaluation.h"
 #include "move.h"
-
-extern uint32_t TT_SIZE;
-
-#define INVALID_SCORE (INF + 100)
 
 #define TT_EXACT   0x4
 #define TT_UPPER  0x2
@@ -16,26 +11,27 @@ extern uint32_t TT_SIZE;
 
 typedef struct ttEntry {
     int key;
-    unsigned char depth;
-    unsigned char flag;
     Move move;
-    int score;
+    i16 static_eval;
+    i16 score;
+    u8 depth;
+    u8 flag;
 } TTEntry;
 
 typedef struct tt {
     TTEntry *hash_table;
-    int num_entries;
+    u32 num_entries;
     int new_write;
     int over_write;
     int hit;
     int cut;
 } TT;
 
-extern TT GLOBAL_TT;
-
-void init_tt(TT *table);
-void clear_tt(TT *table);
+void init_tt();
+void clear_tt();
+void set_tt_size(int mb);
+void prefetch_tt(u64 key);
 bool probe_tt(const GameState *pos, TTEntry *dst, int ply);
-void save_tt(const GameState *pos, Move move, int score, int flag, int depth, int ply);
+void save_tt(const GameState *pos, Move move, int static_eval, int score, int flag, int depth, int ply);
 
 #endif

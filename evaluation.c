@@ -2,15 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "et.h"
 #include "position.h"
 #include "wrapper.h"
+
+int INF = 30000;
+int NO_SCORE = -30000;
+int MATE_SCORE = 29900;
+int MAX_MATE_SCORE = 29600;
 
 int material_count(const GameState *pos)
 {
     int eval = 0;
     for (int i = P; i <= k; i++) {
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             eval += piece_value[i];
@@ -40,14 +44,16 @@ int material_count(const GameState *pos)
     return (pos->turn == WHITE) ? eval : -eval;
 }
 
-int non_pawn_material(const GameState *pos)
+int material(const GameState *pos)
 {
     int m = 0;
+    m += COUNT_BITS(pos->piece_bitboards[P]) * piece_value[P];
     m += COUNT_BITS(pos->piece_bitboards[N]) * piece_value[N];
     m += COUNT_BITS(pos->piece_bitboards[B]) * piece_value[B];
     m += COUNT_BITS(pos->piece_bitboards[R]) * piece_value[R];
     m += COUNT_BITS(pos->piece_bitboards[Q]) * piece_value[Q];
 
+    m += COUNT_BITS(pos->piece_bitboards[p]) * piece_value[p];
     m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[n];
     m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[b];
     m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[r];
@@ -61,7 +67,7 @@ int nnue_eval(const GameState *pos)
     int pieces[65];
     int squares[65];
     for (int i = P; i <= k; i++) {
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
             if (i == K) {
@@ -86,22 +92,13 @@ int nnue_eval(const GameState *pos)
     return evaluate_nnue(pos->turn, pieces, squares);
 }
 
-int evaluation(GameState *pos)
+int evaluation(const GameState *pos)
 {
-    int score = probe_et(pos);
-
-    if (score == INVALID_EVALUATION) {
-        score = 0;
-        int mat_pawns = COUNT_BITS(pos->piece_bitboards[P] | pos->piece_bitboards[p]);
-        int mat = non_pawn_material(pos) + mat_pawns * piece_value[P];
-        if (FOUND_NETWORK)
-            score = nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
-        else
-            score += material_count(pos);
-        save_et(pos, score);
+    if (FOUND_NETWORK) {
+        int mat = material(pos);
+        return nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
     }
-
-    return score * (100 - pos->half_move_clock) / 100;
+    return material_count(pos);
 }
 
 void print_evaluation(int score)

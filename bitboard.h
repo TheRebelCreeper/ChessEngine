@@ -1,6 +1,8 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#include <stdint.h>
+
 #define WHITE 0
 #define BLACK 1
 
@@ -15,8 +17,16 @@
 (byte & 0x02 ? '1' : '0'), \
 (byte & 0x01 ? '1' : '0')
 
-typedef unsigned long long U64;
-typedef unsigned __int128 U128;
+typedef unsigned __int128 u128;
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
+
+typedef int64_t i64;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int8_t i8;
 
 enum {
     P, N, B, R, Q, K, p, n, b, r, q, k, NO_PIECE
@@ -56,29 +66,29 @@ enum {
 #define RANK_7 (RANK_1 << (8 * 6))
 #define RANK_8 (RANK_1 << (8 * 7))
 
-extern char *square_names[65];
+extern const char *square_names[65];
 
-U64 king_attacks[64];
-U64 knight_attacks[64];
-U64 pawn_attacks[2][64];
+u64 king_attacks[64];
+u64 knight_attacks[64];
+u64 pawn_attacks[2][64];
 
-U64 bishop_occupancy[64];
-U64 rook_occupancy[64];
+u64 bishop_occupancy[64];
+u64 rook_occupancy[64];
 
-U64 bishop_magic[64];
-U64 rook_magic[64];
+u64 bishop_magic[64];
+u64 rook_magic[64];
 
-U64 bishop_attacks[64][512];
-U64 rook_attacks[64][4096];
+u64 bishop_attacks[64][512];
+u64 rook_attacks[64][4096];
 
-U64 generate_bishop_attacks(int square, U64 blockers);
-U64 generate_rook_attacks(int square, U64 blockers);
-U64 occupancy_from_index(int index, U64 board);
-U64 calculate_bishop_occupancy(int square);
-U64 calculate_rook_occupancy(int square);
-U64 get_bishop_attacks(int square, U64 blockers);
-U64 get_rook_attacks(int square, U64 blockers);
-U64 get_queen_attacks(int square, U64 blockers);
+u64 generate_bishop_attacks(int square, u64 blockers);
+u64 generate_rook_attacks(int square, u64 blockers);
+u64 occupancy_from_index(int index, u64 board);
+u64 calculate_bishop_occupancy(int square);
+u64 calculate_rook_occupancy(int square);
+u64 get_bishop_attacks(int square, u64 blockers);
+u64 get_rook_attacks(int square, u64 blockers);
+u64 get_queen_attacks(int square, u64 blockers);
 
 #define COUNT_BITS(board) (__builtin_popcountll((board)))
 #define GET_FIRST_BIT_SQUARE(board) (__builtin_ffsll((board)) - 1)
@@ -86,6 +96,6 @@ U64 get_queen_attacks(int square, U64 blockers);
 void init_leapers();
 void init_sliders();
 void init_attacks();
-void print_bitboard(U64 board);
+void print_bitboard(u64 board);
 
 #endif

@@ -1,5 +1,6 @@
 #include "position.h"
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,10 +8,10 @@
 #include "pcg.h"
 
 
-char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
-char *piece_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
+static const char *piece_chars[13] = {"P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q", "k", " "};
+const char *promotion_notation[12] = {"", "n", "b", "r", "q", "k", "", "n", "b", "r", "q", "k"};
 
-int piece_lookup[2][6] =
+const int piece_lookup[2][6] =
 {
     {P, N, B, R, Q, K},
     {p, n, b, r, q, k}
@@ -117,13 +118,13 @@ void init_keys()
     }
 }
 
-U64 generate_pos_key(const GameState *pos)
+u64 generate_pos_key(const GameState *pos)
 {
-    U64 final_key = 0ULL;
+    u64 final_key = 0ULL;
 
     for (int i = P; i <= k; i++) {
         // Generate Knight Moves
-        U64 piece_bb = pos->piece_bitboards[i];
+        u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
             int src = GET_FIRST_BIT_SQUARE(piece_bb);
             final_key ^= piece_keys[i][src];
@@ -234,7 +235,7 @@ void print_board(GameState state)
 
         for (int file = 0; file < 8; file++) {
             int square = (state.turn == WHITE) ? ((7 - rank) * 8 + file) : (rank * 8 + (7 - file));
-            char *piece = piece_chars[state.mailbox[square]];
+            const char *piece = piece_chars[state.mailbox[square]];
 
             printf("|");
 #ifndef _WIN32
@@ -273,5 +274,5 @@ void print_board(GameState state)
     printf("En Passant Square: %s\n", square_names[state.enpassant_square]);
     printf("Halfmove Clock: %d\n", state.half_move_clock);
     printf("Move: %d\n", state.full_move);
-    printf("Hash Key: %llx\n", state.key);
+    printf("Hash Key: %"PRIx64"\n", state.key);
 }
