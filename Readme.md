@@ -22,6 +22,7 @@ This engine features many techniques in order to calculate both quickly and deep
 * Razoring
 * Mate Distance Pruning
 * Check Extensions
+* Singular Extensions
 * MVA-LVV Move Ordering
 * History Heuristic Move Ordering
 * Killer Move Heuristic
@@ -31,7 +32,6 @@ This engine features many techniques in order to calculate both quickly and deep
 Features that have not been implemented yet, but are planned
 
 * Improved time management
-* Singular Extensions
 * New NNUE
 * Lazy SMP
 * Tunability
