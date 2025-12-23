@@ -121,6 +121,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     bool pv_node = beta - alpha > 1;
     bool is_root = (ply == 0);
     assert(!(pv_node && cut_node));
+    assert(!is_root || pv_node);
+
+    Move excluded = info->excluded_stack[ply];       
+
+    assert(!is_root || excluded == 0);
 
     MoveList move_list;
     MoveList fail_low_quiets;
@@ -182,7 +187,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     TTEntry tt_entry;
     tt_entry.move = 0;
     bool tt_hit = false;
-    if (!info->excluded_stack[ply]) {
+    if (!excluded) {
         tt_hit = probe_tt(pos, &tt_entry, ply);
 
         // Cutoff when we find valid TT entry
@@ -195,12 +200,12 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     // IIR
-    if (depth >= MIN_IIR_DEPTH && !info->excluded_stack[ply] && (pv_node || cut_node) && !tt_entry.move) {
+    if (depth >= MIN_IIR_DEPTH && !excluded && (pv_node || cut_node) && !tt_entry.move) {
         depth--;
     }
 
     int static_eval = -INF, static_eval_raw = -INF;
-    if (!info->excluded_stack[ply]) {
+    if (!excluded) {
         if (in_check) {
             static_eval_raw = -INF;
             static_eval = -INF;
@@ -218,7 +223,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     }
 
     bool improving = calculate_improving(info, static_eval, in_check);
-    if (!pv_node && !in_check && !info->excluded_stack[ply]) {
+    if (!pv_node && !in_check && !excluded) {
         assert(!is_root);
 
         // Reverse Futility Pruning
@@ -264,7 +269,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         pick_move(&move_list, i);
         Move current = move_list.move[i];
 
-        if (current == info->excluded_stack[ply])
+        if (current == excluded)
             continue;
 
         bool noisy = is_noisy(current);
@@ -294,7 +299,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         info->ply++;
 
         int extension = 0;
-        if (!is_root && depth >= 8 && current == tt_entry.move && !info->excluded_stack[ply] && tt_entry.depth >= depth
+        if (!is_root && depth >= 8 && current == tt_entry.move && !excluded && tt_entry.depth >= depth
             - 4 && tt_entry.flag != TT_UPPER) {
             int s_beta = MAX(-INF + 1, tt_entry.score - 2 * depth);
             int s_depth = (depth - 1) / 2;
@@ -310,6 +315,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         // Save current move to move_stack
         info->move_stack[ply] = current;
+        info->static_eval_stack[ply] = static_eval;
 
         // Save the current move into history
         repetition_history[++repetition_index] = new_pos.key;
@@ -393,7 +399,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
+    if (!excluded)
+        save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
