@@ -123,7 +123,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     assert(!(pv_node && cut_node));
     assert(!is_root || pv_node);
 
-    Move excluded = info->excluded_stack[ply];       
+    Move excluded = info->excluded_stack[ply];
 
     assert(!is_root || excluded == 0);
 
@@ -301,11 +301,13 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         int extension = 0;
         if (!is_root && depth >= 8 && current == tt_entry.move && !excluded && tt_entry.depth >= depth
             - 4 && tt_entry.flag != TT_UPPER) {
+            info->ply--;
             int s_beta = MAX(-INF + 1, tt_entry.score - 2 * depth);
             int s_depth = (depth - 1) / 2;
             info->excluded_stack[ply] = current;
             int s_score = search(s_beta - 1, s_beta, s_depth, pos, info, cut_node);
             info->excluded_stack[ply] = 0;
+            info->ply++;
 
             if (s_score < s_beta)
                 extension = 1;
