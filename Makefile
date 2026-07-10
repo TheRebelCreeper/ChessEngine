@@ -10,25 +10,37 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 # Definitions
 DEFINES = -DIS_64BIT
-DEFINES += -DUSE_AVX2 -mavx2
-DEFINES += -DUSE_SSE41 -msse4.1
-DEFINES += -DUSE_SSE3 -msse3
-DEFINES += -DUSE_SSE2 -msse2
-DEFINES += -DUSE_SSE -msse
+
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+ifeq ($(UNAME_S)_$(UNAME_M), Darwin_arm64)
+	DEFINES += -DUSE_NEON
+else
+	DEFINES += -DUSE_AVX2 -mavx2
+	DEFINES += -DUSE_SSE41 -msse4.1
+	DEFINES += -DUSE_SSE3 -msse3
+	DEFINES += -DUSE_SSE2 -msse2
+	DEFINES += -DUSE_SSE -msse
+endif
 
 ifeq ($(OS), Windows_NT)
 	DEFINES += -D__USE_MINGW_ANSI_STDIO=1
 	EXEEXT = .exe
 	RM = del /Q
+else ifeq ($(UNAME_S), Darwin)
+	LIBS += -lm
+	EXEEXT =
+	RM = rm -f
 else
 	LIBS += -lrt -lm
-	EXEEXT = 
+	EXEEXT =
 	RM = rm -f
 endif
 
 # Executable name
 NAME = Saxton
-VERSION = $(file < version.txt)
+VERSION = $(shell cat version.txt)
 
 ifdef EXE
 TARGET = $(EXE)$(EXEEXT)
