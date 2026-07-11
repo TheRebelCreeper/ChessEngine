@@ -42,7 +42,7 @@ inline Move get_killer_one(int ply)
 
 inline Move get_killer_two(int ply)
 {
-    return killer_table[0][ply];
+    return killer_table[1][ply];
 }
 
 inline void push_killer_move(Move move, int ply)
