@@ -5,12 +5,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "evaluation.h"
 #include "history.h"
 #include "move.h"
 #include "movegen.h"
 #include "movepick.h"
 #include "tt.h"
 #include "util.h"
+
+// Chains this ply's (possibly not-yet-computed) accumulator back to its 1-2 immediate
+// ancestors so nnue.c can update incrementally instead of recomputing from scratch.
+static inline int evaluate_at_ply(SearchInfo *info, const GameState *pos)
+{
+    int ply = info->ply;
+    NNUEdata *nnue_data[3] = {
+        &info->nnue_stack[ply],
+        (ply >= 1) ? &info->nnue_stack[ply - 1] : NULL,
+        (ply >= 2) ? &info->nnue_stack[ply - 2] : NULL
+    };
+    return evaluation_incremental(pos, nnue_data);
+}
 
 static int lmr_table[MAX_PLY][MAX_MOVES];
 static int lmp_table[16][2];
@@ -215,7 +229,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
                 static_eval_raw = tt_entry.static_eval;
             }
             else {
-                static_eval_raw = evaluation(pos);
+                static_eval_raw = evaluate_at_ply(info, pos);
             }
             static_eval = correct_static_eval(pos, static_eval_raw);
         }
@@ -250,6 +264,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->move_stack[ply] = 0;
 
             info->ply++;
+            // Null move changes no pieces; dirtyNum=0 makes update_accumulator copy the
+            // parent's accumulator verbatim once eval is actually requested.
+            info->nnue_stack[info->ply].dirtyPiece.dirtyNum = 0;
+            info->nnue_stack[info->ply].dirtyPiece.pc[0] = blank;
+            info->nnue_stack[info->ply].accumulator.computedAccumulation = 0;
             prefetch_tt(null_pos.key);
             int null_score = -search(-beta, -beta + 1, depth - r, &null_pos, info, !cut_node);
             info->ply--;
@@ -313,6 +332,10 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
                 extension = 1;
         }
 
+        // The singular-verification search above reuses this same child ply slot for its
+        // own moves, so (re-)populate it here, after it returns, not before.
+        compute_dirty_piece(pos, current, &info->nnue_stack[info->ply].dirtyPiece);
+        info->nnue_stack[info->ply].accumulator.computedAccumulation = 0;
         prefetch_tt(new_pos.key);
 
         // Save current move to move_stack
@@ -459,7 +482,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
             static_eval_raw = tt_entry.static_eval;
         }
         else {
-            static_eval_raw = evaluation(pos);
+            static_eval_raw = evaluate_at_ply(info, pos);
         }
         static_eval = correct_static_eval(pos, static_eval_raw);
         if (static_eval >= beta) {
@@ -496,6 +519,8 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
 
         move_count++;
         info->ply++;
+        compute_dirty_piece(pos, current, &info->nnue_stack[info->ply].dirtyPiece);
+        info->nnue_stack[info->ply].accumulator.computedAccumulation = 0;
         prefetch_tt(new_pos.key);
         int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
         info->ply--;
@@ -545,6 +570,9 @@ void search_root(GameState *pos, SearchInfo *search_info)
     memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
     memset(search_info->excluded_stack, 0, sizeof(search_info->excluded_stack));
     memset(search_info->static_eval_stack, -INF, sizeof(search_info->static_eval_stack));
+    // Root has no ancestor accumulator to chain from; force a full refresh on first eval.
+    search_info->nnue_stack[0].accumulator.computedAccumulation = 0;
+    search_info->nnue_stack[0].dirtyPiece.dirtyNum = 0;
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
         memset(search_info->pv_table, 0, sizeof(search_info->pv_table));

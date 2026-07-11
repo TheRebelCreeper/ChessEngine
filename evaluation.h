@@ -1,6 +1,8 @@
 #ifndef EVALUATION_H
 #define EVALUATION_H
 
+#include "move.h"
+#include "nnue.h"
 #include "position.h"
 
 extern int INF;
@@ -92,6 +94,8 @@ static const int nnue_pieces[12] =
 void print_evaluation(int score);
 int nnue_eval(const GameState *pos);
 int evaluation(const GameState *pos);
+int evaluation_incremental(const GameState *pos, NNUEdata **nnue_data);
+void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp);
 int see(const GameState *pos, int square);
 
 inline int correct_static_eval(const GameState *pos, int score)

@@ -92,11 +92,107 @@ int nnue_eval(const GameState *pos)
     return evaluate_nnue(pos->turn, pieces, squares);
 }
 
+static void build_nnue_arrays(const GameState *pos, int *pieces, int *squares)
+{
+    int idx = 2;
+    for (int i = P; i <= k; i++) {
+        u64 piece_bb = pos->piece_bitboards[i];
+        while (piece_bb) {
+            int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
+            if (i == K) {
+                pieces[0] = nnue_pieces[i];
+                squares[0] = sqr;
+            }
+            else if (i == k) {
+                pieces[1] = nnue_pieces[i];
+                squares[1] = sqr;
+            }
+            else {
+                pieces[idx] = nnue_pieces[i];
+                squares[idx] = sqr;
+                idx++;
+            }
+            CLEAR_LSB(piece_bb);
+        }
+    }
+    pieces[idx] = 0;
+    squares[idx] = 0;
+}
+
+static int nnue_eval_incremental(const GameState *pos, NNUEdata **nnue_data)
+{
+    int pieces[65];
+    int squares[65];
+    build_nnue_arrays(pos, pieces, squares);
+    return evaluate_nnue_incremental(pos->turn, pieces, squares, nnue_data);
+}
+
+// Fills a DirtyPiece describing exactly which NNUE features change for a given move,
+// mirroring make_move's own move-category logic so both stay in lockstep.
+void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp)
+{
+    int turn = pos->turn;
+    int offset = 6 * turn;
+    int piece = GET_MOVE_PIECE(move);
+    int src = GET_MOVE_SRC(move);
+    int dst = GET_MOVE_DST(move);
+    int promotion = GET_MOVE_PROMOTION(move);
+    int victim = GET_MOVE_CAPTURED(move);
+
+    dp->dirtyNum = 0;
+
+#define ADD_DIRTY(engine_piece, from_sq, to_sq) \
+    do { \
+        dp->pc[dp->dirtyNum] = nnue_pieces[(engine_piece)]; \
+        dp->from[dp->dirtyNum] = (from_sq); \
+        dp->to[dp->dirtyNum] = (to_sq); \
+        dp->dirtyNum++; \
+    } while (0)
+
+    if ((piece == P || piece == p) && IS_MOVE_EP(move)) {
+        int ep_square = (turn == WHITE) ? dst - 8 : dst + 8;
+        int ep_pawn = p - offset;
+        ADD_DIRTY(piece, src, dst);
+        ADD_DIRTY(ep_pawn, ep_square, 64);
+    }
+    else if (piece == (K + offset) && IS_MOVE_CASTLES(move)) {
+        ADD_DIRTY(piece, src, dst);
+        int rook = R + offset;
+        if (src < dst)
+            ADD_DIRTY(rook, dst + 1, dst - 1);
+        else
+            ADD_DIRTY(rook, dst - 2, dst + 1);
+    }
+    else {
+        if (promotion) {
+            ADD_DIRTY(piece, src, 64);
+            ADD_DIRTY(promotion + offset, 64, dst);
+        }
+        else {
+            ADD_DIRTY(piece, src, dst);
+        }
+        if (victim != NO_CAPTURE) {
+            ADD_DIRTY(victim, dst, 64);
+        }
+    }
+
+#undef ADD_DIRTY
+}
+
 int evaluation(const GameState *pos)
 {
     if (FOUND_NETWORK) {
         int mat = material(pos);
         return nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
+    }
+    return material_count(pos);
+}
+
+int evaluation_incremental(const GameState *pos, NNUEdata **nnue_data)
+{
+    if (FOUND_NETWORK) {
+        int mat = material(pos);
+        return nnue_eval_incremental(pos, nnue_data) * (720 + mat / 32) / 1024 + 28;
     }
     return material_count(pos);
 }

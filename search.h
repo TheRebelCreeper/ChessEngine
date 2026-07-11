@@ -5,6 +5,7 @@
 
 #include "move.h"
 #include "movelist.h"
+#include "nnue.h"
 #include "position.h"
 
 #define MAX_PLY 128
@@ -37,6 +38,7 @@ typedef struct info {
     Move move_stack[MAX_PLY];
     Move excluded_stack[MAX_PLY];
     int static_eval_stack[MAX_PLY];
+    NNUEdata nnue_stack[MAX_PLY];
 } SearchInfo;
 
 /*
