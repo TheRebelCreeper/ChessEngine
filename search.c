@@ -220,7 +220,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             return static_eval;
 
         // Razoring
-        if (depth <= 4 && abs(alpha) < MATE_SCORE && static_eval + 250 * depth <= alpha) {
+        if (depth <= 4 && abs(alpha) < MAX_MATE_SCORE && static_eval + 250 * depth <= alpha) {
             int razor_score = qsearch(alpha, alpha + 1, pos, info, pv_node);
             if (razor_score <= alpha)
                 return razor_score;
@@ -260,7 +260,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         bool noisy = is_noisy(current);
         if (best_score > -MATE_SCORE && !in_check) {
             // Futility Pruning
-            if (!noisy && depth <= 8 && abs(alpha) < MATE_SCORE && static_eval + depth * 125 <= alpha) {
+            if (!noisy && depth <= 8 && abs(alpha) < MAX_MATE_SCORE && static_eval + depth * 125 <= alpha) {
                 continue;
             }
 
