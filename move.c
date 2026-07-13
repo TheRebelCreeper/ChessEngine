@@ -74,9 +74,12 @@ bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
     CLEAR_SQUARE(new_pos->occupancies[turn], src);
     new_pos->mailbox[src] = NO_PIECE;
 
+    // Clear old en passant key; it's unconditionally reset below regardless of move type
+    if (old_pos->enpassant_square != none)
+        hash_key ^= epKey[old_pos->enpassant_square & 7];
+
     // En Passant Moves
     if ((piece == P || piece == p) && IS_MOVE_EP(move)) {
-        hash_key ^= epKey[old_pos->enpassant_square & 7];
         int ep_square = turn == WHITE ? dst - 8 : dst + 8;
         int ep_pawn = p - offset;
         hash_key ^= piece_keys[ep_pawn][ep_square];
@@ -85,10 +88,10 @@ bool make_move(const GameState *old_pos, GameState *new_pos, Move move)
         new_pos->mailbox[ep_square] = NO_PIECE;
     }
 
-    // Clear Destination
+    // Clear Destination (already handled above for en passant, whose dst is empty)
     CLEAR_SQUARE(new_pos->occupancies[new_pos->turn], dst);
     int victim = GET_MOVE_CAPTURED(move);
-    if (victim != NO_CAPTURE) {
+    if (victim != NO_CAPTURE && !IS_MOVE_EP(move)) {
         CLEAR_SQUARE(new_pos->piece_bitboards[victim], dst);
         hash_key ^= piece_keys[victim][dst];
     }
