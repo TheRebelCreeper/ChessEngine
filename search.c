@@ -300,7 +300,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         int extension = 0;
         if (!is_root && depth >= 8 && current == tt_entry.move && !excluded && tt_entry.depth >= depth
-            - 4 && tt_entry.flag != TT_UPPER) {
+            - 4 && tt_entry.flag != TT_UPPER && abs(tt_entry.score) < MAX_MATE_SCORE) {
             info->ply--;
             int s_beta = MAX(-INF + 1, tt_entry.score - 2 * depth);
             int s_depth = (depth - 1) / 2;
