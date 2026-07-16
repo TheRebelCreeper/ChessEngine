@@ -1047,60 +1047,92 @@ INLINE static bool update_accumulator(Position *pos)
     return true;
 }
 
-// Adds (add=true) or subtracts one feature's weight column into a single perspective's
-// accumulator half. Used by nnue_activate_feature/nnue_deactivate_feature below.
-static void toggle_feature(int16_t *acc_half, unsigned feature_index, bool add)
+// Computes dst_half[j] = base_half[j] - sum(removed weight columns) + sum(added weight
+// columns), one combined tile pass: load each tile from base once, apply every delta
+// while it's in registers, store once into dst. base_half may be ft_biases, a parent
+// accumulator's half (for a copy-and-update in one pass), or dst_half itself (a true
+// in-place update) — fusing the "start from X" step with the deltas avoids a separate
+// copy pass beforehand, which is what makes a multi-feature move or a refresh cheap.
+static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
+                                   const unsigned *removed, unsigned n_removed,
+                                   const unsigned *added, unsigned n_added)
 {
 #ifdef VECTOR
     for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
-        vec16_t *accTile = (vec16_t *) &acc_half[i * TILE_HEIGHT];
-        const unsigned offset = kHalfDimensions * feature_index + i * TILE_HEIGHT;
-        vec16_t *column = (vec16_t *) &ft_weights[offset];
+        const vec16_t *baseTile = (const vec16_t *) &base_half[i * TILE_HEIGHT];
+        vec16_t *dstTile = (vec16_t *) &dst_half[i * TILE_HEIGHT];
+        vec16_t tile[NUM_REGS];
         for (unsigned j = 0; j < NUM_REGS; j++)
-            accTile[j] = add ? vec_add_16(accTile[j], column[j]) : vec_sub_16(accTile[j], column[j]);
-    }
-#else
-    const unsigned offset = kHalfDimensions * feature_index;
-    for (unsigned j = 0; j < kHalfDimensions; j++)
-        acc_half[j] = add ? (int16_t) (acc_half[j] + ft_weights[offset + j])
-                           : (int16_t) (acc_half[j] - ft_weights[offset + j]);
-#endif
-}
+            tile[j] = baseTile[j];
 
-// Resets both perspectives to the feature-transformer biases (the starting point for a
-// from-scratch refresh via repeated nnue_activate_feature calls).
-void nnue_reset_accumulator(Accumulator *acc)
-{
-    for (unsigned c = 0; c < 2; c++) {
-#ifdef VECTOR
-        for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
-            vec16_t *accTile = (vec16_t *) &acc->accumulation[c][i * TILE_HEIGHT];
-            vec16_t *ft_biases_tile = (vec16_t *) &ft_biases[i * TILE_HEIGHT];
+        for (unsigned k = 0; k < n_removed; k++) {
+            const unsigned offset = kHalfDimensions * removed[k] + i * TILE_HEIGHT;
+            vec16_t *column = (vec16_t *) &ft_weights[offset];
             for (unsigned j = 0; j < NUM_REGS; j++)
-                accTile[j] = ft_biases_tile[j];
+                tile[j] = vec_sub_16(tile[j], column[j]);
         }
-#else
-        memcpy(acc->accumulation[c], ft_biases, kHalfDimensions * sizeof(int16_t));
-#endif
+        for (unsigned k = 0; k < n_added; k++) {
+            const unsigned offset = kHalfDimensions * added[k] + i * TILE_HEIGHT;
+            vec16_t *column = (vec16_t *) &ft_weights[offset];
+            for (unsigned j = 0; j < NUM_REGS; j++)
+                tile[j] = vec_add_16(tile[j], column[j]);
+        }
+
+        for (unsigned j = 0; j < NUM_REGS; j++)
+            dstTile[j] = tile[j];
     }
-    acc->computedAccumulation = 0;
+#else
+    if (base_half != dst_half)
+        memcpy(dst_half, base_half, kHalfDimensions * sizeof(int16_t));
+    for (unsigned k = 0; k < n_removed; k++) {
+        const unsigned offset = kHalfDimensions * removed[k];
+        for (unsigned j = 0; j < kHalfDimensions; j++)
+            dst_half[j] -= ft_weights[offset + j];
+    }
+    for (unsigned k = 0; k < n_added; k++) {
+        const unsigned offset = kHalfDimensions * added[k];
+        for (unsigned j = 0; j < kHalfDimensions; j++)
+            dst_half[j] += ft_weights[offset + j];
+    }
+#endif
 }
 
-// Direct single-feature accumulator updates, given only the piece/square/king-squares
-// involved — no Position/pieces[]/squares[] array needed. white_ksq/black_ksq are raw
-// (un-oriented) king squares; orientation for the black perspective happens internally.
-void nnue_activate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq)
+// Batched incremental update, given only the piece/square/king-squares involved — no
+// Position/pieces[]/squares[] array needed. white_ksq/black_ksq are raw (un-oriented)
+// king squares; orientation for the black perspective happens internally. base is the
+// accumulator to start from (typically the parent ply's, already valid) — passing it
+// separately from acc lets the copy-from-parent and apply-deltas happen in one pass
+// instead of a separate struct copy followed by an in-place update.
+void nnue_apply_features(Accumulator *acc, const Accumulator *base,
+                          const int *removed_pieces, const int *removed_squares, int n_removed,
+                          const int *added_pieces, const int *added_squares, int n_added,
+                          int white_ksq, int black_ksq)
 {
     int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
-    for (unsigned c = 0; c < 2; c++)
-        toggle_feature(acc->accumulation[c], make_index(c, square, nnue_piece, ksq[c]), true);
+    for (unsigned c = 0; c < 2; c++) {
+        unsigned removed_idx[3], added_idx[3];
+        for (int i = 0; i < n_removed; i++)
+            removed_idx[i] = make_index(c, removed_squares[i], removed_pieces[i], ksq[c]);
+        for (int i = 0; i < n_added; i++)
+            added_idx[i] = make_index(c, added_squares[i], added_pieces[i], ksq[c]);
+        apply_indices_to_half(base->accumulation[c], acc->accumulation[c],
+                              removed_idx, n_removed, added_idx, n_added);
+    }
 }
 
-void nnue_deactivate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq)
+// Batched from-scratch refresh, given the full list of (non-king) pieces on the board —
+// no Position/pieces[]/squares[] array needed. Starts from the feature-transformer biases
+// and applies every piece's feature for both perspectives in one combined pass each.
+void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
+                            int white_ksq, int black_ksq)
 {
     int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
-    for (unsigned c = 0; c < 2; c++)
-        toggle_feature(acc->accumulation[c], make_index(c, square, nnue_piece, ksq[c]), false);
+    for (unsigned c = 0; c < 2; c++) {
+        unsigned idx[32];
+        for (int i = 0; i < count; i++)
+            idx[i] = make_index(c, squares[i], pieces[i], ksq[c]);
+        apply_indices_to_half(ft_biases, acc->accumulation[c], NULL, 0, idx, count);
+    }
 }
 
 // Packs an already-valid accumulator into the input layer for the affine-transform stack.

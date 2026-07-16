@@ -161,11 +161,16 @@ int nnue_evaluate_incremental(
 /**
 * Native accumulator-update API: lets a caller with its own board representation update
 * an Accumulator directly, without ever building a pieces[]/squares[] array. white_ksq/
-* black_ksq are raw (un-oriented) king squares; orientation happens internally.
+* black_ksq are raw (un-oriented) king squares; orientation happens internally. Both
+* apply every feature for a given move/refresh in one combined pass per perspective,
+* fused with copying from base (parent ply / biases) so no separate copy pass is needed.
 */
-void nnue_reset_accumulator(Accumulator *acc);
-void nnue_activate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq);
-void nnue_deactivate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq);
+void nnue_apply_features(Accumulator *acc, const Accumulator *base,
+                          const int *removed_pieces, const int *removed_squares, int n_removed,
+                          const int *added_pieces, const int *added_squares, int n_added,
+                          int white_ksq, int black_ksq);
+void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
+                           int white_ksq, int black_ksq);
 int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move);
 
 #endif

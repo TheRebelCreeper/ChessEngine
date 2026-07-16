@@ -102,32 +102,48 @@ void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos)
 {
     int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
     int black_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k]);
-    nnue_reset_accumulator(acc);
+    int pieces[32], squares[32];
+    int count = 0;
     for (int i = P; i <= k; i++) {
         if (i == K || i == k)
             continue; // kings aren't features, only used for orientation
         u64 piece_bb = pos->piece_bitboards[i];
         while (piece_bb) {
-            int sqr = GET_FIRST_BIT_SQUARE(piece_bb);
-            nnue_activate_feature(acc, nnue_pieces[i], sqr, white_ksq, black_ksq);
+            pieces[count] = nnue_pieces[i];
+            squares[count] = GET_FIRST_BIT_SQUARE(piece_bb);
+            count++;
             CLEAR_LSB(piece_bb);
         }
     }
+    nnue_refresh_features(acc, pieces, squares, count, white_ksq, black_ksq);
     acc->computedAccumulation = 1;
 }
 
-// Applies a DirtyPiece's feature changes directly to an accumulator that was copied from
-// a valid parent. Caller must have already ruled out a king move (that needs a refresh).
-void apply_dirty_piece(Accumulator *acc, const DirtyPiece *dp, int white_ksq, int black_ksq)
+// Applies a DirtyPiece's feature changes on top of a valid parent accumulator, in one
+// combined pass fused with the copy-from-parent step (rather than copying first and then
+// modifying, or one call per changed feature). Caller must have already ruled out a king
+// move (that needs a refresh).
+void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp,
+                       int white_ksq, int black_ksq)
 {
+    int removed_pieces[3], removed_squares[3], n_removed = 0;
+    int added_pieces[3], added_squares[3], n_added = 0;
     for (int i = 0; i < dp->dirtyNum; i++) {
         if (IS_KING(dp->pc[i]))
             continue;
-        if (dp->from[i] != 64)
-            nnue_deactivate_feature(acc, dp->pc[i], dp->from[i], white_ksq, black_ksq);
-        if (dp->to[i] != 64)
-            nnue_activate_feature(acc, dp->pc[i], dp->to[i], white_ksq, black_ksq);
+        if (dp->from[i] != 64) {
+            removed_pieces[n_removed] = dp->pc[i];
+            removed_squares[n_removed] = dp->from[i];
+            n_removed++;
+        }
+        if (dp->to[i] != 64) {
+            added_pieces[n_added] = dp->pc[i];
+            added_squares[n_added] = dp->to[i];
+            n_added++;
+        }
     }
+    nnue_apply_features(acc, parent, removed_pieces, removed_squares, n_removed,
+                         added_pieces, added_squares, n_added, white_ksq, black_ksq);
     acc->computedAccumulation = 1;
 }
 
@@ -214,10 +230,9 @@ int evaluate_at_ply(NNUEdata *nnue_stack, int ply, const GameState *pos)
         Accumulator *parent = (!king_moved && ply >= 1) ? &nnue_stack[ply - 1].accumulator : NULL;
 
         if (parent && parent->computedAccumulation) {
-            *acc = *parent;
             int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
             int black_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k]);
-            apply_dirty_piece(acc, dp, white_ksq, black_ksq);
+            apply_dirty_piece(acc, parent, dp, white_ksq, black_ksq);
         }
         else {
             nnue_refresh_from_gamestate(acc, pos);
