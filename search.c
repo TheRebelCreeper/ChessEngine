@@ -13,19 +13,6 @@
 #include "tt.h"
 #include "util.h"
 
-// Chains this ply's (possibly not-yet-computed) accumulator back to its 1-2 immediate
-// ancestors so nnue.c can update incrementally instead of recomputing from scratch.
-static inline int evaluate_at_ply(SearchInfo *info, const GameState *pos)
-{
-    int ply = info->ply;
-    NNUEdata *nnue_data[3] = {
-        &info->nnue_stack[ply],
-        (ply >= 1) ? &info->nnue_stack[ply - 1] : NULL,
-        (ply >= 2) ? &info->nnue_stack[ply - 2] : NULL
-    };
-    return evaluation_incremental(pos, nnue_data);
-}
-
 static int lmr_table[MAX_PLY][MAX_MOVES];
 static int lmp_table[16][2];
 
@@ -229,7 +216,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
                 static_eval_raw = tt_entry.static_eval;
             }
             else {
-                static_eval_raw = evaluate_at_ply(info, pos);
+                static_eval_raw = evaluate_at_ply(info->nnue_stack, info->ply, pos);
             }
             static_eval = correct_static_eval(pos, static_eval_raw);
         }
@@ -482,7 +469,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
             static_eval_raw = tt_entry.static_eval;
         }
         else {
-            static_eval_raw = evaluate_at_ply(info, pos);
+            static_eval_raw = evaluate_at_ply(info->nnue_stack, info->ply, pos);
         }
         static_eval = correct_static_eval(pos, static_eval_raw);
         if (static_eval >= beta) {

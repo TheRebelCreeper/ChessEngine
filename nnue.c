@@ -43,9 +43,6 @@
 #define DLL_EXPORT
 #include "nnue.h"
 #undef DLL_EXPORT
-
-#define KING(c)    ( (c) ? bking : wking )
-#define IS_KING(p) ( ((p) == wking) || ((p) == bking) )
 //-------------------
 
 // Old gcc on Windows is unable to provide a 32-byte aligned stack.
@@ -1050,16 +1047,66 @@ INLINE static bool update_accumulator(Position *pos)
     return true;
 }
 
-// Convert input features
-INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
+// Adds (add=true) or subtracts one feature's weight column into a single perspective's
+// accumulator half. Used by nnue_activate_feature/nnue_deactivate_feature below.
+static void toggle_feature(int16_t *acc_half, unsigned feature_index, bool add)
 {
-    if (!update_accumulator(pos))
-        refresh_accumulator(pos);
+#ifdef VECTOR
+    for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
+        vec16_t *accTile = (vec16_t *) &acc_half[i * TILE_HEIGHT];
+        const unsigned offset = kHalfDimensions * feature_index + i * TILE_HEIGHT;
+        vec16_t *column = (vec16_t *) &ft_weights[offset];
+        for (unsigned j = 0; j < NUM_REGS; j++)
+            accTile[j] = add ? vec_add_16(accTile[j], column[j]) : vec_sub_16(accTile[j], column[j]);
+    }
+#else
+    const unsigned offset = kHalfDimensions * feature_index;
+    for (unsigned j = 0; j < kHalfDimensions; j++)
+        acc_half[j] = add ? (int16_t) (acc_half[j] + ft_weights[offset + j])
+                           : (int16_t) (acc_half[j] - ft_weights[offset + j]);
+#endif
+}
 
-    int16_t (*accumulation)[2][256] = &pos->nnue[0]->accumulator.accumulation;
-    (void) outMask; // avoid compiler warning
+// Resets both perspectives to the feature-transformer biases (the starting point for a
+// from-scratch refresh via repeated nnue_activate_feature calls).
+void nnue_reset_accumulator(Accumulator *acc)
+{
+    for (unsigned c = 0; c < 2; c++) {
+#ifdef VECTOR
+        for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
+            vec16_t *accTile = (vec16_t *) &acc->accumulation[c][i * TILE_HEIGHT];
+            vec16_t *ft_biases_tile = (vec16_t *) &ft_biases[i * TILE_HEIGHT];
+            for (unsigned j = 0; j < NUM_REGS; j++)
+                accTile[j] = ft_biases_tile[j];
+        }
+#else
+        memcpy(acc->accumulation[c], ft_biases, kHalfDimensions * sizeof(int16_t));
+#endif
+    }
+    acc->computedAccumulation = 0;
+}
 
-    const int perspectives[2] = {pos->player, !pos->player};
+// Direct single-feature accumulator updates, given only the piece/square/king-squares
+// involved — no Position/pieces[]/squares[] array needed. white_ksq/black_ksq are raw
+// (un-oriented) king squares; orientation for the black perspective happens internally.
+void nnue_activate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq)
+{
+    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
+    for (unsigned c = 0; c < 2; c++)
+        toggle_feature(acc->accumulation[c], make_index(c, square, nnue_piece, ksq[c]), true);
+}
+
+void nnue_deactivate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq)
+{
+    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
+    for (unsigned c = 0; c < 2; c++)
+        toggle_feature(acc->accumulation[c], make_index(c, square, nnue_piece, ksq[c]), false);
+}
+
+// Packs an already-valid accumulator into the input layer for the affine-transform stack.
+static void pack_accumulator(const Accumulator *acc, int stm, clipped_t *output, mask_t *outMask)
+{
+    const int perspectives[2] = {stm, !stm};
     for (unsigned p = 0; p < 2; p++) {
         const unsigned offset = kHalfDimensions * p;
 
@@ -1067,20 +1114,27 @@ INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
         const unsigned numChunks = (16 * kHalfDimensions) / SIMD_WIDTH;
         vec8_t *out = (vec8_t *) &output[offset];
         for (unsigned i = 0; i < numChunks / 2; i++) {
-            vec16_t s0 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2];
-            vec16_t s1 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2 + 1];
+            vec16_t s0 = ((vec16_t *) acc->accumulation[perspectives[p]])[i * 2];
+            vec16_t s1 = ((vec16_t *) acc->accumulation[perspectives[p]])[i * 2 + 1];
             out[i] = vec_packs(s0, s1);
             *outMask++ = vec_mask_pos(out[i]);
         }
 
 #else
+        (void) outMask;
         for (unsigned i = 0; i < kHalfDimensions; i++) {
-            int16_t sum = (*accumulation)[perspectives[p]][i];
+            int16_t sum = acc->accumulation[perspectives[p]][i];
             output[offset + i] = clamp(sum, 0, 127);
         }
 
 #endif
     }
+}
+
+INLINE static void ensure_accumulator(Position *pos)
+{
+    if (!update_accumulator(pos))
+        refresh_accumulator(pos);
 }
 
 struct NetData {
@@ -1093,8 +1147,9 @@ struct NetData {
 #endif
 };
 
-// Evaluation function
-int nnue_evaluate_pos(Position *pos)
+// Runs the affine-transform stack on an already-packed accumulator; callers with a valid
+// Accumulator reach this via nnue_evaluate_accumulator, skipping the Position/pieces[] path.
+static int evaluate_packed(const Accumulator *acc, int stm)
 {
     int32_t out_value;
     alignas(8) mask_t input_mask[FtOutDims / (8 * sizeof(mask_t))];
@@ -1108,7 +1163,7 @@ int nnue_evaluate_pos(Position *pos)
 #define B(x) (buf.x)
 #endif
 
-    transform(pos, B(input), input_mask);
+    pack_accumulator(acc, stm, B(input), input_mask);
 
     affine_txfm(B(input), B(hidden1_out), FtOutDims, 32,
                 hidden1_biases, hidden1_weights, input_mask, hidden1_mask, true);
@@ -1124,6 +1179,18 @@ int nnue_evaluate_pos(Position *pos)
 #endif
 
     return out_value / FV_SCALE;
+}
+
+// Evaluation function
+int nnue_evaluate_pos(Position *pos)
+{
+    ensure_accumulator(pos);
+    return evaluate_packed(&pos->nnue[0]->accumulator, pos->player);
+}
+
+int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move)
+{
+    return evaluate_packed(acc, side_to_move);
 }
 
 static void read_output_weights(weight_t *w, const char *d)

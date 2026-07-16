@@ -47,6 +47,9 @@ enum pieces {
     bking, bqueen, brook, bbishop, bknight, bpawn
 };
 
+#define KING(c)    ( (c) ? bking : wking )
+#define IS_KING(p) ( ((p) == wking) || ((p) == bking) )
+
 /**
 * nnue data structure
 */
@@ -154,5 +157,15 @@ int nnue_evaluate_incremental(
     int *squares, /** Corresponding array of squares each piece stands on */
     NNUEdata **nnue_data /** Pointer to NNUEdata* for current and previous plies */
 );
+
+/**
+* Native accumulator-update API: lets a caller with its own board representation update
+* an Accumulator directly, without ever building a pieces[]/squares[] array. white_ksq/
+* black_ksq are raw (un-oriented) king squares; orientation happens internally.
+*/
+void nnue_reset_accumulator(Accumulator *acc);
+void nnue_activate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq);
+void nnue_deactivate_feature(Accumulator *acc, int nnue_piece, int square, int white_ksq, int black_ksq);
+int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move);
 
 #endif
