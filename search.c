@@ -121,6 +121,11 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
     bool pv_node = beta - alpha > 1;
     bool is_root = (ply == 0);
     assert(!(pv_node && cut_node));
+    assert(!is_root || pv_node);
+
+    Move excluded = info->excluded_stack[ply];
+
+    assert(!is_root || excluded == 0);
 
     MoveList move_list;
     MoveList fail_low_quiets;
@@ -180,38 +185,45 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
     // tt_hit is boolean, if no entry found, move is set to 0
     TTEntry tt_entry;
-    bool tt_hit = probe_tt(pos, &tt_entry, ply);
+    tt_entry.move = 0;
+    bool tt_hit = false;
+    if (!excluded) {
+        tt_hit = probe_tt(pos, &tt_entry, ply);
 
-    // Cutoff when we find valid TT entry
-    if (!pv_node && tt_hit && tt_entry.depth >= depth
-        && (tt_entry.flag == TT_EXACT
-            || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
-            || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
-        return tt_entry.score;
+        // Cutoff when we find valid TT entry
+        if (!pv_node && tt_hit && tt_entry.depth >= depth
+            && (tt_entry.flag == TT_EXACT
+                || (tt_entry.flag == TT_UPPER && tt_entry.score <= alpha)
+                || (tt_entry.flag == TT_LOWER && tt_entry.score >= beta))) {
+            return tt_entry.score;
+        }
     }
 
     // IIR
-    if (depth >= MIN_IIR_DEPTH && (pv_node || cut_node) && !tt_entry.move) {
+    if (depth >= MIN_IIR_DEPTH && !excluded && (pv_node || cut_node) && !tt_entry.move) {
         depth--;
     }
 
-    int static_eval, static_eval_raw;
-    if (in_check) {
-        static_eval_raw = -INF;
-        static_eval = -INF;
-    }
-    else {
-        if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
-            static_eval_raw = tt_entry.static_eval;
+    int static_eval = -INF, static_eval_raw = -INF;
+    if (!excluded) {
+        if (in_check) {
+            static_eval_raw = -INF;
+            static_eval = -INF;
         }
         else {
-            static_eval_raw = evaluation(pos);
+            if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
+                static_eval_raw = tt_entry.static_eval;
+            }
+            else {
+                static_eval_raw = evaluation(pos);
+            }
+            static_eval = correct_static_eval(pos, static_eval_raw);
         }
-        static_eval = correct_static_eval(pos, static_eval_raw);
+        info->static_eval_stack[ply] = static_eval;
     }
-    info->static_eval_stack[ply] = static_eval;
+
     bool improving = calculate_improving(info, static_eval, in_check);
-    if (!pv_node && !in_check) {
+    if (!pv_node && !in_check && !excluded) {
         assert(!is_root);
 
         // Reverse Futility Pruning
@@ -257,6 +269,9 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         pick_move(&move_list, i);
         Move current = move_list.move[i];
 
+        if (current == excluded)
+            continue;
+
         bool noisy = is_noisy(current);
         if (best_score > -MATE_SCORE && !in_check) {
             // Futility Pruning
@@ -282,17 +297,34 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
         move_count++;
         info->ply++;
+
+        int extension = 0;
+        if (!is_root && depth >= 8 && current == tt_entry.move && !excluded && tt_entry.depth >= depth
+            - 4 && tt_entry.flag != TT_UPPER && abs(tt_entry.score) < MAX_MATE_SCORE) {
+            info->ply--;
+            int s_beta = MAX(-INF + 1, tt_entry.score - 2 * depth);
+            int s_depth = (depth - 1) / 2;
+            info->excluded_stack[ply] = current;
+            int s_score = search(s_beta - 1, s_beta, s_depth, pos, info, cut_node);
+            info->excluded_stack[ply] = 0;
+            info->ply++;
+
+            if (s_score < s_beta)
+                extension = 1;
+        }
+
         prefetch_tt(new_pos.key);
 
         // Save current move to move_stack
         info->move_stack[ply] = current;
+        info->static_eval_stack[ply] = static_eval;
 
         // Save the current move into history
         repetition_history[++repetition_index] = new_pos.key;
 
         // PVS
         bool gives_check = is_in_check(&new_pos);
-        int new_depth = depth - 1;
+        int new_depth = depth + extension - 1;
         // Start with Late Move Reduction
         if (move_count >= MIN_LMR_MOVES && depth >= MIN_LMR_DEPTH) {
             int r = calculate_reduction(current, move_count, depth);
@@ -369,7 +401,8 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         }
     }
 
-    save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
+    if (!excluded)
+        save_tt(pos, best_move, static_eval_raw, best_score, tt_flag, depth, ply);
     return best_score;
 }
 
@@ -510,6 +543,7 @@ void search_root(GameState *pos, SearchInfo *search_info)
     search_info->ply = 0;
     search_info->stopped = false;
     memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
+    memset(search_info->excluded_stack, 0, sizeof(search_info->excluded_stack));
     memset(search_info->static_eval_stack, -INF, sizeof(search_info->static_eval_stack));
 
     for (int iterative_depth = 1; iterative_depth <= max_search_depth; iterative_depth++) {
