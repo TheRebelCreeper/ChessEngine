@@ -96,8 +96,7 @@ int nnue_eval(const GameState *pos)
     return evaluate_nnue(pos->turn, pieces, squares);
 }
 
-// Rebuilds an accumulator from scratch directly off the board's bitboards, bypassing the
-// pieces[]/squares[] array entirely (used on a king move or the very first eval of a search).
+// Full accumulator refresh straight from the board bitboards (king move or first eval)
 void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos)
 {
     int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
@@ -119,36 +118,32 @@ void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos)
     acc->computedAccumulation = 1;
 }
 
-// Applies a DirtyPiece's feature changes on top of a valid parent accumulator, in one
-// combined pass fused with the copy-from-parent step (rather than copying first and then
-// modifying, or one call per changed feature). Caller must have already ruled out a king
-// move (that needs a refresh).
-void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp,
-                       int white_ksq, int black_ksq)
+// Applies dp's feature changes on top of parent in one pass; caller must rule out a king
+// move first (that needs a full refresh instead)
+void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp, int white_ksq, int black_ksq)
 {
-    int removed_pieces[3], removed_squares[3], n_removed = 0;
-    int added_pieces[3], added_squares[3], n_added = 0;
+    int removed_pieces[3], removed_squares[3], removed_count = 0;
+    int added_pieces[3], added_squares[3], added_count = 0;
     for (int i = 0; i < dp->dirtyNum; i++) {
         if (IS_KING(dp->pc[i]))
             continue;
         if (dp->from[i] != 64) {
-            removed_pieces[n_removed] = dp->pc[i];
-            removed_squares[n_removed] = dp->from[i];
-            n_removed++;
+            removed_pieces[removed_count] = dp->pc[i];
+            removed_squares[removed_count] = dp->from[i];
+            removed_count++;
         }
         if (dp->to[i] != 64) {
-            added_pieces[n_added] = dp->pc[i];
-            added_squares[n_added] = dp->to[i];
-            n_added++;
+            added_pieces[added_count] = dp->pc[i];
+            added_squares[added_count] = dp->to[i];
+            added_count++;
         }
     }
-    nnue_apply_features(acc, parent, removed_pieces, removed_squares, n_removed,
-                         added_pieces, added_squares, n_added, white_ksq, black_ksq);
+    nnue_apply_features(acc, parent, removed_pieces, removed_squares, removed_count,
+                        added_pieces, added_squares, added_count, white_ksq, black_ksq);
     acc->computedAccumulation = 1;
 }
 
-// Fills a DirtyPiece describing exactly which NNUE features change for a given move,
-// mirroring make_move's own move-category logic so both stay in lockstep.
+// Fills dp with the NNUE features that change for this move, mirroring make_move's cases
 void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp)
 {
     int turn = pos->turn;
@@ -217,9 +212,8 @@ int evaluate_from_accumulator(const GameState *pos, const Accumulator *acc)
     return material_count(pos);
 }
 
-// Updates the accumulator at nnue_stack[ply] (copying from its parent and applying the
-// move's DirtyPiece deltas directly, or refreshing from scratch on a king move / missing
-// parent) and evaluates it, all without ever building a pieces[]/squares[] array.
+// Updates nnue_stack[ply]'s accumulator (incremental from its parent, or a full refresh
+// on a king move / missing parent) and evaluates it
 int evaluate_at_ply(NNUEdata *nnue_stack, int ply, const GameState *pos)
 {
     Accumulator *acc = &nnue_stack[ply].accumulator;

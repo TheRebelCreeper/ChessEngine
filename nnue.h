@@ -166,9 +166,9 @@ int nnue_evaluate_incremental(
 * fused with copying from base (parent ply / biases) so no separate copy pass is needed.
 */
 void nnue_apply_features(Accumulator *acc, const Accumulator *base,
-                          const int *removed_pieces, const int *removed_squares, int n_removed,
-                          const int *added_pieces, const int *added_squares, int n_added,
-                          int white_ksq, int black_ksq);
+                         const int *removed_pieces, const int *removed_squares, int removed_count,
+                         const int *added_pieces, const int *added_squares, int added_count,
+                         int white_ksq, int black_ksq);
 void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
                            int white_ksq, int black_ksq);
 int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move);

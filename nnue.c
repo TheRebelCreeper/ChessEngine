@@ -1047,15 +1047,11 @@ INLINE static bool update_accumulator(Position *pos)
     return true;
 }
 
-// Computes dst_half[j] = base_half[j] - sum(removed weight columns) + sum(added weight
-// columns), one combined tile pass: load each tile from base once, apply every delta
-// while it's in registers, store once into dst. base_half may be ft_biases, a parent
-// accumulator's half (for a copy-and-update in one pass), or dst_half itself (a true
-// in-place update) — fusing the "start from X" step with the deltas avoids a separate
-// copy pass beforehand, which is what makes a multi-feature move or a refresh cheap.
+// Computes dst_half = base_half - removed weight columns + added weight columns, one
+// tile pass; fusing the "start from base" step with the deltas avoids a separate copy.
 static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
-                                   const unsigned *removed, unsigned n_removed,
-                                   const unsigned *added, unsigned n_added)
+                                   const unsigned *removed, unsigned removed_count,
+                                   const unsigned *added, unsigned added_count)
 {
 #ifdef VECTOR
     for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
@@ -1065,13 +1061,13 @@ static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
         for (unsigned j = 0; j < NUM_REGS; j++)
             tile[j] = baseTile[j];
 
-        for (unsigned k = 0; k < n_removed; k++) {
+        for (unsigned k = 0; k < removed_count; k++) {
             const unsigned offset = kHalfDimensions * removed[k] + i * TILE_HEIGHT;
             vec16_t *column = (vec16_t *) &ft_weights[offset];
             for (unsigned j = 0; j < NUM_REGS; j++)
                 tile[j] = vec_sub_16(tile[j], column[j]);
         }
-        for (unsigned k = 0; k < n_added; k++) {
+        for (unsigned k = 0; k < added_count; k++) {
             const unsigned offset = kHalfDimensions * added[k] + i * TILE_HEIGHT;
             vec16_t *column = (vec16_t *) &ft_weights[offset];
             for (unsigned j = 0; j < NUM_REGS; j++)
@@ -1084,12 +1080,12 @@ static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
 #else
     if (base_half != dst_half)
         memcpy(dst_half, base_half, kHalfDimensions * sizeof(int16_t));
-    for (unsigned k = 0; k < n_removed; k++) {
+    for (unsigned k = 0; k < removed_count; k++) {
         const unsigned offset = kHalfDimensions * removed[k];
         for (unsigned j = 0; j < kHalfDimensions; j++)
             dst_half[j] -= ft_weights[offset + j];
     }
-    for (unsigned k = 0; k < n_added; k++) {
+    for (unsigned k = 0; k < added_count; k++) {
         const unsigned offset = kHalfDimensions * added[k];
         for (unsigned j = 0; j < kHalfDimensions; j++)
             dst_half[j] += ft_weights[offset + j];
@@ -1097,34 +1093,29 @@ static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
 #endif
 }
 
-// Batched incremental update, given only the piece/square/king-squares involved — no
-// Position/pieces[]/squares[] array needed. white_ksq/black_ksq are raw (un-oriented)
-// king squares; orientation for the black perspective happens internally. base is the
-// accumulator to start from (typically the parent ply's, already valid) — passing it
-// separately from acc lets the copy-from-parent and apply-deltas happen in one pass
-// instead of a separate struct copy followed by an in-place update.
+// Batched incremental update from piece/square/king-squares directly, no pieces[]/squares[]
+// array needed. base is the accumulator to start from (usually the parent ply's).
 void nnue_apply_features(Accumulator *acc, const Accumulator *base,
-                          const int *removed_pieces, const int *removed_squares, int n_removed,
-                          const int *added_pieces, const int *added_squares, int n_added,
-                          int white_ksq, int black_ksq)
+                         const int *removed_pieces, const int *removed_squares, int removed_count,
+                         const int *added_pieces, const int *added_squares, int added_count,
+                         int white_ksq, int black_ksq)
 {
     int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
     for (unsigned c = 0; c < 2; c++) {
         unsigned removed_idx[3], added_idx[3];
-        for (int i = 0; i < n_removed; i++)
+        for (int i = 0; i < removed_count; i++)
             removed_idx[i] = make_index(c, removed_squares[i], removed_pieces[i], ksq[c]);
-        for (int i = 0; i < n_added; i++)
+        for (int i = 0; i < added_count; i++)
             added_idx[i] = make_index(c, added_squares[i], added_pieces[i], ksq[c]);
         apply_indices_to_half(base->accumulation[c], acc->accumulation[c],
-                              removed_idx, n_removed, added_idx, n_added);
+                              removed_idx, removed_count, added_idx, added_count);
     }
 }
 
-// Batched from-scratch refresh, given the full list of (non-king) pieces on the board —
-// no Position/pieces[]/squares[] array needed. Starts from the feature-transformer biases
-// and applies every piece's feature for both perspectives in one combined pass each.
+// Batched from-scratch refresh from the board's piece list directly, no pieces[]/squares[]
+// array needed.
 void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
-                            int white_ksq, int black_ksq)
+                           int white_ksq, int black_ksq)
 {
     int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
     for (unsigned c = 0; c < 2; c++) {
@@ -1179,8 +1170,7 @@ struct NetData {
 #endif
 };
 
-// Runs the affine-transform stack on an already-packed accumulator; callers with a valid
-// Accumulator reach this via nnue_evaluate_accumulator, skipping the Position/pieces[] path.
+// Runs the affine-transform stack on an already-packed accumulator (see nnue_evaluate_accumulator)
 static int evaluate_packed(const Accumulator *acc, int stm)
 {
     int32_t out_value;
