@@ -43,9 +43,6 @@
 #define DLL_EXPORT
 #include "nnue.h"
 #undef DLL_EXPORT
-
-#define KING(c)    ( (c) ? bking : wking )
-#define IS_KING(p) ( ((p) == wking) || ((p) == bking) )
 //-------------------
 
 // Old gcc on Windows is unable to provide a 32-byte aligned stack.
@@ -1050,16 +1047,89 @@ INLINE static bool update_accumulator(Position *pos)
     return true;
 }
 
-// Convert input features
-INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
+// Computes dst_half = base_half - removed weight columns + added weight columns, one
+// tile pass; fusing the "start from base" step with the deltas avoids a separate copy.
+static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
+                                   const unsigned *removed, unsigned removed_count,
+                                   const unsigned *added, unsigned added_count)
 {
-    if (!update_accumulator(pos))
-        refresh_accumulator(pos);
+#ifdef VECTOR
+    for (unsigned i = 0; i < kHalfDimensions / TILE_HEIGHT; i++) {
+        const vec16_t *baseTile = (const vec16_t *) &base_half[i * TILE_HEIGHT];
+        vec16_t *dstTile = (vec16_t *) &dst_half[i * TILE_HEIGHT];
+        vec16_t tile[NUM_REGS];
+        for (unsigned j = 0; j < NUM_REGS; j++)
+            tile[j] = baseTile[j];
 
-    int16_t (*accumulation)[2][256] = &pos->nnue[0]->accumulator.accumulation;
-    (void) outMask; // avoid compiler warning
+        for (unsigned k = 0; k < removed_count; k++) {
+            const unsigned offset = kHalfDimensions * removed[k] + i * TILE_HEIGHT;
+            vec16_t *column = (vec16_t *) &ft_weights[offset];
+            for (unsigned j = 0; j < NUM_REGS; j++)
+                tile[j] = vec_sub_16(tile[j], column[j]);
+        }
+        for (unsigned k = 0; k < added_count; k++) {
+            const unsigned offset = kHalfDimensions * added[k] + i * TILE_HEIGHT;
+            vec16_t *column = (vec16_t *) &ft_weights[offset];
+            for (unsigned j = 0; j < NUM_REGS; j++)
+                tile[j] = vec_add_16(tile[j], column[j]);
+        }
 
-    const int perspectives[2] = {pos->player, !pos->player};
+        for (unsigned j = 0; j < NUM_REGS; j++)
+            dstTile[j] = tile[j];
+    }
+#else
+    if (base_half != dst_half)
+        memcpy(dst_half, base_half, kHalfDimensions * sizeof(int16_t));
+    for (unsigned k = 0; k < removed_count; k++) {
+        const unsigned offset = kHalfDimensions * removed[k];
+        for (unsigned j = 0; j < kHalfDimensions; j++)
+            dst_half[j] -= ft_weights[offset + j];
+    }
+    for (unsigned k = 0; k < added_count; k++) {
+        const unsigned offset = kHalfDimensions * added[k];
+        for (unsigned j = 0; j < kHalfDimensions; j++)
+            dst_half[j] += ft_weights[offset + j];
+    }
+#endif
+}
+
+// Batched incremental update from piece/square/king-squares directly, no pieces[]/squares[]
+// array needed. base is the accumulator to start from (usually the parent ply's).
+void nnue_apply_features(Accumulator *acc, const Accumulator *base,
+                         const int *removed_pieces, const int *removed_squares, int removed_count,
+                         const int *added_pieces, const int *added_squares, int added_count,
+                         int white_ksq, int black_ksq)
+{
+    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
+    for (unsigned c = 0; c < 2; c++) {
+        unsigned removed_idx[3], added_idx[3];
+        for (int i = 0; i < removed_count; i++)
+            removed_idx[i] = make_index(c, removed_squares[i], removed_pieces[i], ksq[c]);
+        for (int i = 0; i < added_count; i++)
+            added_idx[i] = make_index(c, added_squares[i], added_pieces[i], ksq[c]);
+        apply_indices_to_half(base->accumulation[c], acc->accumulation[c],
+                              removed_idx, removed_count, added_idx, added_count);
+    }
+}
+
+// Batched from-scratch refresh from the board's piece list directly, no pieces[]/squares[]
+// array needed.
+void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
+                           int white_ksq, int black_ksq)
+{
+    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
+    for (unsigned c = 0; c < 2; c++) {
+        unsigned idx[32];
+        for (int i = 0; i < count; i++)
+            idx[i] = make_index(c, squares[i], pieces[i], ksq[c]);
+        apply_indices_to_half(ft_biases, acc->accumulation[c], NULL, 0, idx, count);
+    }
+}
+
+// Packs an already-valid accumulator into the input layer for the affine-transform stack.
+static void pack_accumulator(const Accumulator *acc, int stm, clipped_t *output, mask_t *outMask)
+{
+    const int perspectives[2] = {stm, !stm};
     for (unsigned p = 0; p < 2; p++) {
         const unsigned offset = kHalfDimensions * p;
 
@@ -1067,20 +1137,27 @@ INLINE static void transform(Position *pos, clipped_t *output, mask_t *outMask)
         const unsigned numChunks = (16 * kHalfDimensions) / SIMD_WIDTH;
         vec8_t *out = (vec8_t *) &output[offset];
         for (unsigned i = 0; i < numChunks / 2; i++) {
-            vec16_t s0 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2];
-            vec16_t s1 = ((vec16_t *) (*accumulation)[perspectives[p]])[i * 2 + 1];
+            vec16_t s0 = ((vec16_t *) acc->accumulation[perspectives[p]])[i * 2];
+            vec16_t s1 = ((vec16_t *) acc->accumulation[perspectives[p]])[i * 2 + 1];
             out[i] = vec_packs(s0, s1);
             *outMask++ = vec_mask_pos(out[i]);
         }
 
 #else
+        (void) outMask;
         for (unsigned i = 0; i < kHalfDimensions; i++) {
-            int16_t sum = (*accumulation)[perspectives[p]][i];
+            int16_t sum = acc->accumulation[perspectives[p]][i];
             output[offset + i] = clamp(sum, 0, 127);
         }
 
 #endif
     }
+}
+
+INLINE static void ensure_accumulator(Position *pos)
+{
+    if (!update_accumulator(pos))
+        refresh_accumulator(pos);
 }
 
 struct NetData {
@@ -1093,8 +1170,8 @@ struct NetData {
 #endif
 };
 
-// Evaluation function
-int nnue_evaluate_pos(Position *pos)
+// Runs the affine-transform stack on an already-packed accumulator (see nnue_evaluate_accumulator)
+static int evaluate_packed(const Accumulator *acc, int stm)
 {
     int32_t out_value;
     alignas(8) mask_t input_mask[FtOutDims / (8 * sizeof(mask_t))];
@@ -1108,7 +1185,7 @@ int nnue_evaluate_pos(Position *pos)
 #define B(x) (buf.x)
 #endif
 
-    transform(pos, B(input), input_mask);
+    pack_accumulator(acc, stm, B(input), input_mask);
 
     affine_txfm(B(input), B(hidden1_out), FtOutDims, 32,
                 hidden1_biases, hidden1_weights, input_mask, hidden1_mask, true);
@@ -1124,6 +1201,18 @@ int nnue_evaluate_pos(Position *pos)
 #endif
 
     return out_value / FV_SCALE;
+}
+
+// Evaluation function
+int nnue_evaluate_pos(Position *pos)
+{
+    ensure_accumulator(pos);
+    return evaluate_packed(&pos->nnue[0]->accumulator, pos->player);
+}
+
+int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move)
+{
+    return evaluate_packed(acc, side_to_move);
 }
 
 static void read_output_weights(weight_t *w, const char *d)
