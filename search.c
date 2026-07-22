@@ -205,23 +205,23 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
         depth--;
     }
 
+    // Compute the static eval even when excluded, or the verification search's futility/LMP
+    // pruning fires off the -INF sentinel and over-triggers singular extensions.
     int static_eval = -INF, static_eval_raw = -INF;
-    if (!excluded) {
-        if (in_check) {
-            static_eval_raw = -INF;
-            static_eval = -INF;
+    if (in_check) {
+        static_eval_raw = -INF;
+        static_eval = -INF;
+    }
+    else {
+        if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
+            static_eval_raw = tt_entry.static_eval;
         }
         else {
-            if (tt_hit && tt_entry.flag != TT_NONE && tt_entry.static_eval != -INF) {
-                static_eval_raw = tt_entry.static_eval;
-            }
-            else {
-                static_eval_raw = evaluate_at_ply(info->nnue_stack, info->ply, pos);
-            }
-            static_eval = correct_static_eval(pos, static_eval_raw);
+            static_eval_raw = evaluate_at_ply(info->nnue_stack, info->ply, pos);
         }
-        info->static_eval_stack[ply] = static_eval;
+        static_eval = correct_static_eval(pos, static_eval_raw);
     }
+    info->static_eval_stack[ply] = static_eval;
 
     bool improving = calculate_improving(info, static_eval, in_check);
     if (!pv_node && !in_check && !excluded) {
