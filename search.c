@@ -261,7 +261,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             info->ply--;
             repetition_index--;
 
-            if (null_score >= beta && null_score < MATE_SCORE)
+            if (null_score >= beta && null_score < MAX_MATE_SCORE)
                 return null_score;
         }
     }
