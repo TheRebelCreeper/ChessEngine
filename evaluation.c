@@ -44,7 +44,11 @@ int material_count(const GameState *pos)
     return (pos->turn == WHITE) ? eval : -eval;
 }
 
-int material(const GameState *pos)
+// Total material magnitude of both sides (kings excluded), used to scale the NNUE eval
+// toward the endgame. Black pieces use the White piece values so they add rather than
+// cancel; summing the signed piece_value here would give the material imbalance (~0 in
+// balanced positions), which defeats the phase scaling.
+int total_material(const GameState *pos)
 {
     int m = 0;
     m += COUNT_BITS(pos->piece_bitboards[P]) * piece_value[P];
@@ -53,11 +57,11 @@ int material(const GameState *pos)
     m += COUNT_BITS(pos->piece_bitboards[R]) * piece_value[R];
     m += COUNT_BITS(pos->piece_bitboards[Q]) * piece_value[Q];
 
-    m += COUNT_BITS(pos->piece_bitboards[p]) * piece_value[p];
-    m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[n];
-    m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[b];
-    m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[r];
-    m += COUNT_BITS(pos->piece_bitboards[q]) * piece_value[q];
+    m += COUNT_BITS(pos->piece_bitboards[p]) * piece_value[P];
+    m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[N];
+    m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[B];
+    m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[R];
+    m += COUNT_BITS(pos->piece_bitboards[q]) * piece_value[Q];
     return m;
 }
 
@@ -197,8 +201,8 @@ void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp)
 int evaluation(const GameState *pos)
 {
     if (FOUND_NETWORK) {
-        int mat = material(pos);
-        return nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
+        int mat = total_material(pos);
+        return nnue_eval(pos) * (472 + mat / 32) / 1024 + 28;
     }
     return material_count(pos);
 }
@@ -206,8 +210,8 @@ int evaluation(const GameState *pos)
 int evaluate_from_accumulator(const GameState *pos, const Accumulator *acc)
 {
     if (FOUND_NETWORK) {
-        int mat = material(pos);
-        return nnue_evaluate_accumulator(acc, pos->turn) * (720 + mat / 32) / 1024 + 28;
+        int mat = total_material(pos);
+        return nnue_evaluate_accumulator(acc, pos->turn) * (472 + mat / 32) / 1024 + 28;
     }
     return material_count(pos);
 }
