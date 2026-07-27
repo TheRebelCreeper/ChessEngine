@@ -178,14 +178,15 @@ void parse_go(char *line, GameState *pos)
         depth = atoi(temp + 6);
     }
 
-    if (movetime != -1) {
-        time = movetime;
-        movestogo = 1;
-    }
-
     info.starttime = get_time_ms();
 
-    if (time != -1) {
+    if (movetime != -1) {
+        // movetime is an exact per-move budget; skip the game-clock division and the
+        // 50ms overhead (which made small movetimes negative and searched only depth 1).
+        info.timeset = 1;
+        info.stoptime = info.starttime + movetime;
+    }
+    else if (time != -1) {
         int time_left = time;
         info.timeset = 1;
         time /= movestogo;
