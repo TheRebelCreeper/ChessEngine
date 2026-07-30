@@ -422,6 +422,8 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
     int ply = info->ply;
     bool in_check = is_in_check(pos);
 
+	info->nodes++;
+
     // Update time left
     if ((info->nodes & 2047) == 0) {
         check_time_left(info);
