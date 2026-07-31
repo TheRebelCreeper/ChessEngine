@@ -10,6 +10,7 @@
 #include "movegen.h"
 #include "perft.h"
 #include "search.h"
+#include "see.h"
 #include "tt.h"
 #include "util.h"
 
@@ -105,15 +106,24 @@ void parse_position(char *line, GameState *pos)
     }
 }
 
+// Example command
+// see e1e8 -100
 void parse_see(char *line, const GameState *pos)
 {
     line += 4; // Start the line after the word "see"
-    char *temp = line;
 
-    if (temp != NULL) {
-        int src = (temp[1] - '0' - 1) * 8 + (tolower(temp[0]) - 'a');
-        printf("SEE: %d\n", see(pos, src));
+    MoveList move_list;
+    generate_moves(pos, &move_list);
+    int idx = parse_move(line, &move_list);
+    if (idx == -1) {
+        printf("SEE: no such move\n");
+        return;
     }
+
+    // Threshold is optional
+    char *temp = strchr(line, ' ');
+    int threshold = (temp != NULL) ? atoi(temp + 1) : 0;
+    printf("SEE: %s\n", see_at_least(pos, move_list.move[idx], threshold) ? "true" : "false");
 }
 
 void parse_go(char *line, GameState *pos)

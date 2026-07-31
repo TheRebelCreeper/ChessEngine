@@ -10,6 +10,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "movepick.h"
+#include "see.h"
 #include "tt.h"
 #include "util.h"
 
@@ -293,7 +294,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
             // SEE pruning
             int see_threshold = noisy ? -75 * depth : -25 * depth;
-            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
+            if (!see_at_least(pos, current, see_threshold))
                 continue;
         }
 
@@ -498,7 +499,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         Move current = move_list.move[i];
 
         // Prune captures with bad SEE when not in check
-        if (!in_check && see(pos, GET_MOVE_DST(current)) < -100) {
+        if (!in_check && !see_at_least(pos, current, -100)) {
             continue;
         }
 
