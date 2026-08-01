@@ -558,7 +558,9 @@ void search_root(GameState *pos, SearchInfo *search_info)
     search_info->stopped = false;
     memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
     memset(search_info->excluded_stack, 0, sizeof(search_info->excluded_stack));
-    memset(search_info->static_eval_stack, -INF, sizeof(search_info->static_eval_stack));
+    // memset writes bytes, so -INF has to be filled one entry at a time
+    for (int ply = 0; ply < MAX_PLY; ply++)
+        search_info->static_eval_stack[ply] = -INF;
     // Root has no ancestor accumulator to chain from; force a full refresh on first eval.
     search_info->nnue_stack[0].accumulator.computedAccumulation = 0;
     search_info->nnue_stack[0].dirtyPiece.dirtyNum = 0;
