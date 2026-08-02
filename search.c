@@ -55,7 +55,8 @@ void check_time_left(SearchInfo *info)
     if (info->timeset && get_time_ms() > info->stoptime) {
         info->stopped = true;
     }
-    read_input(info);
+    if (!info->benchmark)
+        read_input(info);
 }
 
 inline bool is_repetition(const GameState *pos)
