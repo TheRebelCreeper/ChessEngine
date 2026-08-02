@@ -33,7 +33,6 @@ void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
 {
     for (int i = 0; i < moves->next_open; i++) {
         Move m = moves->move[i];
-        int dst = GET_MOVE_DST(m);
 
         // Score TT hits
         if (tt_move != 0 && m == tt_move) {
@@ -46,8 +45,8 @@ void score_moves(MoveList *moves, const GameState *pos, Move tt_move, int ply)
             int piece_offset = 6 * pos->turn;
             moves->score[i] = MVV_LVA_TABLE[GET_MOVE_PIECE(m) - piece_offset][GET_MOVE_CAPTURED(m)] + KILLER_ONE;
 
-            // Give bad score to results with negative SEE
-            if (see(pos, dst) < -100) {
+            // Sort losing captures below the killers
+            if (!see_at_least(pos, m, -100)) {
                 moves->score[i] -= KILLER_ONE;
             }
         }
