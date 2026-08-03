@@ -554,6 +554,8 @@ void search_root(GameState *pos, SearchInfo *search_info)
 
     // Clear information for search_info. Will have to do this for ID upon each depth
     unsigned int start = get_time_ms();
+    // Clearing every search is the only decay history has; persisting it without gravity
+    // updates freezes move ordering on stale scores
     clear_history();
     search_info->nodes = 0ULL;
     search_info->ply = 0;

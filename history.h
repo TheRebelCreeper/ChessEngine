@@ -2,7 +2,7 @@
 #define CHESSENGINE_HISTORY_H
 
 #define HISTORY_SCORE_MAX	4200000
-#define HISTORY_SCORE_MIN	600
+#define HISTORY_SCORE_MIN	(-HISTORY_SCORE_MAX)
 #include "move.h"
 #include "position.h"
 
@@ -10,6 +10,7 @@ extern int repetition_index; // Used to index 50 move rule array
 u64 repetition_history[256]; // Used to calculate 50 move rule array
 
 void clear_history();
+void clear_killers();
 int score_history(const GameState *pos, Move move, int depth);
 void update_history(const GameState *pos, Move move, int bonus);
 int get_history(const GameState *pos, Move move);

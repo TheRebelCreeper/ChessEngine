@@ -253,6 +253,9 @@ void uci_loop()
             parse_position(buf, &pos);
         }
         else if (strncmp(buf, "ucinewgame", 10) == 0) {
+            // Killers and the TT are only valid within a game
+            clear_killers();
+            clear_tt();
             parse_position("position startpos", &pos);
         }
         else if (strncmp(buf, "go", 2) == 0) {

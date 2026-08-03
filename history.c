@@ -15,6 +15,11 @@ inline void clear_history()
     memset(history_table, 0, sizeof(history_table));
 }
 
+inline void clear_killers()
+{
+    memset(killer_table, 0, sizeof(killer_table));
+}
+
 inline int score_history(const GameState *pos, Move move, int depth)
 {
     assert(move != 0 && depth >= 0);
@@ -26,7 +31,9 @@ inline void update_history(const GameState *pos, Move move, int bonus)
 {
     assert(move != 0);
     int tmp = history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)];
-    history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)] = MIN(tmp + bonus, HISTORY_SCORE_MAX);
+    // Penalties are negative, so the score needs a floor as well as a ceiling
+    history_table[pos->turn][GET_MOVE_SRC(move)][GET_MOVE_DST(move)] =
+            CLAMP(tmp + bonus, HISTORY_SCORE_MIN, HISTORY_SCORE_MAX);
 }
 
 inline int get_history(const GameState *pos, Move move)
