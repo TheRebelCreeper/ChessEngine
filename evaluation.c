@@ -212,21 +212,29 @@ int evaluate_from_accumulator(const GameState *pos, const Accumulator *acc)
     return material_count(pos);
 }
 
-// Updates nnue_stack[ply]'s accumulator (incremental from its parent, or a full refresh
-// on a king move / missing parent) and evaluates it
+// Updates nnue_stack[ply]'s accumulator (incremental from the nearest computed ancestor, or a
+// full refresh on a king move / no computed ancestor) and evaluates it
 int evaluate_at_ply(NNUEdata *nnue_stack, int ply, const GameState *pos)
 {
     Accumulator *acc = &nnue_stack[ply].accumulator;
 
     if (!acc->computedAccumulation) {
-        DirtyPiece *dp = &nnue_stack[ply].dirtyPiece;
-        bool king_moved = dp->dirtyNum > 0 && IS_KING(dp->pc[0]);
-        Accumulator *parent = (!king_moved && ply >= 1) ? &nnue_stack[ply - 1].accumulator : NULL;
+        // Walk back past plies that skipped eval (TT eval or in check), stopping at a king move
+        int ancestor = ply;
+        while (ancestor >= 1 && !nnue_stack[ancestor].accumulator.computedAccumulation) {
+            const DirtyPiece *dp = &nnue_stack[ancestor].dirtyPiece;
+            if (dp->dirtyNum > 0 && IS_KING(dp->pc[0]))
+                break;
+            ancestor--;
+        }
 
-        if (parent && parent->computedAccumulation) {
+        if (nnue_stack[ancestor].accumulator.computedAccumulation) {
             int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
             int black_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k]);
-            apply_dirty_piece(acc, parent, dp, white_ksq, black_ksq);
+            for (int i = ancestor + 1; i <= ply; i++) {
+                apply_dirty_piece(&nnue_stack[i].accumulator, &nnue_stack[i - 1].accumulator,
+                                  &nnue_stack[i].dirtyPiece, white_ksq, black_ksq);
+            }
         }
         else {
             nnue_refresh_from_gamestate(acc, pos);
