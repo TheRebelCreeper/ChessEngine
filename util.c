@@ -64,24 +64,29 @@ int InputWaiting()
 
 void read_input(SearchInfo *info)
 {
-    int bytes;
+    // At EOF stdin stays readable forever, so stop polling instead of killing the search
+    static bool stdin_eof = false;
     char input[256] = "", *endc;
 
-    if (InputWaiting()) {
-        info->stopped = 1;
-        do {
-            bytes = read(fileno(stdin), input, 256);
-        }
-        while (bytes < 0);
-        endc = strchr(input, '\n');
-        if (endc)
-            *endc = 0;
-
-        if (strlen(input) > 0) {
-            if (!strncmp(input, "quit", 4)) {
-                exit(0);
-            }
-        }
+    if (stdin_eof || !InputWaiting())
         return;
-    }
+
+    int bytes = read(fileno(stdin), input, sizeof(input) - 1);
+    if (bytes == 0)
+        stdin_eof = true;
+    if (bytes <= 0)
+        return;
+
+    input[bytes] = 0;
+    endc = strchr(input, '\n');
+    if (endc)
+        *endc = 0;
+
+    // Only stop and quit end the search; other commands must not disturb it
+    if (!strncmp(input, "quit", 4))
+        exit(0);
+    else if (!strncmp(input, "stop", 4))
+        info->stopped = true;
+    else if (!strncmp(input, "isready", 7))
+        printf("readyok\n");
 }

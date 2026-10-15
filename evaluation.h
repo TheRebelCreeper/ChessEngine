@@ -99,7 +99,6 @@ int evaluate_at_ply(NNUEdata *nnue_stack, int ply, const GameState *pos);
 void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos);
 void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp, int white_ksq, int black_ksq);
 void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp);
-int see(const GameState *pos, int square);
 
 inline int correct_static_eval(const GameState *pos, int score)
 {

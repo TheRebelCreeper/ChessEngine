@@ -10,6 +10,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "movepick.h"
+#include "see.h"
 #include "tt.h"
 #include "util.h"
 
@@ -55,7 +56,8 @@ void check_time_left(SearchInfo *info)
     if (info->timeset && get_time_ms() > info->stoptime) {
         info->stopped = true;
     }
-    read_input(info);
+    if (!info->benchmark)
+        read_input(info);
 }
 
 inline bool is_repetition(const GameState *pos)
@@ -292,7 +294,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
 
             // SEE pruning
             int see_threshold = noisy ? -75 * depth : -25 * depth;
-            if (see(pos, GET_MOVE_DST(current)) <= see_threshold)
+            if (!see_at_least(pos, current, see_threshold))
                 continue;
         }
 
@@ -497,7 +499,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         Move current = move_list.move[i];
 
         // Prune captures with bad SEE when not in check
-        if (!in_check && see(pos, GET_MOVE_DST(current)) < -100) {
+        if (!in_check && !see_at_least(pos, current, -100)) {
             continue;
         }
 
@@ -558,7 +560,9 @@ void search_root(GameState *pos, SearchInfo *search_info)
     search_info->stopped = false;
     memset(search_info->move_stack, 0, sizeof(search_info->move_stack));
     memset(search_info->excluded_stack, 0, sizeof(search_info->excluded_stack));
-    memset(search_info->static_eval_stack, -INF, sizeof(search_info->static_eval_stack));
+    // memset writes bytes, so -INF has to be filled one entry at a time
+    for (int ply = 0; ply < MAX_PLY; ply++)
+        search_info->static_eval_stack[ply] = -INF;
     // Root has no ancestor accumulator to chain from; force a full refresh on first eval.
     search_info->nnue_stack[0].accumulator.computedAccumulation = 0;
     search_info->nnue_stack[0].dirtyPiece.dirtyNum = 0;
