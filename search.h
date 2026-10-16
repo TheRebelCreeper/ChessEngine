@@ -35,10 +35,10 @@ typedef struct info {
     u64 nodes;
     int pv_table_length[MAX_PLY + 1];
     Move pv_table[MAX_PLY + 1][MAX_PLY + 1];
-    Move move_stack[MAX_PLY];
-    Move excluded_stack[MAX_PLY];
-    int static_eval_stack[MAX_PLY];
-    NNUEdata nnue_stack[MAX_PLY];
+    Move move_stack[MAX_PLY + 1];
+    Move excluded_stack[MAX_PLY + 1];
+    int static_eval_stack[MAX_PLY + 1];
+    NNUEdata nnue_stack[MAX_PLY + 1];
 } SearchInfo;
 
 /*
