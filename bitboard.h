@@ -91,7 +91,7 @@ u64 get_rook_attacks(int square, u64 blockers);
 u64 get_queen_attacks(int square, u64 blockers);
 
 #define COUNT_BITS(board) (__builtin_popcountll((board)))
-#define GET_FIRST_BIT_SQUARE(board) (__builtin_ffsll((board)) - 1)
+#define GET_FIRST_BIT_SQUARE(board) (__builtin_ctzll((board)))
 
 void init_leapers();
 void init_sliders();
