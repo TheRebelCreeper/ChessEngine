@@ -66,6 +66,8 @@ typedef struct Accumulator {
     int computedAccumulation;
 } Accumulator;
 
+#define BOTH_PERSPECTIVES 3
+
 typedef struct NNUEdata {
     Accumulator accumulator;
     DirtyPiece dirtyPiece;
@@ -160,17 +162,18 @@ int nnue_evaluate_incremental(
 
 /**
 * Native accumulator-update API: lets a caller with its own board representation update
-* an Accumulator directly, without ever building a pieces[]/squares[] array. white_ksq/
-* black_ksq are raw (un-oriented) king squares; orientation happens internally. Both
-* apply every feature for a given move/refresh in one combined pass per perspective,
-* fused with copying from base (parent ply / biases) so no separate copy pass is needed.
+* an Accumulator directly, without ever building a pieces[]/squares[] array. Both update
+* one perspective; king_square is that perspective's raw (un-oriented) king square and
+* orientation happens internally. Every feature for a given move/refresh is applied in
+* one combined pass, fused with copying from base (parent ply / biases) so no separate
+* copy pass is needed.
 */
-void nnue_apply_features(Accumulator *acc, const Accumulator *base,
+void nnue_apply_features(Accumulator *acc, const Accumulator *base, int perspective,
                          const int *removed_pieces, const int *removed_squares, int removed_count,
                          const int *added_pieces, const int *added_squares, int added_count,
-                         int white_ksq, int black_ksq);
-void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
-                           int white_ksq, int black_ksq);
+                         int king_square);
+void nnue_refresh_features(Accumulator *acc, int perspective, const int *pieces, const int *squares,
+                           int count, int king_square);
 int nnue_evaluate_accumulator(const Accumulator *acc, int side_to_move);
 
 #endif
