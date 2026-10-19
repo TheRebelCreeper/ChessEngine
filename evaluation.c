@@ -44,23 +44,6 @@ int material_count(const GameState *pos)
     return (pos->turn == WHITE) ? eval : -eval;
 }
 
-int material(const GameState *pos)
-{
-    int m = 0;
-    m += COUNT_BITS(pos->piece_bitboards[P]) * piece_value[P];
-    m += COUNT_BITS(pos->piece_bitboards[N]) * piece_value[N];
-    m += COUNT_BITS(pos->piece_bitboards[B]) * piece_value[B];
-    m += COUNT_BITS(pos->piece_bitboards[R]) * piece_value[R];
-    m += COUNT_BITS(pos->piece_bitboards[Q]) * piece_value[Q];
-
-    m += COUNT_BITS(pos->piece_bitboards[p]) * piece_value[p];
-    m += COUNT_BITS(pos->piece_bitboards[n]) * piece_value[n];
-    m += COUNT_BITS(pos->piece_bitboards[b]) * piece_value[b];
-    m += COUNT_BITS(pos->piece_bitboards[r]) * piece_value[r];
-    m += COUNT_BITS(pos->piece_bitboards[q]) * piece_value[q];
-    return m;
-}
-
 static void build_nnue_arrays(const GameState *pos, int *pieces, int *squares)
 {
     int idx = 2;
@@ -200,19 +183,15 @@ void compute_dirty_piece(const GameState *pos, Move move, DirtyPiece *dp)
 
 int evaluation(const GameState *pos)
 {
-    if (FOUND_NETWORK) {
-        int mat = material(pos);
-        return nnue_eval(pos) * (720 + mat / 32) / 1024 + 28;
-    }
+    if (FOUND_NETWORK)
+        return nnue_eval(pos) * 720 / 1024 + 28;
     return material_count(pos);
 }
 
 int evaluate_from_accumulator(const GameState *pos, const Accumulator *acc)
 {
-    if (FOUND_NETWORK) {
-        int mat = material(pos);
-        return nnue_evaluate_accumulator(acc, pos->turn) * (720 + mat / 32) / 1024 + 28;
-    }
+    if (FOUND_NETWORK)
+        return nnue_evaluate_accumulator(acc, pos->turn) * 720 / 1024 + 28;
     return material_count(pos);
 }
 
