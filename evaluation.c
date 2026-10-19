@@ -96,11 +96,11 @@ int nnue_eval(const GameState *pos)
     return evaluate_nnue(pos->turn, pieces, squares);
 }
 
-// Full accumulator refresh straight from the board bitboards (king move or first eval)
-void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos)
+// Rebuilds the perspectives in mask straight from the board bitboards (own king move or first eval)
+void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos, int mask)
 {
-    int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
-    int black_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k]);
+    int king_squares[2] = {GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]),
+                           GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k])};
     int pieces[32], squares[32];
     int count = 0;
     for (int i = P; i <= k; i++) {
@@ -114,13 +114,17 @@ void nnue_refresh_from_gamestate(Accumulator *acc, const GameState *pos)
             CLEAR_LSB(piece_bb);
         }
     }
-    nnue_refresh_features(acc, pieces, squares, count, white_ksq, black_ksq);
-    acc->computedAccumulation = 1;
+    for (int c = WHITE; c <= BLACK; c++) {
+        if (mask & (1 << c))
+            nnue_refresh_features(acc, c, pieces, squares, count, king_squares[c]);
+    }
+    acc->computedAccumulation |= mask;
 }
 
-// Applies dp's feature changes on top of parent in one pass; caller must rule out a king
-// move first (that needs a full refresh instead)
-void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp, int white_ksq, int black_ksq)
+// Applies dp's feature changes on top of parent for one perspective; caller must rule out a
+// move of that perspective's king first (that needs a refresh instead)
+void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyPiece *dp, int perspective,
+                       int king_square)
 {
     int removed_pieces[3], removed_squares[3], removed_count = 0;
     int added_pieces[3], added_squares[3], added_count = 0;
@@ -138,9 +142,9 @@ void apply_dirty_piece(Accumulator *acc, const Accumulator *parent, const DirtyP
             added_count++;
         }
     }
-    nnue_apply_features(acc, parent, removed_pieces, removed_squares, removed_count,
-                        added_pieces, added_squares, added_count, white_ksq, black_ksq);
-    acc->computedAccumulation = 1;
+    nnue_apply_features(acc, parent, perspective, removed_pieces, removed_squares, removed_count,
+                        added_pieces, added_squares, added_count, king_square);
+    acc->computedAccumulation |= 1 << perspective;
 }
 
 // Fills dp with the NNUE features that change for this move, mirroring make_move's cases
@@ -212,35 +216,40 @@ int evaluate_from_accumulator(const GameState *pos, const Accumulator *acc)
     return material_count(pos);
 }
 
-// Updates nnue_stack[ply]'s accumulator (incremental from the nearest computed ancestor, or a
-// full refresh on a king move / no computed ancestor) and evaluates it
+// Updates each perspective of nnue_stack[ply]'s accumulator (incremental from its nearest
+// computed ancestor, or a refresh on that side's king move / no computed ancestor) and evaluates it
 int evaluate_at_ply(NNUEdata *nnue_stack, int ply, const GameState *pos)
 {
     Accumulator *acc = &nnue_stack[ply].accumulator;
+    int refresh_mask = 0;
 
-    if (!acc->computedAccumulation) {
-        // Walk back past plies that skipped eval (TT eval or in check), stopping at a king move
+    for (int c = WHITE; c <= BLACK; c++) {
+        int bit = 1 << c;
+        if (acc->computedAccumulation & bit)
+            continue;
+
+        // Walk back past plies that skipped eval (TT eval or in check), stopping at this side's king move
         int ancestor = ply;
-        while (ancestor >= 1 && !nnue_stack[ancestor].accumulator.computedAccumulation) {
+        while (ancestor >= 1 && !(nnue_stack[ancestor].accumulator.computedAccumulation & bit)) {
             const DirtyPiece *dp = &nnue_stack[ancestor].dirtyPiece;
-            if (dp->dirtyNum > 0 && IS_KING(dp->pc[0]))
+            if (dp->dirtyNum > 0 && dp->pc[0] == KING(c))
                 break;
             ancestor--;
         }
 
-        if (nnue_stack[ancestor].accumulator.computedAccumulation) {
-            int white_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[K]);
-            int black_ksq = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[k]);
-            for (int i = ancestor + 1; i <= ply; i++) {
-                apply_dirty_piece(&nnue_stack[i].accumulator, &nnue_stack[i - 1].accumulator,
-                                  &nnue_stack[i].dirtyPiece, white_ksq, black_ksq);
-            }
+        if (!(nnue_stack[ancestor].accumulator.computedAccumulation & bit)) {
+            refresh_mask |= bit;
+            continue;
         }
-        else {
-            nnue_refresh_from_gamestate(acc, pos);
+        int king_square = GET_FIRST_BIT_SQUARE(pos->piece_bitboards[c == WHITE ? K : k]);
+        for (int i = ancestor + 1; i <= ply; i++) {
+            apply_dirty_piece(&nnue_stack[i].accumulator, &nnue_stack[i - 1].accumulator,
+                              &nnue_stack[i].dirtyPiece, c, king_square);
         }
     }
 
+    if (refresh_mask)
+        nnue_refresh_from_gamestate(acc, pos, refresh_mask);
     return evaluate_from_accumulator(pos, acc);
 }
 

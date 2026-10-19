@@ -247,7 +247,7 @@ static void append_changed_indices(const Position *pos, IndexList removed[2],
     const DirtyPiece *dp = &(pos->nnue[0]->dirtyPiece);
     // assert(dp->dirtyNum != 0);
 
-    if (pos->nnue[1]->accumulator.computedAccumulation) {
+    if (pos->nnue[1]->accumulator.computedAccumulation == BOTH_PERSPECTIVES) {
         for (unsigned c = 0; c < 2; c++) {
             reset[c] = dp->pc[0] == (int) KING(c);
             if (reset[c])
@@ -951,19 +951,19 @@ INLINE static void refresh_accumulator(Position *pos)
 #endif
     }
 
-    accumulator->computedAccumulation = 1;
+    accumulator->computedAccumulation = BOTH_PERSPECTIVES;
 }
 
 // Calculate cumulative value using difference calculation if possible
 INLINE static bool update_accumulator(Position *pos)
 {
     Accumulator *accumulator = &(pos->nnue[0]->accumulator);
-    if (accumulator->computedAccumulation)
+    if (accumulator->computedAccumulation == BOTH_PERSPECTIVES)
         return true;
 
     Accumulator *prevAcc;
-    if ((!pos->nnue[1] || !(prevAcc = &pos->nnue[1]->accumulator)->computedAccumulation)
-        && (!pos->nnue[2] || !(prevAcc = &pos->nnue[2]->accumulator)->computedAccumulation))
+    if ((!pos->nnue[1] || (prevAcc = &pos->nnue[1]->accumulator)->computedAccumulation != BOTH_PERSPECTIVES)
+        && (!pos->nnue[2] || (prevAcc = &pos->nnue[2]->accumulator)->computedAccumulation != BOTH_PERSPECTIVES))
         return false;
 
     IndexList removed_indices[2], added_indices[2];
@@ -1043,7 +1043,7 @@ INLINE static bool update_accumulator(Position *pos)
     }
 #endif
 
-    accumulator->computedAccumulation = 1;
+    accumulator->computedAccumulation = BOTH_PERSPECTIVES;
     return true;
 }
 
@@ -1093,37 +1093,33 @@ static void apply_indices_to_half(const int16_t *base_half, int16_t *dst_half,
 #endif
 }
 
-// Batched incremental update from piece/square/king-squares directly, no pieces[]/squares[]
-// array needed. base is the accumulator to start from (usually the parent ply's).
-void nnue_apply_features(Accumulator *acc, const Accumulator *base,
+// Batched incremental update of one perspective from piece/square/king-square directly, no
+// pieces[]/squares[] array needed. base is the accumulator to start from (usually the parent ply's).
+void nnue_apply_features(Accumulator *acc, const Accumulator *base, int perspective,
                          const int *removed_pieces, const int *removed_squares, int removed_count,
                          const int *added_pieces, const int *added_squares, int added_count,
-                         int white_ksq, int black_ksq)
+                         int king_square)
 {
-    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
-    for (unsigned c = 0; c < 2; c++) {
-        unsigned removed_idx[3], added_idx[3];
-        for (int i = 0; i < removed_count; i++)
-            removed_idx[i] = make_index(c, removed_squares[i], removed_pieces[i], ksq[c]);
-        for (int i = 0; i < added_count; i++)
-            added_idx[i] = make_index(c, added_squares[i], added_pieces[i], ksq[c]);
-        apply_indices_to_half(base->accumulation[c], acc->accumulation[c],
-                              removed_idx, removed_count, added_idx, added_count);
-    }
+    int ksq = orient(perspective, king_square);
+    unsigned removed_idx[3], added_idx[3];
+    for (int i = 0; i < removed_count; i++)
+        removed_idx[i] = make_index(perspective, removed_squares[i], removed_pieces[i], ksq);
+    for (int i = 0; i < added_count; i++)
+        added_idx[i] = make_index(perspective, added_squares[i], added_pieces[i], ksq);
+    apply_indices_to_half(base->accumulation[perspective], acc->accumulation[perspective],
+                          removed_idx, removed_count, added_idx, added_count);
 }
 
-// Batched from-scratch refresh from the board's piece list directly, no pieces[]/squares[]
-// array needed.
-void nnue_refresh_features(Accumulator *acc, const int *pieces, const int *squares, int count,
-                           int white_ksq, int black_ksq)
+// Batched from-scratch refresh of one perspective from the board's piece list directly, no
+// pieces[]/squares[] array needed.
+void nnue_refresh_features(Accumulator *acc, int perspective, const int *pieces, const int *squares,
+                           int count, int king_square)
 {
-    int ksq[2] = {orient(white, white_ksq), orient(black, black_ksq)};
-    for (unsigned c = 0; c < 2; c++) {
-        unsigned idx[32];
-        for (int i = 0; i < count; i++)
-            idx[i] = make_index(c, squares[i], pieces[i], ksq[c]);
-        apply_indices_to_half(ft_biases, acc->accumulation[c], NULL, 0, idx, count);
-    }
+    int ksq = orient(perspective, king_square);
+    unsigned idx[32];
+    for (int i = 0; i < count; i++)
+        idx[i] = make_index(perspective, squares[i], pieces[i], ksq);
+    apply_indices_to_half(ft_biases, acc->accumulation[perspective], NULL, 0, idx, count);
 }
 
 // Packs an already-valid accumulator into the input layer for the affine-transform stack.
