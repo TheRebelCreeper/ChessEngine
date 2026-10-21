@@ -167,6 +167,7 @@ void load_fen(GameState *state, const char *fen)
     state->castling_rights = 0;
     state->enpassant_square = none;
     state->half_move_clock = 0;
+    state->plies_from_null = 0;
     state->full_move = 1;
 
     token = strtok(str, DELIMS);

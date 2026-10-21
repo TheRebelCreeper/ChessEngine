@@ -24,6 +24,7 @@ typedef struct gameState {
     unsigned char mailbox[64];
     int enpassant_square;
     int half_move_clock;
+    int plies_from_null;
     int full_move;
 } GameState;
 

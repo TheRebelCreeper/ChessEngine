@@ -62,14 +62,13 @@ void check_time_left(SearchInfo *info)
 
 inline bool is_repetition(const GameState *pos)
 {
-    for (int i = 1; i < pos->half_move_clock; i++) {
-        int index = repetition_index - i;
-        if (index < 0)
-            break;
-        if (repetition_history[index] == pos->key)
+    // Same side to move, at least 4 plies back, without crossing a null move
+    int distance = MIN(pos->half_move_clock, pos->plies_from_null);
+    for (int i = 4; i <= distance && i <= repetition_index; i += 2) {
+        if (repetition_history[repetition_index - i] == pos->key)
             return true;
     }
-    return false; // Detects a single rep
+    return false;
 }
 
 void init_lmr_table()
@@ -167,8 +166,7 @@ int search(int alpha, int beta, int depth, GameState *pos, SearchInfo *info, boo
             return 0;
         }
 
-        // Don't need to search for repetition if halfMoveClock is low
-        if (pos->half_move_clock > 4 && is_repetition(pos)) {
+        if (is_repetition(pos)) {
             info->pv_table_length[ply] = 0;
             return 0;
         }
@@ -446,8 +444,7 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         return 0;
     }
 
-    // Don't need to search for repetition if halfMoveClock is low
-    if (pos->half_move_clock > 4 && is_repetition(pos)) {
+    if (is_repetition(pos)) {
         info->pv_table_length[ply] = 0;
         return 0;
     }
@@ -513,8 +510,10 @@ int qsearch(int alpha, int beta, GameState *pos, SearchInfo *info, bool pv_node)
         compute_dirty_piece(pos, current, &info->nnue_stack[info->ply].dirtyPiece);
         info->nnue_stack[info->ply].accumulator.computedAccumulation = 0;
         prefetch_tt(new_pos.key);
+        repetition_history[++repetition_index] = new_pos.key;
         int score = -qsearch(-beta, -alpha, &new_pos, info, pv_node);
         info->ply--;
+        repetition_index--;
 
         if (info->stopped) {
             return 0;

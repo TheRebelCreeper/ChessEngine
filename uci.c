@@ -67,6 +67,7 @@ void parse_position(char *line, GameState *pos)
     else {
         load_fen(pos, STARTING_FEN);
     }
+    repetition_history[0] = pos->key;
 
     temp = strstr(line, "moves");
     if (temp != NULL) {
@@ -89,12 +90,13 @@ void parse_position(char *line, GameState *pos)
             }
 
             // If the move is a pawn push or capture, reset history list
-            if (GET_MOVE_CAPTURED(move_list.move[idx]) != NO_CAPTURE || piece == P || piece == p) {
+            if (GET_MOVE_CAPTURED(move_list.move[idx]) != NO_CAPTURE || piece == P || piece == p)
                 repetition_index = 0;
-            }
+            else
+                repetition_index++;
 
             // Add the legal move to history
-            repetition_history[repetition_index++] = temp_pos.key;
+            repetition_history[repetition_index] = temp_pos.key;
 
             *pos = temp_pos;
             // Increment temp till the next move
@@ -217,7 +219,6 @@ void parse_go(char *line, GameState *pos)
     else {
         info.depth = depth;
     }
-    repetition_history[repetition_index] = pos->key;
     search_root(pos, &info);
 }
 
